@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Deteco Logística 3.3</title>
+    <title>Deteco Logística 4.0</title>
     
     <!-- LIBRERIAS EXTERNAS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
 
@@ -61,18 +60,8 @@
         }
         
         /* --- ETIQUETA --- */
-        .label-card { 
-            border: 1px solid #d1d5db; 
-            border-radius: 4px; 
-            background: white; 
-            display: flex; 
-            flex-direction: row; 
-            overflow: hidden;
-            position: relative;
-        }
-
+        .label-card { border: 1px solid #d1d5db; border-radius: 4px; background: white; display: flex; flex-direction: row; overflow: hidden; position: relative; }
         .strip-orange { width: 12px; background-color: var(--primary-color); height: 100%; flex-shrink: 0; border-right: 1px solid rgba(0,0,0,0.05); }
-
         .content-main { flex: 1; padding: 8px 12px; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-start; overflow: hidden; }
         .product-name { font-size: 0.85rem; font-weight: 700; color: #374151; line-height: 1.1; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-transform: uppercase; }
         .product-code-wrapper { display: flex; align-items: baseline; gap: 4px; width: 100%; margin: 2px 0; }
@@ -86,19 +75,29 @@
         .logo-box { width: 100%; height: 25px; display: flex; align-items: flex-end; justify-content: center; margin-bottom: 4px; }
         .logo-box img { max-width: 90%; max-height: 100%; object-fit: contain; }
 
-        /* --- VISOR / SCANNER --- */
-        #view-scanner { background: #fff; flex: 1; padding: 20px; display: none; justify-content: center; }
-        .scanner-box { max-width: 500px; width: 100%; }
-        #reader { border-radius: 12px; overflow: hidden; background: #000; margin-bottom: 20px; }
+        /* --- VISOR MANUAL --- */
+        #view-visor { background: #fff; flex: 1; padding: 20px; display: none; justify-content: center; align-items: flex-start; overflow-y: auto; }
+        .visor-box { max-width: 600px; width: 100%; margin-top: 20px; }
         
+        .search-container {
+            display: flex; gap: 10px; margin-bottom: 30px;
+        }
+        .search-input {
+            flex: 1; padding: 15px; border: 2px solid #e5e5e5; border-radius: 12px; font-size: 1.1rem; outline: none; transition: 0.2s;
+        }
+        .search-input:focus { border-color: var(--primary-color); }
+        .search-btn {
+            background: var(--primary-color); color: white; border: none; padding: 0 25px; border-radius: 12px; font-weight: 700; cursor: pointer;
+        }
+
         /* Botón Ficha Técnica */
         .btn-datasheet {
             display: inline-flex; align-items: center; justify-content: center; width: 100%;
             background-color: #0061FE; /* Color Dropbox/Link */
-            color: white; font-weight: 600; padding: 12px; border-radius: 8px;
-            margin-top: 15px; text-decoration: none; transition: background 0.2s;
+            color: white; font-weight: 600; padding: 16px; border-radius: 12px; font-size: 1rem;
+            margin-top: 20px; text-decoration: none; transition: background 0.2s; box-shadow: 0 4px 10px rgba(0,97,254,0.3);
         }
-        .btn-datasheet:hover { background-color: #0050d1; }
+        .btn-datasheet:hover { background-color: #0050d1; transform: translateY(-1px); }
 
         /* UTILIDADES */
         .hidden { display: none !important; }
@@ -106,7 +105,7 @@
             .app-header, .settings-panel, .no-print { display: none !important; }
             .preview-panel { padding: 0; background: white; overflow: visible; height: auto; }
             .page { box-shadow: none; margin: 0; break-after: page; }
-            #view-scanner { display: none; }
+            #view-visor { display: none; }
             @page { margin: 0; }
         }
     </style>
@@ -119,7 +118,7 @@
             <div class="app-title">Deteco <span class="text-orange-600">Pro</span></div>
             <div class="flex bg-gray-100 p-1 rounded-lg">
                 <button onclick="setView('generator')" id="btn-gen" class="ios-btn btn-active-tab">Generador</button>
-                <button onclick="setView('scanner')" id="btn-scan" class="ios-btn btn-ghost">Scanner</button>
+                <button onclick="setView('visor')" id="btn-vis" class="ios-btn btn-ghost">Visor</button>
             </div>
         </div>
         <div class="flex gap-2">
@@ -205,41 +204,60 @@
             </div>
         </div>
 
-        <!-- VISOR: ETIQUETAS -->
+        <!-- VISTA: GENERADOR -->
         <div class="preview-panel" id="view-generator">
             <div id="pages-wrapper"></div>
         </div>
 
-        <!-- VISOR: SCANNER -->
-        <div id="view-scanner">
-            <div class="scanner-box">
-                <h2 class="text-2xl font-bold mb-4 text-center">Escanear Inventario</h2>
-                <div id="reader"></div>
+        <!-- VISTA: VISOR MANUAL -->
+        <div id="view-visor">
+            <div class="visor-box">
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl font-black text-gray-900 mb-2">Visor de Inventario</h2>
+                    <p class="text-gray-500">Ingresa el código o escanea el QR con tu cámara</p>
+                </div>
+
+                <!-- BUSCADOR MANUAL -->
+                <div class="search-container">
+                    <input type="text" id="manualInput" placeholder="Ej: C-01-05" class="search-input" onkeypress="handleEnter(event)">
+                    <button onclick="manualSearch()" class="search-btn"><i class="fa-solid fa-search"></i></button>
+                </div>
                 
-                <!-- TARJETA RESULTADO SCAN -->
-                <div id="scanResult" class="hidden bg-white p-6 rounded-xl border border-orange-200 shadow-lg mt-6 text-center">
-                    <div class="text-xs font-bold text-orange-500 uppercase tracking-widest mb-1">Resultado</div>
-                    <div id="resCode" class="text-3xl font-black text-gray-900 mb-2">CODE</div>
-                    <div id="resName" class="text-lg text-gray-600 mb-4">Nombre del producto</div>
+                <!-- TARJETA RESULTADO -->
+                <div id="scanResult" class="hidden bg-white p-8 rounded-2xl border border-gray-100 shadow-xl text-center">
+                    <div class="text-xs font-bold text-orange-500 uppercase tracking-widest mb-1">Resultado de Búsqueda</div>
                     
-                    <div class="grid grid-cols-2 gap-4 border-t border-b border-gray-100 py-4 mb-4">
+                    <div id="resCode" class="text-4xl font-black text-gray-900 mb-2 tracking-tight">CODE</div>
+                    <div id="resName" class="text-xl text-gray-600 mb-6 font-medium">Nombre del producto</div>
+                    
+                    <div class="grid grid-cols-2 gap-6 border-t border-b border-gray-100 py-6 mb-4">
                         <div>
-                            <div class="text-xs text-gray-400 uppercase">Stock</div>
-                            <div id="resStock" class="text-xl font-bold text-green-600">0</div>
+                            <div class="text-xs text-gray-400 uppercase font-bold tracking-wider mb-1">Stock Disponible</div>
+                            <div id="resStock" class="text-3xl font-black text-green-600">0</div>
                         </div>
                         <div>
-                            <div class="text-xs text-gray-400 uppercase">Ubicación</div>
-                            <div id="resLoc" class="text-xl font-bold text-gray-800">-</div>
+                            <div class="text-xs text-gray-400 uppercase font-bold tracking-wider mb-1">Ubicación</div>
+                            <div id="resLoc" class="text-3xl font-bold text-gray-800">-</div>
                         </div>
                     </div>
 
                     <!-- BOTÓN FICHA TÉCNICA -->
                     <div id="datasheetArea" class="hidden">
                         <a id="btnDatasheet" href="#" target="_blank" class="btn-datasheet">
-                            <i class="fa-solid fa-file-pdf mr-2"></i> Ver Ficha Técnica
+                            <i class="fa-solid fa-file-pdf mr-2"></i> Descargar Ficha Técnica
                         </a>
+                        <p class="text-xs text-gray-400 mt-2">Se abrirá en una nueva pestaña</p>
+                    </div>
+                    
+                    <div id="noDataArea" class="hidden mt-4 text-gray-400 text-sm">
+                        No hay ficha técnica asociada a este producto.
                     </div>
                 </div>
+
+                <div id="scanError" class="hidden bg-red-50 text-red-600 p-4 rounded-xl text-center mt-4 border border-red-100 font-medium">
+                    <i class="fa-solid fa-circle-exclamation mr-2"></i> Producto no encontrado en la base de datos.
+                </div>
+
             </div>
         </div>
     </div>
@@ -249,7 +267,6 @@
         // CONFIGURACIÓN
         const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSM3lTLNPOgrglxy22q_iVTguBWEsuuTVfpHQGXMkItgOXKa04h69EfRqQArlgVR7ZvUB-QfpMXjoGr/pub?output=csv';
         let dbProducts = [];
-        let html5QrcodeScanner = null;
 
         const els = {
             wrapper: document.getElementById('pages-wrapper'),
@@ -263,7 +280,19 @@
 
         window.addEventListener('load', async () => {
             await loadDB();
-            renderLabels();
+            
+            // LÓGICA DE URL INTELIGENTE
+            // Si la URL tiene ?id=XXXX, cambiamos al visor y buscamos automáticamente
+            const urlParams = new URLSearchParams(window.location.search);
+            const searchId = urlParams.get('id');
+            
+            if (searchId) {
+                setView('visor');
+                document.getElementById('manualInput').value = searchId;
+                manualSearch(searchId);
+            } else {
+                renderLabels();
+            }
         });
 
         async function loadDB() {
@@ -287,6 +316,148 @@
             }
         }
 
+        // --- BUSQUEDA MANUAL (VISOR) ---
+        function handleEnter(e) {
+            if(e.key === 'Enter') manualSearch();
+        }
+
+        function manualSearch(codeOverride) {
+            const rawInput = codeOverride || document.getElementById('manualInput').value;
+            if(!rawInput) return;
+            
+            // Limpiamos el input para buscar coincidencias parciales o exactas
+            const searchCode = rawInput.trim().toUpperCase();
+            
+            // Intentamos buscar exacto primero
+            let prod = dbProducts.find(p => p.CODIGO.toUpperCase() === searchCode);
+            
+            // Si no, buscamos si el codigo contiene el texto (para scanners que agregan caracteres extra)
+            if (!prod) {
+                prod = dbProducts.find(p => p.CODIGO.toUpperCase().includes(searchCode));
+            }
+
+            const resDiv = document.getElementById('scanResult');
+            const errDiv = document.getElementById('scanError');
+            const datasDiv = document.getElementById('datasheetArea');
+            const btnData = document.getElementById('btnDatasheet');
+            const noDataDiv = document.getElementById('noDataArea');
+
+            if(prod) {
+                errDiv.classList.add('hidden');
+                resDiv.classList.remove('hidden');
+
+                document.getElementById('resCode').innerText = prod.CODIGO;
+                document.getElementById('resName').innerText = prod.NOMBRE;
+                document.getElementById('resStock').innerText = prod.STOCK || 0;
+                document.getElementById('resLoc').innerText = prod.UBICACION || '-';
+                
+                // LÓGICA FICHA TÉCNICA
+                if(prod.FICHA && prod.FICHA.length > 5) {
+                    datasDiv.classList.remove('hidden');
+                    noDataDiv.classList.add('hidden');
+                    btnData.href = prod.FICHA;
+                } else {
+                    datasDiv.classList.add('hidden');
+                    noDataDiv.classList.remove('hidden');
+                }
+            } else {
+                resDiv.classList.add('hidden');
+                errDiv.classList.remove('hidden');
+            }
+        }
+
+        // --- GENERADOR DE ETIQUETAS ---
+        function renderLabels() {
+            els.wrapper.innerHTML = '';
+            const qty = parseInt(els.qty.value) || 0;
+            const rows = parseInt(els.rows.value) || 5;
+            const cols = parseInt(els.cols.value) || 4;
+            const start = parseInt(els.start.value) || 1;
+            const orientation = els.orientation.value;
+
+            // Ajuste CSS
+            if(orientation === 'landscape') {
+                document.documentElement.style.setProperty('--page-width', '297mm');
+                document.documentElement.style.setProperty('--page-height', '210mm');
+            } else {
+                document.documentElement.style.setProperty('--page-width', '210mm');
+                document.documentElement.style.setProperty('--page-height', '297mm');
+            }
+            
+            const perPage = rows * cols;
+            const pages = Math.ceil(qty / perPage);
+            let count = 0;
+
+            // URL BASE DE TU WEB (Detecta automáticamente donde está alojada)
+            // Esto crea el link inteligente: https://tuweb.com/?id=CODIGO
+            const baseUrl = window.location.href.split('?')[0];
+
+            for(let p=0; p<pages; p++) {
+                const page = document.createElement('div'); page.className = 'page';
+                page.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+                page.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+                page.style.gap = '8px';
+
+                const itemsHere = Math.min(perPage, qty - count);
+                
+                for(let i=0; i<itemsHere; i++) {
+                    const current = start + count;
+                    count++;
+                    
+                    let mainTxt = els.prefix.value;
+                    if(els.checkNum.checked) {
+                        mainTxt = mainTxt.endsWith('-') ? mainTxt + String(current).padStart(2,'0') : mainTxt + '-' + String(current).padStart(2,'0');
+                    }
+
+                    const qrId = `qr-code-${count}`;
+                    
+                    // AQUI ESTA LA MAGIA: EL QR AHORA ES UN LINK
+                    const smartLink = `${baseUrl}?id=${mainTxt}`;
+
+                    const card = document.createElement('div');
+                    card.className = 'label-card';
+                    card.innerHTML = `
+                        <div class="strip-orange"></div>
+                        <div class="content-main">
+                            <div class="product-name" title="${els.name.value}">${els.name.value}</div>
+                            <div class="product-code-wrapper">
+                                <span class="label-cod">COD:</span>
+                                <span class="product-code" style="font-size: ${mainTxt.length > 8 ? '1.4rem' : '1.8rem'}">${mainTxt}</span>
+                            </div>
+                            <div class="product-family">${els.family.value}</div>
+                        </div>
+                        <div class="content-right">
+                            <div class="qr-box" id="${qrId}"></div>
+                            <div class="logo-box">
+                                <img src="logo.png" onerror="this.style.display='none'">
+                            </div>
+                        </div>
+                    `;
+                    page.appendChild(card);
+
+                    new QRCode(card.querySelector(`#${qrId}`), {
+                        text: smartLink, // Usamos el link inteligente en vez de solo texto
+                        width: 60,
+                        height: 60,
+                        colorDark : "#000000",
+                        colorLight : "#ffffff",
+                        correctLevel : QRCode.CorrectLevel.L
+                    });
+                }
+                els.wrapper.appendChild(page);
+            }
+        }
+
+        function setView(view) {
+            document.getElementById('view-generator').style.display = view === 'generator' ? 'flex' : 'none';
+            document.getElementById('view-visor').style.display = view === 'visor' ? 'flex' : 'none';
+            document.getElementById('panel-settings').style.display = view === 'generator' ? 'flex' : 'none';
+            
+            document.getElementById('btn-gen').className = view === 'generator' ? 'ios-btn btn-active-tab' : 'ios-btn btn-ghost';
+            document.getElementById('btn-vis').className = view === 'visor' ? 'ios-btn btn-active-tab' : 'ios-btn btn-ghost';
+        }
+
+        // BUSCADOR SIDEBAR
         els.dbSearch.addEventListener('input', (e) => {
             const val = e.target.value.toLowerCase();
             if(val.length < 2) { els.searchResults.classList.add('hidden'); return; }
@@ -316,121 +487,6 @@
                 });
             } else { els.searchResults.classList.add('hidden'); }
         });
-
-        function renderLabels() {
-            els.wrapper.innerHTML = '';
-            const qty = parseInt(els.qty.value) || 0;
-            const rows = parseInt(els.rows.value) || 5;
-            const cols = parseInt(els.cols.value) || 4;
-            const start = parseInt(els.start.value) || 1;
-            const orientation = els.orientation.value;
-
-            if(orientation === 'landscape') {
-                document.documentElement.style.setProperty('--page-width', '297mm');
-                document.documentElement.style.setProperty('--page-height', '210mm');
-            } else {
-                document.documentElement.style.setProperty('--page-width', '210mm');
-                document.documentElement.style.setProperty('--page-height', '297mm');
-            }
-            
-            const perPage = rows * cols;
-            const pages = Math.ceil(qty / perPage);
-            let count = 0;
-
-            for(let p=0; p<pages; p++) {
-                const page = document.createElement('div'); page.className = 'page';
-                page.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
-                page.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
-                page.style.gap = '8px';
-
-                const itemsHere = Math.min(perPage, qty - count);
-                
-                for(let i=0; i<itemsHere; i++) {
-                    const current = start + count;
-                    count++;
-                    
-                    let mainTxt = els.prefix.value;
-                    if(els.checkNum.checked) {
-                        mainTxt = mainTxt.endsWith('-') ? mainTxt + String(current).padStart(2,'0') : mainTxt + '-' + String(current).padStart(2,'0');
-                    }
-
-                    const qrId = `qr-code-${count}`;
-
-                    const card = document.createElement('div');
-                    card.className = 'label-card';
-                    card.innerHTML = `
-                        <div class="strip-orange"></div>
-                        <div class="content-main">
-                            <div class="product-name" title="${els.name.value}">${els.name.value}</div>
-                            <div class="product-code-wrapper">
-                                <span class="label-cod">COD:</span>
-                                <span class="product-code" style="font-size: ${mainTxt.length > 8 ? '1.4rem' : '1.8rem'}">${mainTxt}</span>
-                            </div>
-                            <div class="product-family">${els.family.value}</div>
-                        </div>
-                        <div class="content-right">
-                            <div class="qr-box" id="${qrId}"></div>
-                            <div class="logo-box">
-                                <img src="logo.png" onerror="this.style.display='none'">
-                            </div>
-                        </div>
-                    `;
-                    page.appendChild(card);
-
-                    new QRCode(card.querySelector(`#${qrId}`), {
-                        text: mainTxt,
-                        width: 60,
-                        height: 60,
-                        colorDark : "#000000",
-                        colorLight : "#ffffff",
-                        correctLevel : QRCode.CorrectLevel.L
-                    });
-                }
-                els.wrapper.appendChild(page);
-            }
-        }
-
-        function setView(view) {
-            document.getElementById('view-generator').style.display = view === 'generator' ? 'flex' : 'none';
-            document.getElementById('view-scanner').style.display = view === 'scanner' ? 'flex' : 'none';
-            document.getElementById('panel-settings').style.display = view === 'generator' ? 'flex' : 'none';
-            
-            document.getElementById('btn-gen').className = view === 'generator' ? 'ios-btn btn-active-tab' : 'ios-btn btn-ghost';
-            document.getElementById('btn-scan').className = view === 'scanner' ? 'ios-btn btn-active-tab' : 'ios-btn btn-ghost';
-
-            if(view === 'scanner' && !html5QrcodeScanner) {
-                html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
-                html5QrcodeScanner.render((txt) => {
-                    const prod = dbProducts.find(p => p.CODIGO === txt);
-                    const resDiv = document.getElementById('scanResult');
-                    const datasDiv = document.getElementById('datasheetArea');
-                    const btnData = document.getElementById('btnDatasheet');
-                    
-                    resDiv.classList.remove('hidden');
-                    
-                    if(prod) {
-                        document.getElementById('resCode').innerText = prod.CODIGO;
-                        document.getElementById('resName').innerText = prod.NOMBRE;
-                        document.getElementById('resStock').innerText = prod.STOCK || 0;
-                        document.getElementById('resLoc').innerText = prod.UBICACION || '-';
-                        
-                        // LÓGICA FICHA TÉCNICA
-                        if(prod.FICHA && prod.FICHA.length > 5) {
-                            datasDiv.classList.remove('hidden');
-                            btnData.href = prod.FICHA;
-                        } else {
-                            datasDiv.classList.add('hidden');
-                        }
-
-                    } else {
-                        document.getElementById('resCode').innerText = txt;
-                        document.getElementById('resName').innerText = "Producto no encontrado";
-                        document.getElementById('resStock').innerText = "-";
-                        datasDiv.classList.add('hidden');
-                    }
-                });
-            }
-        }
 
         function downloadPDF() {
             const el = els.wrapper;
