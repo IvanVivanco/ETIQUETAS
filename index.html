@@ -204,7 +204,8 @@
     <!-- PANTALLA DE CARGA CON LOGO -->
     <div id="loading-screen">
         <div class="splash-logo-container">
-            <img src="Logo DETECO_2_page-0001.jpg" alt="Logo Deteco" class="splash-logo-img" 
+            <!-- SE ACTUALIZÓ A logo.png -->
+            <img src="logo.png" alt="Logo Deteco" class="splash-logo-img" 
                  onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjRjI2NTIyIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTIyIDEyaC00bC0zIDkgTDkgM2wtMyA5SDIiLz48L3N2Zz4='">
         </div>
         <div class="loading-text">DETECO IC S.A.</div>
@@ -221,7 +222,8 @@
                     <div class="personal-logo-wrapper" title="Clic para cambiar logo">
                         <input type="file" id="appLogoInput" accept="image/*">
                         <div class="personal-logo-display" id="appLogoDisplay">
-                            <img src="Logo DETECO_2_page-0001.jpg" alt="Logo" 
+                             <!-- SE ACTUALIZÓ A logo.png -->
+                            <img src="logo.png" alt="Logo" 
                                  onerror="this.parentElement.innerHTML='IV'">
                         </div>
                     </div>
@@ -304,7 +306,8 @@
             loadingScreen: document.getElementById('loading-screen')
         };
 
-        const LOGO_FILENAME = 'Logo DETECO_2_page-0001.jpg';
+        // SE ACTUALIZÓ LA CONSTANTE PARA USAR EL NUEVO ARCHIVO
+        const LOGO_FILENAME = 'logo.png';
         let currentLogoSrc = LOGO_FILENAME; 
 
         window.addEventListener('load', () => {
