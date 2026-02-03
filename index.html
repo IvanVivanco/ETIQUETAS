@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Deteco Logística 4.7</title>
+    <title>Deteco Logística 4.8</title>
     
     <!-- LIBRERIAS EXTERNAS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -80,19 +80,17 @@
         /* COLUMNA IZQUIERDA */
         .left-col {
             flex: 1;
-            /* Padding aumentado para dar aire arriba y abajo */
             padding: 18px 14px; 
             display: flex;
             flex-direction: column;
             overflow: hidden;
         }
         
-        /* Bloque Superior: Nombre + Codigo Producto */
         .header-block {
             display: flex;
             flex-direction: column;
-            gap: 4px; /* Separación entre Nombre y SKU */
-            margin-bottom: 8px; /* Separación con el número gigante */
+            gap: 4px; 
+            margin-bottom: 8px; 
         }
 
         .product-name {
@@ -115,12 +113,11 @@
         .sku-label { font-size: 0.65rem; color: #6b7280; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
         .sku-value { font-weight: 700; color: #374151; }
 
-        /* Bloque Central: NUMERO ORGANIZADOR GIGANTE */
         .organizer-block { 
             flex: 1;
             display: flex; 
-            align-items: center; /* Centrado Vertical */
-            justify-content: flex-start; /* Alineado izq segun croquis */
+            align-items: center; 
+            justify-content: flex-start; 
             padding: 4px 0;
         }
 
@@ -131,12 +128,11 @@
             letter-spacing: -1px; 
         }
         
-        /* Bloque Inferior: Familia */
         .product-family {
             font-weight: 600;
             color: #4b5563;
             text-transform: uppercase;
-            padding-top: 8px; /* Aire arriba de la familia */
+            padding-top: 8px; 
             border-top: 1px solid transparent;
         }
 
@@ -325,21 +321,31 @@
                     <button onclick="manualSearch()" class="search-btn"><i class="fa-solid fa-search"></i></button>
                 </div>
                 
-                <div id="scanResult" class="hidden bg-white p-8 rounded-2xl border border-gray-100 shadow-xl text-center">
-                    <div class="text-xs font-bold text-orange-500 uppercase tracking-widest mb-1">Resultado</div>
+                <div id="scanResult" class="hidden bg-white p-8 pb-4 rounded-2xl border border-gray-100 shadow-xl text-center relative">
+                    <!-- LOGO CORPORATIVO (ESQUINA SUPERIOR DERECHA) -->
+                    <img src="Logo DETECO_2_page-0001.jpg" class="absolute top-4 right-4 w-16 h-auto object-contain opacity-80" onerror="this.style.display='none'">
+
+                    <div class="text-xs font-bold text-orange-500 uppercase tracking-widest mb-1 mt-2">Resultado</div>
                     <div id="resCode" class="text-4xl font-black text-gray-900 mb-2 tracking-tight">CODE</div>
                     <div id="resName" class="text-xl text-gray-600 mb-6 font-medium">Nombre del producto</div>
+                    
                     <div class="grid grid-cols-2 gap-6 border-t border-b border-gray-100 py-6 mb-4">
                         <div><div class="text-xs text-gray-400 uppercase font-bold tracking-wider mb-1">Stock</div><div id="resStock" class="text-3xl font-black text-green-600">0</div></div>
-                        <!-- CAMBIO AQUI: TITULO ORGANIZADOR -->
                         <div><div class="text-xs text-gray-400 uppercase font-bold tracking-wider mb-1">ORGANIZADOR</div><div id="resLoc" class="text-3xl font-bold text-gray-800">-</div></div>
                     </div>
+                    
                     <div id="datasheetArea" class="hidden">
                         <a id="btnDatasheet" href="#" target="_blank" class="btn-datasheet"><i class="fa-solid fa-file-pdf mr-2"></i> Descargar Ficha Técnica</a>
-                        <p class="text-xs text-gray-400 mt-2">Se abrirá en una nueva pestaña</p>
+                        <p class="text-xs text-gray-400 mt-2 mb-4">Se abrirá en una nueva pestaña</p>
                     </div>
-                    <div id="noDataArea" class="hidden mt-4 text-gray-400 text-sm">No hay ficha técnica disponible.</div>
+                    <div id="noDataArea" class="hidden mt-4 mb-4 text-gray-400 text-sm">No hay ficha técnica disponible.</div>
+
+                    <!-- CRÉDITOS (PARTE INFERIOR) -->
+                    <div class="border-t border-gray-100 pt-3 mt-2">
+                        <p class="text-[10px] text-gray-300 font-medium">Programado y Creado por Iván Vivanco</p>
+                    </div>
                 </div>
+
                 <div id="scanError" class="hidden bg-red-50 text-red-600 p-4 rounded-xl text-center mt-4 border border-red-100 font-medium">
                     <i class="fa-solid fa-circle-exclamation mr-2"></i> Producto no encontrado.
                 </div>
@@ -355,19 +361,10 @@
         const els = {
             wrapper: document.getElementById('pages-wrapper'),
             qty: document.getElementById('qtyInput'), rows: document.getElementById('rowsInput'), cols: document.getElementById('colsInput'),
-            
-            // DATOS DE CAJA
             prefix: document.getElementById('prefixInput'), start: document.getElementById('startInput'), checkNum: document.getElementById('checkNumbering'),
-            
-            // DATOS DE PRODUCTO
-            productCode: document.getElementById('productCodeInput'), 
-            name: document.getElementById('nameInput'), 
-            family: document.getElementById('familyInput'),
-            
+            productCode: document.getElementById('productCodeInput'), name: document.getElementById('nameInput'), family: document.getElementById('familyInput'),
             orientation: document.getElementById('orientationInput'),
             dbSearch: document.getElementById('dbSearch'), searchResults: document.getElementById('searchResults'),
-            
-            // Sliders
             sizeName: document.getElementById('sizeName'), sizeSku: document.getElementById('sizeSku'), sizeOrg: document.getElementById('sizeOrg'), sizeFamily: document.getElementById('sizeFamily'),
             valSizeName: document.getElementById('valSizeName'), valSizeSku: document.getElementById('valSizeSku'), valSizeOrg: document.getElementById('valSizeOrg'), valSizeFamily: document.getElementById('valSizeFamily')
         };
@@ -425,10 +422,7 @@
                 document.getElementById('resCode').innerText = prod.CODIGO;
                 document.getElementById('resName').innerText = prod.NOMBRE;
                 document.getElementById('resStock').innerText = prod.STOCK || 0;
-                
-                // LOGICA ORGANIZADOR: Busca columna ORGANIZADOR, si no existe, usa UBICACION
                 document.getElementById('resLoc').innerText = prod.ORGANIZADOR || prod.UBICACION || '-';
-                
                 if(prod.FICHA && prod.FICHA.length > 5) {
                     datasDiv.classList.remove('hidden'); noDataDiv.classList.add('hidden'); btnData.href = prod.FICHA;
                 } else {
@@ -447,7 +441,6 @@
             const start = parseInt(els.start.value) || 1;
             const orientation = els.orientation.value;
             
-            // Tamaños desde Sliders
             const sName = els.sizeName.value + 'px';
             const sSku = els.sizeSku.value + 'px';
             const sOrg = els.sizeOrg.value + 'px';
@@ -482,12 +475,10 @@
                     const current = start + count;
                     count++;
                     
-                    // Lógica Número Organizador (179...)
                     let prefix = els.prefix.value;
                     let orgNum = prefix ? `${prefix}${current}` : `${current}`;
                     if(!els.checkNum.checked) orgNum = prefix ? prefix : String(start);
 
-                    // Lógica QR (Apunta al código del producto)
                     const productCode = els.productCode.value;
                     const smartLink = `${baseUrl}?id=${productCode}`;
                     const qrId = `qr-code-${count}`;
@@ -517,12 +508,7 @@
                         </div>
                     `;
                     page.appendChild(card);
-                    new QRCode(card.querySelector(`#${qrId}`), { 
-                        text: smartLink, 
-                        width: 300, 
-                        height: 300, 
-                        correctLevel: QRCode.CorrectLevel.H 
-                    });
+                    new QRCode(card.querySelector(`#${qrId}`), { text: smartLink, width: 300, height: 300, correctLevel: QRCode.CorrectLevel.H });
                 }
                 els.wrapper.appendChild(page);
             }
@@ -548,13 +534,8 @@
                     div.className = "p-3 hover:bg-orange-50 cursor-pointer border-b text-sm flex justify-between";
                     div.innerHTML = `<span><strong>${p.CODIGO}</strong></span> <span class="text-gray-500 truncate ml-2 text-xs">${p.NOMBRE}</span>`;
                     div.onclick = () => {
-                        // AQUÍ LLENAMOS LOS CAMPOS POR SEPARADO
-                        els.productCode.value = p.CODIGO; // Codigo Producto
-                        els.name.value = p.NOMBRE;
-                        els.family.value = p.CATEGORIA || '';
-                        // NO TOCAMOS EL NUMERO DE SECUENCIA (Organizador)
-                        els.searchResults.classList.add('hidden'); 
-                        els.dbSearch.value = '';
+                        els.productCode.value = p.CODIGO; els.name.value = p.NOMBRE; els.family.value = p.CATEGORIA || '';
+                        els.searchResults.classList.add('hidden'); els.dbSearch.value = '';
                         renderLabels();
                     };
                     els.searchResults.appendChild(div);
