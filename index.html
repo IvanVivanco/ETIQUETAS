@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Deteco Logística 4.9.3</title>
+    <title>Deteco DTX 5.0</title>
     
     <!-- LIBRERIAS EXTERNAS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -16,6 +16,7 @@
         :root {
             --ios-bg: #F5F5F7;
             --primary-color: #F26522; /* Naranja Deteco */
+            --primary-light: #FFF7ED; /* Naranja muy suave para fondos */
             --primary-hover: #d14d10; /* Naranja Oscuro para Hover */
             --page-width: 210mm;
             --page-height: 297mm;
@@ -28,11 +29,21 @@
         .app-title { font-weight: 800; font-size: 1.1rem; color: #000; letter-spacing: -0.5px; }
         
         .ios-btn { padding: 8px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; border: none; }
+        
+        /* BOTONES DE PESTAÑAS (MODIFICADO) */
+        .btn-ghost { background: transparent; color: #86868b; }
+        .btn-ghost:hover { background: #f5f5f7; color: #1d1d1f; }
+        
+        .btn-active-tab { 
+            background: var(--primary-light); /* Fondo Naranja Suave */
+            color: var(--primary-color);      /* Texto Naranja Corporativo */
+            font-weight: 700; 
+            border: 1px solid rgba(242, 101, 34, 0.1); /* Borde sutil */
+        }
+
         .btn-primary { background: #000; color: white; }
         .btn-primary:hover { background: #333; }
         .btn-secondary { background: #e5e5e5; color: #000; }
-        .btn-ghost { background: transparent; color: #86868b; }
-        .btn-active-tab { background: #f5f5f7; color: #000; font-weight: 700; }
 
         /* --- LAYOUT & SETTINGS --- */
         .main-layout { display: flex; flex: 1; overflow: hidden; }
@@ -180,10 +191,10 @@
         .search-input:focus { border-color: var(--primary-color); }
         .search-btn { background: var(--primary-color); color: white; border: none; padding: 0 25px; border-radius: 12px; font-weight: 700; cursor: pointer; }
         
-        /* BOTON FICHA TÉCNICA (MODIFICADO A NARANJA) */
+        /* BOTON FICHA TÉCNICA */
         .btn-datasheet { 
             display: inline-flex; align-items: center; justify-content: center; width: 100%; 
-            background-color: var(--primary-color); /* AHORA ES NARANJA */
+            background-color: var(--primary-color); 
             color: white; font-weight: 700; padding: 16px; border-radius: 12px; font-size: 1rem; 
             margin-top: 20px; text-decoration: none; transition: background 0.2s; 
             box-shadow: 0 4px 10px rgba(242, 101, 34, 0.3); 
@@ -205,7 +216,10 @@
     <!-- HEADER -->
     <div class="app-header no-print">
         <div class="flex items-center gap-4">
-            <div class="app-title">Deteco <span class="text-orange-600">Pro</span></div>
+            <!-- NOMBRE CAMBIADO A DTX -->
+            <div class="app-title">Deteco <span class="text-orange-600">DTX</span></div>
+            
+            <!-- PESTAÑAS CON COLOR CORPORATIVO -->
             <div class="flex bg-gray-100 p-1 rounded-lg">
                 <button onclick="setView('generator')" id="btn-gen" class="ios-btn btn-active-tab">Generador</button>
                 <button onclick="setView('visor')" id="btn-vis" class="ios-btn btn-ghost">Visor</button>
