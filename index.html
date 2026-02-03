@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Deteco Logística 4.9.2</title>
+    <title>Deteco Logística 4.9.3</title>
     
     <!-- LIBRERIAS EXTERNAS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -16,6 +16,7 @@
         :root {
             --ios-bg: #F5F5F7;
             --primary-color: #F26522; /* Naranja Deteco */
+            --primary-hover: #d14d10; /* Naranja Oscuro para Hover */
             --page-width: 210mm;
             --page-height: 297mm;
         }
@@ -179,8 +180,15 @@
         .search-input:focus { border-color: var(--primary-color); }
         .search-btn { background: var(--primary-color); color: white; border: none; padding: 0 25px; border-radius: 12px; font-weight: 700; cursor: pointer; }
         
-        .btn-datasheet { display: inline-flex; align-items: center; justify-content: center; width: 100%; background-color: #0061FE; color: white; font-weight: 600; padding: 16px; border-radius: 12px; font-size: 1rem; margin-top: 20px; text-decoration: none; transition: background 0.2s; box-shadow: 0 4px 10px rgba(0,97,254,0.3); }
-        .btn-datasheet:hover { background-color: #0050d1; transform: translateY(-1px); }
+        /* BOTON FICHA TÉCNICA (MODIFICADO A NARANJA) */
+        .btn-datasheet { 
+            display: inline-flex; align-items: center; justify-content: center; width: 100%; 
+            background-color: var(--primary-color); /* AHORA ES NARANJA */
+            color: white; font-weight: 700; padding: 16px; border-radius: 12px; font-size: 1rem; 
+            margin-top: 20px; text-decoration: none; transition: background 0.2s; 
+            box-shadow: 0 4px 10px rgba(242, 101, 34, 0.3); 
+        }
+        .btn-datasheet:hover { background-color: var(--primary-hover); transform: translateY(-1px); }
 
         .hidden { display: none !important; }
         @media print {
@@ -322,8 +330,10 @@
                 </div>
                 
                 <div id="scanResult" class="hidden bg-white p-8 pb-4 rounded-2xl border border-gray-100 shadow-xl text-center relative">
-                    <!-- LOGO CORPORATIVO (AMPLIADO Y RESPONSIVO) -->
-                    <img src="Logo DETECO_2_page-0001.jpg" class="absolute top-4 left-4 w-24 sm:w-32 md:w-40 h-auto object-contain opacity-80" onerror="this.style.display='none'">
+                    <!-- LOGO CORPORATIVO CON AJUSTE PC -->
+                    <img src="Logo DETECO_2_page-0001.jpg" 
+                         class="absolute top-4 left-4 w-24 sm:w-32 md:w-48 lg:w-60 h-auto object-contain opacity-90 transition-all duration-300" 
+                         onerror="this.style.display='none'">
 
                     <div class="text-xs font-bold text-orange-500 uppercase tracking-widest mb-1 mt-2">Resultado</div>
                     <div id="resCode" class="text-4xl font-black text-gray-900 mb-2 tracking-tight">CODE</div>
