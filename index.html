@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Deteco Logística 4.0</title>
+    <title>Deteco Logística 4.7</title>
     
     <!-- LIBRERIAS EXTERNAS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 
     <style>
         :root {
@@ -35,7 +35,7 @@
 
         /* --- LAYOUT & SETTINGS --- */
         .main-layout { display: flex; flex: 1; overflow: hidden; }
-        .settings-panel { width: 320px; background: #fff; border-right: 1px solid #e5e5e5; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 24px; flex-shrink: 0; }
+        .settings-panel { width: 340px; background: #fff; border-right: 1px solid #e5e5e5; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 24px; flex-shrink: 0; }
         
         .control-group { display: flex; flex-direction: column; gap: 12px; }
         .group-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #86868b; letter-spacing: 0.5px; }
@@ -44,6 +44,11 @@
         .ios-input { background: #f5f5f7; border: 1px solid transparent; border-radius: 8px; padding: 8px 12px; font-size: 0.9rem; width: 100%; transition: 0.2s; text-align: right; }
         .ios-input:focus { background: #fff; border-color: var(--primary-color); outline: none; }
         
+        /* Sliders */
+        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%; background: var(--primary-color); cursor: pointer; margin-top: -6px; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: #e5e5e5; border-radius: 2px; }
+
         /* --- PREVIEW AREA --- */
         .preview-panel { flex: 1; background: #e9e9eb; padding: 40px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; }
         .page { 
@@ -60,46 +65,127 @@
         }
         
         /* --- ETIQUETA --- */
-        .label-card { border: 1px solid #d1d5db; border-radius: 4px; background: white; display: flex; flex-direction: row; overflow: hidden; position: relative; }
-        .strip-orange { width: 12px; background-color: var(--primary-color); height: 100%; flex-shrink: 0; border-right: 1px solid rgba(0,0,0,0.05); }
-        .content-main { flex: 1; padding: 8px 12px; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-start; overflow: hidden; }
-        .product-name { font-size: 0.85rem; font-weight: 700; color: #374151; line-height: 1.1; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-transform: uppercase; }
-        .product-code-wrapper { display: flex; align-items: baseline; gap: 4px; width: 100%; margin: 2px 0; }
-        .label-cod { font-size: 1rem; font-weight: 600; color: #6b7280; }
-        .product-code { font-size: 1.8rem; font-weight: 900; color: #111827; letter-spacing: -1px; line-height: 1; }
-        .product-family { font-size: 0.75rem; font-weight: 600; color: #4b5563; border: 1px solid #e5e7eb; padding: 2px 8px; border-radius: 12px; background-color: #f9fafb; text-transform: uppercase; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .label-card { 
+            border: 1px solid #d1d5db; 
+            border-radius: 6px; 
+            background: white; 
+            display: flex; 
+            flex-direction: row; 
+            overflow: hidden;
+            position: relative;
+        }
 
-        .content-right { width: 32%; padding: 4px; display: flex; flex-direction: column; align-items: center; border-left: 1px solid #f3f4f6; }
-        .qr-box { flex: 1; width: 100%; display: flex; align-items: center; justify-content: center; padding: 2px; }
-        .qr-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
-        .logo-box { width: 100%; height: 25px; display: flex; align-items: flex-end; justify-content: center; margin-bottom: 4px; }
-        .logo-box img { max-width: 90%; max-height: 100%; object-fit: contain; }
+        .strip-orange { width: 14px; background-color: var(--primary-color); height: 100%; flex-shrink: 0; }
 
-        /* --- VISOR MANUAL --- */
+        /* COLUMNA IZQUIERDA */
+        .left-col {
+            flex: 1;
+            /* Padding aumentado para dar aire arriba y abajo */
+            padding: 18px 14px; 
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        /* Bloque Superior: Nombre + Codigo Producto */
+        .header-block {
+            display: flex;
+            flex-direction: column;
+            gap: 4px; /* Separación entre Nombre y SKU */
+            margin-bottom: 8px; /* Separación con el número gigante */
+        }
+
+        .product-name {
+            font-weight: 800;
+            color: #111827;
+            text-transform: uppercase;
+            line-height: 1.1;
+            width: 100%;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2; 
+            -webkit-box-orient: vertical;
+        }
+
+        .product-sku-row {
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+        }
+        .sku-label { font-size: 0.65rem; color: #6b7280; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+        .sku-value { font-weight: 700; color: #374151; }
+
+        /* Bloque Central: NUMERO ORGANIZADOR GIGANTE */
+        .organizer-block { 
+            flex: 1;
+            display: flex; 
+            align-items: center; /* Centrado Vertical */
+            justify-content: flex-start; /* Alineado izq segun croquis */
+            padding: 4px 0;
+        }
+
+        .organizer-number { 
+            font-weight: 900; 
+            color: #000; 
+            line-height: 1; 
+            letter-spacing: -1px; 
+        }
+        
+        /* Bloque Inferior: Familia */
+        .product-family {
+            font-weight: 600;
+            color: #4b5563;
+            text-transform: uppercase;
+            padding-top: 8px; /* Aire arriba de la familia */
+            border-top: 1px solid transparent;
+        }
+
+        /* COLUMNA DERECHA */
+        .right-col {
+            width: 35%;
+            border-left: 1px solid #f3f4f6;
+            display: flex;
+            flex-direction: column;
+            padding: 6px;
+        }
+
+        .qr-container {
+            flex: 1;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2px;
+            overflow: hidden;
+        }
+
+        .qr-container img, .qr-container canvas {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: contain;
+        }
+
+        .logo-container {
+            height: 24px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            padding-bottom: 2px;
+            margin-top: 6px;
+        }
+        .logo-container img { max-width: 90%; max-height: 100%; object-fit: contain; }
+
+        /* --- VISOR --- */
         #view-visor { background: #fff; flex: 1; padding: 20px; display: none; justify-content: center; align-items: flex-start; overflow-y: auto; }
         .visor-box { max-width: 600px; width: 100%; margin-top: 20px; }
-        
-        .search-container {
-            display: flex; gap: 10px; margin-bottom: 30px;
-        }
-        .search-input {
-            flex: 1; padding: 15px; border: 2px solid #e5e5e5; border-radius: 12px; font-size: 1.1rem; outline: none; transition: 0.2s;
-        }
+        .search-container { display: flex; gap: 10px; margin-bottom: 30px; }
+        .search-input { flex: 1; padding: 15px; border: 2px solid #e5e5e5; border-radius: 12px; font-size: 1.1rem; outline: none; transition: 0.2s; }
         .search-input:focus { border-color: var(--primary-color); }
-        .search-btn {
-            background: var(--primary-color); color: white; border: none; padding: 0 25px; border-radius: 12px; font-weight: 700; cursor: pointer;
-        }
-
-        /* Botón Ficha Técnica */
-        .btn-datasheet {
-            display: inline-flex; align-items: center; justify-content: center; width: 100%;
-            background-color: #0061FE; /* Color Dropbox/Link */
-            color: white; font-weight: 600; padding: 16px; border-radius: 12px; font-size: 1rem;
-            margin-top: 20px; text-decoration: none; transition: background 0.2s; box-shadow: 0 4px 10px rgba(0,97,254,0.3);
-        }
+        .search-btn { background: var(--primary-color); color: white; border: none; padding: 0 25px; border-radius: 12px; font-weight: 700; cursor: pointer; }
+        
+        .btn-datasheet { display: inline-flex; align-items: center; justify-content: center; width: 100%; background-color: #0061FE; color: white; font-weight: 600; padding: 16px; border-radius: 12px; font-size: 1rem; margin-top: 20px; text-decoration: none; transition: background 0.2s; box-shadow: 0 4px 10px rgba(0,97,254,0.3); }
         .btn-datasheet:hover { background-color: #0050d1; transform: translateY(-1px); }
 
-        /* UTILIDADES */
         .hidden { display: none !important; }
         @media print {
             .app-header, .settings-panel, .no-print { display: none !important; }
@@ -133,7 +219,7 @@
             
             <!-- BUSCADOR -->
             <div class="control-group">
-                <div class="group-label">Base de Datos (Excel)</div>
+                <div class="group-label">Base de Datos</div>
                 <div class="relative">
                     <i class="fa-solid fa-search absolute left-3 top-2.5 text-gray-400 text-xs"></i>
                     <input type="text" id="dbSearch" placeholder="Buscar producto..." class="ios-input pl-8 text-left bg-white border-gray-200">
@@ -142,32 +228,59 @@
                 <div id="dbStatus" class="text-[10px] text-gray-400 text-right">Conectando...</div>
             </div>
 
-            <!-- CONTENIDO ETIQUETA -->
-            <div class="control-group">
-                <div class="group-label">Datos Etiqueta</div>
-                <div class="input-row">
-                    <span class="text-xs font-medium">Código</span>
-                    <input type="text" id="prefixInput" value="C-01" class="ios-input font-bold">
-                </div>
-                <div class="input-row">
-                    <span class="text-xs font-medium">Nombre</span>
-                    <input type="text" id="nameInput" value="PRODUCTO GENÉRICO" class="ios-input">
-                </div>
-                <div class="input-row">
-                    <span class="text-xs font-medium">Familia</span>
-                    <input type="text" id="familyInput" value="REPUESTOS" class="ios-input">
+            <!-- CONTROLES DE TAMAÑO -->
+            <div class="control-group bg-gray-50 p-3 rounded-lg border border-gray-100">
+                <div class="group-label text-orange-600 mb-2">Ajuste de Tamaños</div>
+                <div class="flex flex-col gap-3">
+                    <div>
+                        <div class="flex justify-between text-xs mb-1"><span>Nombre Producto</span> <span id="valSizeName" class="font-bold">20px</span></div>
+                        <input type="range" id="sizeName" min="10" max="60" value="20" step="1">
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs mb-1"><span>Cód. Producto (Peq)</span> <span id="valSizeSku" class="font-bold">12px</span></div>
+                        <input type="range" id="sizeSku" min="8" max="24" value="12" step="1">
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs mb-1"><span>Organizador (Gde)</span> <span id="valSizeOrg" class="font-bold">40px</span></div>
+                        <input type="range" id="sizeOrg" min="20" max="120" value="40" step="1">
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs mb-1"><span>Familia</span> <span id="valSizeFamily" class="font-bold">10px</span></div>
+                        <input type="range" id="sizeFamily" min="8" max="30" value="10" step="1">
+                    </div>
                 </div>
             </div>
 
-            <!-- SECUENCIA -->
+            <!-- CONTENIDO ETIQUETA -->
             <div class="control-group">
-                <div class="group-label">Secuencia</div>
+                <div class="group-label">Datos Producto</div>
                 <div class="input-row">
-                    <span class="text-xs font-medium">Inicio</span>
-                    <input type="number" id="startInput" value="1" class="ios-input w-20">
-                    <label class="flex items-center gap-2 cursor-pointer">
+                    <span class="text-xs font-medium w-20">Cód. Prod.</span>
+                    <input type="text" id="productCodeInput" value="C-01-05" class="ios-input">
+                </div>
+                <div class="input-row">
+                    <span class="text-xs font-medium w-20">Nombre</span>
+                    <input type="text" id="nameInput" value="GUANTES MULTIFLEX" class="ios-input">
+                </div>
+                <div class="input-row">
+                    <span class="text-xs font-medium w-20">Familia</span>
+                    <input type="text" id="familyInput" value="EPP" class="ios-input">
+                </div>
+            </div>
+
+            <!-- SECUENCIA ORGANIZADOR -->
+            <div class="control-group">
+                <div class="group-label">Secuencia Organizador</div>
+                <div class="input-row">
+                    <span class="text-xs font-medium w-20">Prefijo</span>
+                    <input type="text" id="prefixInput" placeholder="(Opcional)" class="ios-input w-20">
+                </div>
+                <div class="input-row">
+                    <span class="text-xs font-medium w-20">Inicio N°</span>
+                    <input type="number" id="startInput" value="179" class="ios-input font-bold text-lg w-20">
+                    <label class="flex items-center gap-2 cursor-pointer ml-2">
                         <input type="checkbox" id="checkNumbering" checked class="w-4 h-4 accent-orange-500">
-                        <span class="text-xs">Auto-numerar</span>
+                        <span class="text-xs">Auto</span>
                     </label>
                 </div>
             </div>
@@ -182,20 +295,10 @@
                         <option value="landscape">Horizontal</option>
                     </select>
                 </div>
-
                 <div class="grid grid-cols-3 gap-2">
-                    <div>
-                        <span class="text-[10px] text-gray-400 block">Total</span>
-                        <input type="number" id="qtyInput" value="20" class="ios-input text-center">
-                    </div>
-                    <div>
-                        <span class="text-[10px] text-gray-400 block">Filas</span>
-                        <input type="number" id="rowsInput" value="5" class="ios-input text-center">
-                    </div>
-                    <div>
-                        <span class="text-[10px] text-gray-400 block">Cols</span>
-                        <input type="number" id="colsInput" value="4" class="ios-input text-center">
-                    </div>
+                    <input type="number" id="qtyInput" value="20" class="ios-input text-center" title="Total">
+                    <input type="number" id="rowsInput" value="5" class="ios-input text-center" title="Filas">
+                    <input type="number" id="colsInput" value="4" class="ios-input text-center" title="Columnas">
                 </div>
             </div>
             
@@ -214,78 +317,65 @@
             <div class="visor-box">
                 <div class="text-center mb-8">
                     <h2 class="text-3xl font-black text-gray-900 mb-2">Visor de Inventario</h2>
-                    <p class="text-gray-500">Ingresa el código o escanea el QR con tu cámara</p>
+                    <p class="text-gray-500">Ingresa el CÓDIGO DEL PRODUCTO para ver detalles</p>
                 </div>
 
-                <!-- BUSCADOR MANUAL -->
                 <div class="search-container">
                     <input type="text" id="manualInput" placeholder="Ej: C-01-05" class="search-input" onkeypress="handleEnter(event)">
                     <button onclick="manualSearch()" class="search-btn"><i class="fa-solid fa-search"></i></button>
                 </div>
                 
-                <!-- TARJETA RESULTADO -->
                 <div id="scanResult" class="hidden bg-white p-8 rounded-2xl border border-gray-100 shadow-xl text-center">
-                    <div class="text-xs font-bold text-orange-500 uppercase tracking-widest mb-1">Resultado de Búsqueda</div>
-                    
+                    <div class="text-xs font-bold text-orange-500 uppercase tracking-widest mb-1">Resultado</div>
                     <div id="resCode" class="text-4xl font-black text-gray-900 mb-2 tracking-tight">CODE</div>
                     <div id="resName" class="text-xl text-gray-600 mb-6 font-medium">Nombre del producto</div>
-                    
                     <div class="grid grid-cols-2 gap-6 border-t border-b border-gray-100 py-6 mb-4">
-                        <div>
-                            <div class="text-xs text-gray-400 uppercase font-bold tracking-wider mb-1">Stock Disponible</div>
-                            <div id="resStock" class="text-3xl font-black text-green-600">0</div>
-                        </div>
-                        <div>
-                            <div class="text-xs text-gray-400 uppercase font-bold tracking-wider mb-1">Ubicación</div>
-                            <div id="resLoc" class="text-3xl font-bold text-gray-800">-</div>
-                        </div>
+                        <div><div class="text-xs text-gray-400 uppercase font-bold tracking-wider mb-1">Stock</div><div id="resStock" class="text-3xl font-black text-green-600">0</div></div>
+                        <!-- CAMBIO AQUI: TITULO ORGANIZADOR -->
+                        <div><div class="text-xs text-gray-400 uppercase font-bold tracking-wider mb-1">ORGANIZADOR</div><div id="resLoc" class="text-3xl font-bold text-gray-800">-</div></div>
                     </div>
-
-                    <!-- BOTÓN FICHA TÉCNICA -->
                     <div id="datasheetArea" class="hidden">
-                        <a id="btnDatasheet" href="#" target="_blank" class="btn-datasheet">
-                            <i class="fa-solid fa-file-pdf mr-2"></i> Descargar Ficha Técnica
-                        </a>
+                        <a id="btnDatasheet" href="#" target="_blank" class="btn-datasheet"><i class="fa-solid fa-file-pdf mr-2"></i> Descargar Ficha Técnica</a>
                         <p class="text-xs text-gray-400 mt-2">Se abrirá en una nueva pestaña</p>
                     </div>
-                    
-                    <div id="noDataArea" class="hidden mt-4 text-gray-400 text-sm">
-                        No hay ficha técnica asociada a este producto.
-                    </div>
+                    <div id="noDataArea" class="hidden mt-4 text-gray-400 text-sm">No hay ficha técnica disponible.</div>
                 </div>
-
                 <div id="scanError" class="hidden bg-red-50 text-red-600 p-4 rounded-xl text-center mt-4 border border-red-100 font-medium">
-                    <i class="fa-solid fa-circle-exclamation mr-2"></i> Producto no encontrado en la base de datos.
+                    <i class="fa-solid fa-circle-exclamation mr-2"></i> Producto no encontrado.
                 </div>
-
             </div>
         </div>
     </div>
 
     <!-- LOGICA -->
     <script>
-        // CONFIGURACIÓN
         const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSM3lTLNPOgrglxy22q_iVTguBWEsuuTVfpHQGXMkItgOXKa04h69EfRqQArlgVR7ZvUB-QfpMXjoGr/pub?output=csv';
         let dbProducts = [];
 
         const els = {
             wrapper: document.getElementById('pages-wrapper'),
             qty: document.getElementById('qtyInput'), rows: document.getElementById('rowsInput'), cols: document.getElementById('colsInput'),
-            prefix: document.getElementById('prefixInput'), start: document.getElementById('startInput'), 
-            name: document.getElementById('nameInput'), family: document.getElementById('familyInput'),
-            checkNum: document.getElementById('checkNumbering'),
+            
+            // DATOS DE CAJA
+            prefix: document.getElementById('prefixInput'), start: document.getElementById('startInput'), checkNum: document.getElementById('checkNumbering'),
+            
+            // DATOS DE PRODUCTO
+            productCode: document.getElementById('productCodeInput'), 
+            name: document.getElementById('nameInput'), 
+            family: document.getElementById('familyInput'),
+            
             orientation: document.getElementById('orientationInput'),
-            dbSearch: document.getElementById('dbSearch'), searchResults: document.getElementById('searchResults')
+            dbSearch: document.getElementById('dbSearch'), searchResults: document.getElementById('searchResults'),
+            
+            // Sliders
+            sizeName: document.getElementById('sizeName'), sizeSku: document.getElementById('sizeSku'), sizeOrg: document.getElementById('sizeOrg'), sizeFamily: document.getElementById('sizeFamily'),
+            valSizeName: document.getElementById('valSizeName'), valSizeSku: document.getElementById('valSizeSku'), valSizeOrg: document.getElementById('valSizeOrg'), valSizeFamily: document.getElementById('valSizeFamily')
         };
 
         window.addEventListener('load', async () => {
             await loadDB();
-            
-            // LÓGICA DE URL INTELIGENTE
-            // Si la URL tiene ?id=XXXX, cambiamos al visor y buscamos automáticamente
             const urlParams = new URLSearchParams(window.location.search);
             const searchId = urlParams.get('id');
-            
             if (searchId) {
                 setView('visor');
                 document.getElementById('manualInput').value = searchId;
@@ -301,13 +391,11 @@
                 const text = await res.text();
                 const rows = text.split('\n').map(r => r.split(','));
                 const headers = rows[0].map(h => h.trim().toUpperCase().replace(/"/g,''));
-                
                 dbProducts = rows.slice(1).map(r => {
                     let obj = {};
                     r.forEach((val, i) => { if(headers[i]) obj[headers[i]] = val.replace(/"/g,'').trim(); });
                     return obj;
                 }).filter(p => p.CODIGO);
-
                 document.getElementById('dbStatus').innerText = `Online: ${dbProducts.length} productos`;
                 document.getElementById('dbStatus').className = "text-[10px] text-green-600 text-right font-bold";
             } catch (e) {
@@ -316,25 +404,14 @@
             }
         }
 
-        // --- BUSQUEDA MANUAL (VISOR) ---
-        function handleEnter(e) {
-            if(e.key === 'Enter') manualSearch();
-        }
+        function handleEnter(e) { if(e.key === 'Enter') manualSearch(); }
 
         function manualSearch(codeOverride) {
             const rawInput = codeOverride || document.getElementById('manualInput').value;
             if(!rawInput) return;
-            
-            // Limpiamos el input para buscar coincidencias parciales o exactas
             const searchCode = rawInput.trim().toUpperCase();
-            
-            // Intentamos buscar exacto primero
             let prod = dbProducts.find(p => p.CODIGO.toUpperCase() === searchCode);
-            
-            // Si no, buscamos si el codigo contiene el texto (para scanners que agregan caracteres extra)
-            if (!prod) {
-                prod = dbProducts.find(p => p.CODIGO.toUpperCase().includes(searchCode));
-            }
+            if (!prod) prod = dbProducts.find(p => p.CODIGO.toUpperCase().includes(searchCode));
 
             const resDiv = document.getElementById('scanResult');
             const errDiv = document.getElementById('scanError');
@@ -345,28 +422,23 @@
             if(prod) {
                 errDiv.classList.add('hidden');
                 resDiv.classList.remove('hidden');
-
                 document.getElementById('resCode').innerText = prod.CODIGO;
                 document.getElementById('resName').innerText = prod.NOMBRE;
                 document.getElementById('resStock').innerText = prod.STOCK || 0;
-                document.getElementById('resLoc').innerText = prod.UBICACION || '-';
                 
-                // LÓGICA FICHA TÉCNICA
+                // LOGICA ORGANIZADOR: Busca columna ORGANIZADOR, si no existe, usa UBICACION
+                document.getElementById('resLoc').innerText = prod.ORGANIZADOR || prod.UBICACION || '-';
+                
                 if(prod.FICHA && prod.FICHA.length > 5) {
-                    datasDiv.classList.remove('hidden');
-                    noDataDiv.classList.add('hidden');
-                    btnData.href = prod.FICHA;
+                    datasDiv.classList.remove('hidden'); noDataDiv.classList.add('hidden'); btnData.href = prod.FICHA;
                 } else {
-                    datasDiv.classList.add('hidden');
-                    noDataDiv.classList.remove('hidden');
+                    datasDiv.classList.add('hidden'); noDataDiv.classList.remove('hidden');
                 }
             } else {
-                resDiv.classList.add('hidden');
-                errDiv.classList.remove('hidden');
+                resDiv.classList.add('hidden'); errDiv.classList.remove('hidden');
             }
         }
 
-        // --- GENERADOR DE ETIQUETAS ---
         function renderLabels() {
             els.wrapper.innerHTML = '';
             const qty = parseInt(els.qty.value) || 0;
@@ -374,8 +446,18 @@
             const cols = parseInt(els.cols.value) || 4;
             const start = parseInt(els.start.value) || 1;
             const orientation = els.orientation.value;
+            
+            // Tamaños desde Sliders
+            const sName = els.sizeName.value + 'px';
+            const sSku = els.sizeSku.value + 'px';
+            const sOrg = els.sizeOrg.value + 'px';
+            const sFamily = els.sizeFamily.value + 'px';
+            
+            els.valSizeName.innerText = sName;
+            els.valSizeSku.innerText = sSku;
+            els.valSizeOrg.innerText = sOrg;
+            els.valSizeFamily.innerText = sFamily;
 
-            // Ajuste CSS
             if(orientation === 'landscape') {
                 document.documentElement.style.setProperty('--page-width', '297mm');
                 document.documentElement.style.setProperty('--page-height', '210mm');
@@ -387,9 +469,6 @@
             const perPage = rows * cols;
             const pages = Math.ceil(qty / perPage);
             let count = 0;
-
-            // URL BASE DE TU WEB (Detecta automáticamente donde está alojada)
-            // Esto crea el link inteligente: https://tuweb.com/?id=CODIGO
             const baseUrl = window.location.href.split('?')[0];
 
             for(let p=0; p<pages; p++) {
@@ -399,49 +478,50 @@
                 page.style.gap = '8px';
 
                 const itemsHere = Math.min(perPage, qty - count);
-                
                 for(let i=0; i<itemsHere; i++) {
                     const current = start + count;
                     count++;
                     
-                    let mainTxt = els.prefix.value;
-                    if(els.checkNum.checked) {
-                        mainTxt = mainTxt.endsWith('-') ? mainTxt + String(current).padStart(2,'0') : mainTxt + '-' + String(current).padStart(2,'0');
-                    }
+                    // Lógica Número Organizador (179...)
+                    let prefix = els.prefix.value;
+                    let orgNum = prefix ? `${prefix}${current}` : `${current}`;
+                    if(!els.checkNum.checked) orgNum = prefix ? prefix : String(start);
 
+                    // Lógica QR (Apunta al código del producto)
+                    const productCode = els.productCode.value;
+                    const smartLink = `${baseUrl}?id=${productCode}`;
                     const qrId = `qr-code-${count}`;
-                    
-                    // AQUI ESTA LA MAGIA: EL QR AHORA ES UN LINK
-                    const smartLink = `${baseUrl}?id=${mainTxt}`;
 
                     const card = document.createElement('div');
                     card.className = 'label-card';
                     card.innerHTML = `
                         <div class="strip-orange"></div>
-                        <div class="content-main">
-                            <div class="product-name" title="${els.name.value}">${els.name.value}</div>
-                            <div class="product-code-wrapper">
-                                <span class="label-cod">COD:</span>
-                                <span class="product-code" style="font-size: ${mainTxt.length > 8 ? '1.4rem' : '1.8rem'}">${mainTxt}</span>
+                        <div class="left-col">
+                            <div class="header-block">
+                                <div class="product-name" style="font-size:${sName}">${els.name.value}</div>
+                                <div class="product-sku-row">
+                                    <span class="sku-label">CÓDIGO:</span>
+                                    <span class="sku-value" style="font-size:${sSku}">${productCode}</span>
+                                </div>
                             </div>
-                            <div class="product-family">${els.family.value}</div>
+                            
+                            <div class="organizer-block">
+                                <span class="organizer-number" style="font-size:${sOrg}">${orgNum}</span>
+                            </div>
+                            
+                            <div class="product-family" style="font-size:${sFamily}">${els.family.value}</div>
                         </div>
-                        <div class="content-right">
-                            <div class="qr-box" id="${qrId}"></div>
-                            <div class="logo-box">
-                                <img src="logo.png" onerror="this.style.display='none'">
-                            </div>
+                        <div class="right-col">
+                            <div class="qr-container" id="${qrId}"></div>
+                            <div class="logo-container"><img src="logo.png" onerror="this.style.display='none'"></div>
                         </div>
                     `;
                     page.appendChild(card);
-
-                    new QRCode(card.querySelector(`#${qrId}`), {
-                        text: smartLink, // Usamos el link inteligente en vez de solo texto
-                        width: 60,
-                        height: 60,
-                        colorDark : "#000000",
-                        colorLight : "#ffffff",
-                        correctLevel : QRCode.CorrectLevel.L
+                    new QRCode(card.querySelector(`#${qrId}`), { 
+                        text: smartLink, 
+                        width: 300, 
+                        height: 300, 
+                        correctLevel: QRCode.CorrectLevel.H 
                     });
                 }
                 els.wrapper.appendChild(page);
@@ -452,21 +532,14 @@
             document.getElementById('view-generator').style.display = view === 'generator' ? 'flex' : 'none';
             document.getElementById('view-visor').style.display = view === 'visor' ? 'flex' : 'none';
             document.getElementById('panel-settings').style.display = view === 'generator' ? 'flex' : 'none';
-            
             document.getElementById('btn-gen').className = view === 'generator' ? 'ios-btn btn-active-tab' : 'ios-btn btn-ghost';
             document.getElementById('btn-vis').className = view === 'visor' ? 'ios-btn btn-active-tab' : 'ios-btn btn-ghost';
         }
 
-        // BUSCADOR SIDEBAR
         els.dbSearch.addEventListener('input', (e) => {
             const val = e.target.value.toLowerCase();
             if(val.length < 2) { els.searchResults.classList.add('hidden'); return; }
-            
-            const matches = dbProducts.filter(p => 
-                (p.CODIGO && p.CODIGO.toLowerCase().includes(val)) || 
-                (p.NOMBRE && p.NOMBRE.toLowerCase().includes(val))
-            ).slice(0, 5);
-
+            const matches = dbProducts.filter(p => (p.CODIGO && p.CODIGO.toLowerCase().includes(val)) || (p.NOMBRE && p.NOMBRE.toLowerCase().includes(val))).slice(0, 5);
             els.searchResults.innerHTML = '';
             if(matches.length) {
                 els.searchResults.classList.remove('hidden');
@@ -475,11 +548,12 @@
                     div.className = "p-3 hover:bg-orange-50 cursor-pointer border-b text-sm flex justify-between";
                     div.innerHTML = `<span><strong>${p.CODIGO}</strong></span> <span class="text-gray-500 truncate ml-2 text-xs">${p.NOMBRE}</span>`;
                     div.onclick = () => {
-                        els.prefix.value = p.CODIGO;
+                        // AQUÍ LLENAMOS LOS CAMPOS POR SEPARADO
+                        els.productCode.value = p.CODIGO; // Codigo Producto
                         els.name.value = p.NOMBRE;
                         els.family.value = p.CATEGORIA || '';
-                        els.checkNum.checked = false; 
-                        els.searchResults.classList.add('hidden');
+                        // NO TOCAMOS EL NUMERO DE SECUENCIA (Organizador)
+                        els.searchResults.classList.add('hidden'); 
                         els.dbSearch.value = '';
                         renderLabels();
                     };
@@ -490,25 +564,15 @@
 
         function downloadPDF() {
             const el = els.wrapper;
-            const orient = els.orientation.value === 'landscape' ? 'l' : 'p'; 
-            const opt = { 
-                margin:0, 
-                filename:'etiquetas_deteco.pdf', 
-                image:{type:'jpeg',quality:0.98}, 
-                html2canvas:{scale:2}, 
-                jsPDF:{unit:'mm',format:'a4', orientation: orient} 
-            };
+            const orient = els.orientation.value === 'landscape' ? 'l' : 'p';
+            const opt = { margin:0, filename:'etiquetas_deteco.pdf', image:{type:'jpeg',quality:0.98}, html2canvas:{scale:2}, jsPDF:{unit:'mm',format:'a4', orientation: orient} };
             html2pdf().set(opt).from(el).save();
         }
 
         let timeout;
-        [els.qty, els.rows, els.cols, els.prefix, els.start, els.name, els.family, els.checkNum, els.orientation].forEach(el => {
-            el.addEventListener('input', () => {
-                clearTimeout(timeout);
-                timeout = setTimeout(renderLabels, 300);
-            });
+        [els.qty, els.rows, els.cols, els.prefix, els.start, els.name, els.family, els.checkNum, els.productCode, els.orientation, els.sizeName, els.sizeSku, els.sizeOrg, els.sizeFamily].forEach(el => {
+            el.addEventListener('input', () => { clearTimeout(timeout); timeout = setTimeout(renderLabels, 150); });
         });
-
     </script>
 </body>
 </html>
