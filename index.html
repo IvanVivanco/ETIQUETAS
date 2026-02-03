@@ -3,415 +3,456 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Etiquetas Deteco IC SA</title>
+    <title>Deteco Logística 3.3</title>
+    
+    <!-- LIBRERIAS EXTERNAS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap');
-        
         :root {
-            --ios-bg: #F2F2F7;
-            --ios-card: #FFFFFF;
-            --ios-separator: #E5E5EA;
-            
-            /* COLORES UI ACTUALIZADOS A LA IDENTIDAD CORPORATIVA */
+            --ios-bg: #F5F5F7;
             --primary-color: #F26522; /* Naranja Deteco */
-            --ui-active: #F26522;     /* Color de controles activos */
-            --ui-light: rgba(242, 101, 34, 0.1); /* Color suave para botones secundarios */
-            
             --page-width: 210mm;
             --page-height: 297mm;
         }
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--ios-bg);
-            color: #000;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
+        body { font-family: 'Inter', sans-serif; background-color: var(--ios-bg); color: #1d1d1f; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+
+        /* --- UI PRINCIPAL --- */
+        .app-header { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); border-bottom: 1px solid #e5e5e5; height: 60px; padding: 0 24px; display: flex; justify-content: space-between; align-items: center; z-index: 50; }
+        .app-title { font-weight: 800; font-size: 1.1rem; color: #000; letter-spacing: -0.5px; }
+        
+        .ios-btn { padding: 8px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; border: none; }
+        .btn-primary { background: #000; color: white; }
+        .btn-primary:hover { background: #333; }
+        .btn-secondary { background: #e5e5e5; color: #000; }
+        .btn-ghost { background: transparent; color: #86868b; }
+        .btn-active-tab { background: #f5f5f7; color: #000; font-weight: 700; }
+
+        /* --- LAYOUT & SETTINGS --- */
+        .main-layout { display: flex; flex: 1; overflow: hidden; }
+        .settings-panel { width: 320px; background: #fff; border-right: 1px solid #e5e5e5; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 24px; flex-shrink: 0; }
+        
+        .control-group { display: flex; flex-direction: column; gap: 12px; }
+        .group-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #86868b; letter-spacing: 0.5px; }
+        
+        .input-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+        .ios-input { background: #f5f5f7; border: 1px solid transparent; border-radius: 8px; padding: 8px 12px; font-size: 0.9rem; width: 100%; transition: 0.2s; text-align: right; }
+        .ios-input:focus { background: #fff; border-color: var(--primary-color); outline: none; }
+        
+        /* --- PREVIEW AREA --- */
+        .preview-panel { flex: 1; background: #e9e9eb; padding: 40px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; }
+        .page { 
+            background: white; 
+            width: var(--page-width); 
+            height: var(--page-height); 
+            padding: 10mm; 
+            margin-bottom: 30px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
+            display: grid; 
+            box-sizing: border-box; 
+            position: relative; 
+            transition: width 0.3s, height 0.3s; 
+        }
+        
+        /* --- ETIQUETA --- */
+        .label-card { 
+            border: 1px solid #d1d5db; 
+            border-radius: 4px; 
+            background: white; 
+            display: flex; 
+            flex-direction: row; 
             overflow: hidden;
+            position: relative;
         }
 
-        /* --- LOADING SCREEN --- */
-        #loading-screen {
-            position: fixed; inset: 0; z-index: 9999;
-            background-color: #ffffff;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            transition: opacity 0.5s ease-out;
-        }
+        .strip-orange { width: 12px; background-color: var(--primary-color); height: 100%; flex-shrink: 0; border-right: 1px solid rgba(0,0,0,0.05); }
+
+        .content-main { flex: 1; padding: 8px 12px; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-start; overflow: hidden; }
+        .product-name { font-size: 0.85rem; font-weight: 700; color: #374151; line-height: 1.1; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-transform: uppercase; }
+        .product-code-wrapper { display: flex; align-items: baseline; gap: 4px; width: 100%; margin: 2px 0; }
+        .label-cod { font-size: 1rem; font-weight: 600; color: #6b7280; }
+        .product-code { font-size: 1.8rem; font-weight: 900; color: #111827; letter-spacing: -1px; line-height: 1; }
+        .product-family { font-size: 0.75rem; font-weight: 600; color: #4b5563; border: 1px solid #e5e7eb; padding: 2px 8px; border-radius: 12px; background-color: #f9fafb; text-transform: uppercase; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        .content-right { width: 32%; padding: 4px; display: flex; flex-direction: column; align-items: center; border-left: 1px solid #f3f4f6; }
+        .qr-box { flex: 1; width: 100%; display: flex; align-items: center; justify-content: center; padding: 2px; }
+        .qr-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .logo-box { width: 100%; height: 25px; display: flex; align-items: flex-end; justify-content: center; margin-bottom: 4px; }
+        .logo-box img { max-width: 90%; max-height: 100%; object-fit: contain; }
+
+        /* --- VISOR / SCANNER --- */
+        #view-scanner { background: #fff; flex: 1; padding: 20px; display: none; justify-content: center; }
+        .scanner-box { max-width: 500px; width: 100%; }
+        #reader { border-radius: 12px; overflow: hidden; background: #000; margin-bottom: 20px; }
         
-        .splash-logo-container {
-            width: 150px;
-            height: 150px;
-            margin-bottom: 20px;
-            animation: pulse-logo 2s infinite ease-in-out;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        /* Botón Ficha Técnica */
+        .btn-datasheet {
+            display: inline-flex; align-items: center; justify-content: center; width: 100%;
+            background-color: #0061FE; /* Color Dropbox/Link */
+            color: white; font-weight: 600; padding: 12px; border-radius: 8px;
+            margin-top: 15px; text-decoration: none; transition: background 0.2s;
         }
-        
-        .splash-logo-img {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
-        }
+        .btn-datasheet:hover { background-color: #0050d1; }
 
-        @keyframes pulse-logo {
-            0% { transform: scale(0.98); opacity: 0.95; }
-            50% { transform: scale(1.02); opacity: 1; }
-            100% { transform: scale(0.98); opacity: 0.95; }
-        }
-
-        .loading-text { font-weight: 800; color: var(--primary-color); font-size: 1.5rem; letter-spacing: -0.5px; }
-        .loading-sub { color: #8E8E93; font-size: 0.8rem; margin-top: 5px; font-weight: 500; }
-
-        /* --- HEADER --- */
-        .app-header {
-            background: rgba(255, 255, 255, 0.98);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(0,0,0,0.05);
-            padding: 0 20px; 
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            z-index: 100;
-            flex-shrink: 0;
-            height: 56px;
-        }
-
-        .app-branding { display: flex; align-items: center; gap: 12px; }
-        .app-info { display: flex; flex-direction: column; justify-content: center; }
-        .app-title-text { font-size: 1rem; font-weight: 800; color: #1c1c1e; line-height: 1.1; letter-spacing: -0.02em; }
-        
-        .credits-container { display: flex; align-items: center; gap: 8px; margin-top: 2px; }
-        .credits-text { font-size: 0.7rem; color: #8E8E93; font-weight: 500; }
-
-        /* LOGO HEADER */
-        .personal-logo-wrapper { position: relative; width: 28px; height: 28px; cursor: pointer; transition: transform 0.2s; }
-        .personal-logo-wrapper:hover { transform: scale(1.1); }
-        .personal-logo-wrapper input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; z-index: 10; }
-        
-        .personal-logo-display { 
-            width: 100%; height: 100%; 
-            border-radius: 50%; 
-            background-color: white; 
-            display: flex; align-items: center; justify-content: center; 
-            border: 1px solid rgba(0,0,0,0.1); 
-            overflow: hidden; 
-        }
-        .personal-logo-display img { width: 100%; height: 100%; object-fit: contain; }
-
-        /* --- BOTONES PERSONALIZADOS --- */
-        .ios-btn { 
-            padding: 6px 14px; 
-            border-radius: 6px; 
-            font-size: 0.8rem; 
-            font-weight: 600; 
-            border: none; 
-            cursor: pointer; 
-            transition: all 0.2s; 
-        }
-        .ios-btn:active { opacity: 0.7; transform: scale(0.98); }
-        
-        /* Botón Primario Naranja */
-        .btn-primary { 
-            background-color: var(--ui-active); 
-            color: white; 
-        }
-        
-        /* Botón Secundario Naranja Suave */
-        .btn-secondary { 
-            background-color: var(--ui-light); 
-            color: var(--ui-active); 
-        }
-
-        /* --- LAYOUT --- */
-        .main-layout { display: flex; flex: 1; overflow: hidden; flex-direction: column; }
-        @media (min-width: 1024px) { .main-layout { flex-direction: row; } }
-
-        /* --- SETTINGS --- */
-        .settings-panel { background: var(--ios-bg); width: 100%; height: 45vh; overflow-y: auto; padding: 16px; border-right: 1px solid var(--ios-separator); }
-        @media (min-width: 1024px) { .settings-panel { width: 340px; height: 100%; flex-shrink: 0; } }
-
-        .ios-group { background: var(--ios-card); border-radius: 10px; margin-bottom: 20px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.03); }
-        .ios-group-title { font-size: 0.75rem; color: #8E8E93; text-transform: uppercase; margin: 0 0 6px 12px; font-weight: 600; letter-spacing: 0.5px; }
-        .ios-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-bottom: 1px solid var(--ios-separator); min-height: 40px; gap: 10px; }
-        .ios-row:last-child { border-bottom: none; }
-        .row-label { font-size: 0.9rem; font-weight: 500; color: #000; flex-shrink: 0; }
-        
-        /* Inputs Naranjas al Foco */
-        .ios-input { text-align: right; border: none; background: transparent; font-size: 0.95rem; color: #3A3A3C; width: 100%; font-family: inherit; }
-        .ios-input:focus { outline: none; color: var(--ui-active); }
-
-        /* TOGGLES (Naranjas) */
-        .ios-toggle { position: relative; display: inline-block; width: 40px; height: 24px; flex-shrink: 0; }
-        .ios-toggle input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #E9E9EB; transition: .4s; border-radius: 24px; }
-        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 2px; bottom: 2px; background-color: white; transition: .4s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
-        
-        /* Checkbox activo ahora es Naranja */
-        input:checked + .slider { background-color: var(--ui-active); }
-        input:checked + .slider:before { transform: translateX(16px); }
-
-        /* SLIDERS (Naranjas) */
-        .size-control { display: flex; align-items: center; gap: 8px; width: 100%; }
-        input[type=range] { width: 100%; accent-color: var(--ui-active); height: 4px; border-radius: 2px; }
-
-        /* --- PREVIEW --- */
-        .preview-panel { flex-grow: 1; background: #E9E9EB; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; border-top: 1px solid var(--ios-separator); }
-        @media (min-width: 1024px) { .preview-panel { border-top: none; } }
-
-        .pdf-clean-mode { background: white !important; padding: 0 !important; align-items: flex-start !important; }
-        .pdf-clean-mode .page { margin: 0 !important; box-shadow: none !important; }
-
-        .page { background: white; width: var(--page-width); height: var(--page-height); min-width: var(--page-width); min-height: var(--page-height); padding: 10mm; margin-bottom: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); display: grid; box-sizing: border-box; transition: width 0.3s, height 0.3s; position: relative; }
-        
-        .page-watermark {
-            position: absolute; bottom: 3mm; left: 0; width: 100%; text-align: center;
-            font-size: 8px; color: #d1d5db; font-weight: 500; pointer-events: none;
-            text-transform: uppercase; letter-spacing: 1px;
-        }
-
-        /* --- CARD --- */
-        .label-card { border: 2px solid var(--primary-color); display: flex; flex-direction: column; background: white; position: relative; overflow: hidden; border-radius: 4px; box-sizing: border-box; }
-        .card-header { background-color: var(--primary-color); color: #fff; padding: 2% 4%; height: 25%; display: flex; align-items: center; justify-content: space-between; transition: all 0.3s; }
-        .logo-container { width: 38%; height: 100%; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-        .logo-img { max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; transform-origin: center; }
-        .header-text { width: 62%; text-align: right; font-weight: 700; line-height: 1.1; white-space: pre-line; }
-        .card-body { flex-grow: 1; position: relative; padding: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .layout-spread .zone-label { position: absolute; top: 5%; }
-        .layout-spread .sub-text { position: absolute; bottom: 5%; border-top: 1px solid #d1d5db; width: 85%; padding-top: 1%; }
-        .layout-stack { justify-content: center; gap: 5%; }
-        .layout-stack .zone-label { position: relative; top: auto; margin-bottom: 2%; }
-        .layout-stack .sub-text { position: relative; bottom: auto; border-top: none; width: auto; padding-top: 0; margin-top: 2%; }
-        .zone-label { font-weight: 700; color: #6b7280; text-transform: uppercase; text-align: center; }
-        .main-code { font-weight: 900; color: #000; z-index: 10; line-height: 1; text-align: center; }
-        .sub-text { color: #4b5563; text-align: center; text-transform: uppercase; white-space: nowrap; overflow: hidden; }
-
+        /* UTILIDADES */
+        .hidden { display: none !important; }
         @media print {
-            .app-header, .settings-panel, .no-print, #loading-screen { display: none !important; }
-            .main-layout { display: block; height: auto; }
-            .preview-panel { display: block; padding: 0; background: white; overflow: visible; height: auto; }
-            .page { box-shadow: none; margin: 0; break-after: page; page-break-after: always; }
-            body { background: white; height: auto; overflow: visible; }
+            .app-header, .settings-panel, .no-print { display: none !important; }
+            .preview-panel { padding: 0; background: white; overflow: visible; height: auto; }
+            .page { box-shadow: none; margin: 0; break-after: page; }
+            #view-scanner { display: none; }
+            @page { margin: 0; }
         }
     </style>
 </head>
 <body>
 
-    <!-- PANTALLA DE CARGA CON LOGO -->
-    <div id="loading-screen">
-        <div class="splash-logo-container">
-            <!-- SE ACTUALIZÓ A logo.png -->
-            <img src="logo.png" alt="Logo Deteco" class="splash-logo-img" 
-                 onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjRjI2NTIyIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTIyIDEyaC00bC0zIDkgTDkgM2wtMyA5SDIiLz48L3N2Zz4='">
-        </div>
-        <div class="loading-text">DETECO IC S.A.</div>
-        <div class="loading-sub">Adquisiciones y Logística</div>
-    </div>
-
-    <!-- APP HEADER -->
+    <!-- HEADER -->
     <div class="app-header no-print">
-        <div class="app-branding">
-            <div class="app-info">
-                <h1 class="app-title-text">Etiquetas Deteco</h1>
-                <div class="credits-container">
-                    <span class="credits-text">Programado y Creado por Ivan Vivanco</span>
-                    <div class="personal-logo-wrapper" title="Clic para cambiar logo">
-                        <input type="file" id="appLogoInput" accept="image/*">
-                        <div class="personal-logo-display" id="appLogoDisplay">
-                             <!-- SE ACTUALIZÓ A logo.png -->
-                            <img src="logo.png" alt="Logo" 
-                                 onerror="this.parentElement.innerHTML='IV'">
-                        </div>
-                    </div>
-                </div>
+        <div class="flex items-center gap-4">
+            <div class="app-title">Deteco <span class="text-orange-600">Pro</span></div>
+            <div class="flex bg-gray-100 p-1 rounded-lg">
+                <button onclick="setView('generator')" id="btn-gen" class="ios-btn btn-active-tab">Generador</button>
+                <button onclick="setView('scanner')" id="btn-scan" class="ios-btn btn-ghost">Scanner</button>
             </div>
         </div>
-        <div class="actions flex gap-2">
-            <button onclick="downloadPDF()" class="ios-btn btn-secondary">PDF</button>
-            <button onclick="handlePrint()" class="ios-btn btn-primary">Imprimir</button>
+        <div class="flex gap-2">
+            <button onclick="downloadPDF()" class="ios-btn btn-secondary"><i class="fa-regular fa-file-pdf mr-1"></i> PDF</button>
+            <button onclick="window.print()" class="ios-btn btn-primary"><i class="fa-solid fa-print mr-1"></i> Imprimir</button>
         </div>
     </div>
 
     <div class="main-layout">
-        <!-- PANEL DE CONFIGURACIÓN -->
-        <div class="settings-panel no-print">
-            <div class="ios-group-title">Elementos Visibles</div>
-            <div class="ios-group">
-                <div class="ios-row"><span class="row-label">Cabecera (Color)</span><label class="ios-toggle"><input type="checkbox" id="checkHeader" checked><span class="slider"></span></label></div>
-                <div class="ios-row"><span class="row-label">Zona (Sup.)</span><label class="ios-toggle"><input type="checkbox" id="checkZone" checked><span class="slider"></span></label></div>
-                <div class="ios-row"><span class="row-label">Texto Principal</span><label class="ios-toggle"><input type="checkbox" id="checkCode" checked><span class="slider"></span></label></div>
-                <div class="ios-row"><div class="flex flex-col"><span class="row-label">Numeración Auto.</span><span class="text-[10px] text-gray-400">Desactiva para texto fijo</span></div><label class="ios-toggle"><input type="checkbox" id="checkNumbering" checked><span class="slider"></span></label></div>
-                <div class="ios-row"><span class="row-label">Pie (Inf.)</span><label class="ios-toggle"><input type="checkbox" id="checkFooter" checked><span class="slider"></span></label></div>
+        <!-- PANEL IZQUIERDO -->
+        <div class="settings-panel no-print" id="panel-settings">
+            
+            <!-- BUSCADOR -->
+            <div class="control-group">
+                <div class="group-label">Base de Datos (Excel)</div>
+                <div class="relative">
+                    <i class="fa-solid fa-search absolute left-3 top-2.5 text-gray-400 text-xs"></i>
+                    <input type="text" id="dbSearch" placeholder="Buscar producto..." class="ios-input pl-8 text-left bg-white border-gray-200">
+                    <div id="searchResults" class="hidden absolute top-full left-0 w-full bg-white shadow-xl border border-gray-100 rounded-lg mt-1 z-50 max-h-48 overflow-y-auto"></div>
+                </div>
+                <div id="dbStatus" class="text-[10px] text-gray-400 text-right">Conectando...</div>
             </div>
 
-            <div class="ios-group-title">Diseño y Formato</div>
-            <div class="ios-group">
-                <div class="ios-row"><span class="row-label">Distribución</span><select id="layoutMode" class="ios-input cursor-pointer text-blue-600 font-bold" style="width: auto; color: var(--ui-active);"><option value="layout-spread">Expandido (Bordes)</option><option value="layout-stack">Centrado (Pila)</option></select></div>
-                <div class="ios-row"><span class="row-label">Orientación</span><select id="orientationInput" class="ios-input cursor-pointer text-blue-600" style="width: auto; color: var(--ui-active);"><option value="portrait">Vertical</option><option value="landscape">Horizontal</option></select></div>
-                <div class="ios-row"><span class="row-label">Total Etiquetas</span><input type="number" id="qtyInput" class="ios-input font-bold" value="20" min="1" style="width: 50px;"></div>
+            <!-- CONTENIDO ETIQUETA -->
+            <div class="control-group">
+                <div class="group-label">Datos Etiqueta</div>
+                <div class="input-row">
+                    <span class="text-xs font-medium">Código</span>
+                    <input type="text" id="prefixInput" value="C-01" class="ios-input font-bold">
+                </div>
+                <div class="input-row">
+                    <span class="text-xs font-medium">Nombre</span>
+                    <input type="text" id="nameInput" value="PRODUCTO GENÉRICO" class="ios-input">
+                </div>
+                <div class="input-row">
+                    <span class="text-xs font-medium">Familia</span>
+                    <input type="text" id="familyInput" value="REPUESTOS" class="ios-input">
+                </div>
             </div>
 
-            <div class="ios-group-title">Contenido</div>
-            <div class="ios-group">
-                <div class="ios-row flex-col items-start !gap-1" id="rowHeaderConfig">
-                    <div class="size-control"><span class="row-label text-xs uppercase text-gray-400 w-16">Empresa</span><input type="text" id="headerInput" class="ios-input text-left font-bold" value="DETECO IC S.A."></div>
-                    <div class="flex w-full items-center justify-between mt-2 gap-2">
-                        <div class="flex items-center gap-2 bg-gray-100 px-2 py-1 rounded"><span class="text-[10px] text-gray-500">Color</span><input type="color" id="colorPicker" value="#F26522" class="w-5 h-5 rounded-full border-none p-0 cursor-pointer"></div>
-                        <label class="ios-btn btn-secondary text-[10px] p-1 cursor-pointer">Subir Logo<input type="file" id="logoInput" accept="image/*" class="hidden"/></label>
+            <!-- SECUENCIA -->
+            <div class="control-group">
+                <div class="group-label">Secuencia</div>
+                <div class="input-row">
+                    <span class="text-xs font-medium">Inicio</span>
+                    <input type="number" id="startInput" value="1" class="ios-input w-20">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" id="checkNumbering" checked class="w-4 h-4 accent-orange-500">
+                        <span class="text-xs">Auto-numerar</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- DISEÑO DE HOJA -->
+            <div class="control-group">
+                <div class="group-label">Diseño de Hoja</div>
+                <div class="input-row mb-2">
+                    <span class="text-xs font-medium">Orientación</span>
+                    <select id="orientationInput" class="ios-input bg-white cursor-pointer w-32">
+                        <option value="portrait">Vertical</option>
+                        <option value="landscape">Horizontal</option>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-3 gap-2">
+                    <div>
+                        <span class="text-[10px] text-gray-400 block">Total</span>
+                        <input type="number" id="qtyInput" value="20" class="ios-input text-center">
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-gray-400 block">Filas</span>
+                        <input type="number" id="rowsInput" value="5" class="ios-input text-center">
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-gray-400 block">Cols</span>
+                        <input type="number" id="colsInput" value="4" class="ios-input text-center">
                     </div>
                 </div>
-                <div class="ios-row flex-col items-start !gap-1" id="rowZoneConfig"><div class="size-control"><span class="row-label text-xs uppercase text-gray-400 w-16">Zona</span><input type="text" id="zoneInput" class="ios-input text-left" value="ZONA C"></div><div class="size-control pl-16"><span class="text-[9px] text-gray-400 w-8">Zoom</span><input type="range" id="sizeZone" min="0.5" max="3" step="0.1" value="1"></div></div>
-                <div class="ios-row flex-col items-start !gap-1" id="rowCodeConfig">
-                     <div class="size-control"><span class="row-label text-xs uppercase text-gray-400 w-16" id="lblMainText">Prefijo</span><div class="flex w-full gap-2"><input type="text" id="prefixInput" class="ios-input text-left w-full" value="C-"><div class="flex items-center gap-1 w-2/3 justify-end" id="containerStartNum"><span class="text-[9px] text-gray-400">Inicio:</span><input type="number" id="startInput" class="ios-input w-10 text-center bg-gray-100 rounded text-sm" value="1"></div></div></div>
-                    <div class="size-control pl-16"><span class="text-[9px] text-gray-400 w-8">Zoom</span><input type="range" id="sizeCode" min="0.5" max="3" step="0.1" value="1"></div>
-                </div>
-                <div class="ios-row flex-col items-start !gap-1" id="rowFooterConfig"><div class="size-control"><span class="row-label text-xs uppercase text-gray-400 w-16">Pie</span><input type="text" id="footerInput" class="ios-input text-left" value="ADQUISICIONES Y LOGÍSTICA"></div><div class="size-control pl-16"><span class="text-[9px] text-gray-400 w-8">Zoom</span><input type="range" id="sizeFooter" min="0.5" max="2" step="0.1" value="1"></div></div>
             </div>
-
-            <div class="ios-group-title">Avanzado (Grid)</div>
-            <div class="ios-group">
-                 <div class="ios-row"><span class="row-label">Filas</span><input type="number" id="rowsInput" class="ios-input" value="5" min="1" max="20" style="width: 50px;"></div>
-                <div class="ios-row"><span class="row-label">Columnas</span><input type="number" id="colsInput" class="ios-input" value="4" min="1" max="10" style="width: 50px;"></div>
-                <div class="ios-row"><span class="row-label">Corte (Espacio)</span><input type="range" id="gapInput" min="0" max="20" step="1" value="8" style="width: 100px;"></div>
+            
+            <div class="mt-auto pt-4 border-t border-gray-100 text-center">
+                 <button onclick="location.reload()" class="text-xs text-red-400 hover:text-red-600">Reiniciar App</button>
             </div>
-            <div class="text-center mt-2 mb-8 text-[10px] text-gray-400 flex justify-center gap-4"><button onclick="resetDefaults()" class="text-red-400 underline">Restaurar Todo</button></div>
         </div>
 
-        <div class="preview-panel" id="pages-wrapper"></div>
+        <!-- VISOR: ETIQUETAS -->
+        <div class="preview-panel" id="view-generator">
+            <div id="pages-wrapper"></div>
+        </div>
+
+        <!-- VISOR: SCANNER -->
+        <div id="view-scanner">
+            <div class="scanner-box">
+                <h2 class="text-2xl font-bold mb-4 text-center">Escanear Inventario</h2>
+                <div id="reader"></div>
+                
+                <!-- TARJETA RESULTADO SCAN -->
+                <div id="scanResult" class="hidden bg-white p-6 rounded-xl border border-orange-200 shadow-lg mt-6 text-center">
+                    <div class="text-xs font-bold text-orange-500 uppercase tracking-widest mb-1">Resultado</div>
+                    <div id="resCode" class="text-3xl font-black text-gray-900 mb-2">CODE</div>
+                    <div id="resName" class="text-lg text-gray-600 mb-4">Nombre del producto</div>
+                    
+                    <div class="grid grid-cols-2 gap-4 border-t border-b border-gray-100 py-4 mb-4">
+                        <div>
+                            <div class="text-xs text-gray-400 uppercase">Stock</div>
+                            <div id="resStock" class="text-xl font-bold text-green-600">0</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-gray-400 uppercase">Ubicación</div>
+                            <div id="resLoc" class="text-xl font-bold text-gray-800">-</div>
+                        </div>
+                    </div>
+
+                    <!-- BOTÓN FICHA TÉCNICA -->
+                    <div id="datasheetArea" class="hidden">
+                        <a id="btnDatasheet" href="#" target="_blank" class="btn-datasheet">
+                            <i class="fa-solid fa-file-pdf mr-2"></i> Ver Ficha Técnica
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
+    <!-- LOGICA -->
     <script>
-        // CONFIGURACIÓN POR DEFECTO
-        const DEFAULTS = {
-            qty: 20, rows: 5, cols: 4, orientation: 'portrait', gap: 8,
-            header: "DETECO IC S.A.", zone: "ZONA C", prefix: "C-", start: 1, footer: "ADQUISICIONES Y LOGÍSTICA",
-            color: "#F26522", // NARANJA CORPORATIVO
-            sZone: 0.8, sCode: 0.75, sFooter: 0.8,
-            vHeader: true, vZone: true, vCode: true, vNum: true, vFooter: true, layout: 'layout-spread'
-        };
+        // CONFIGURACIÓN
+        const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSM3lTLNPOgrglxy22q_iVTguBWEsuuTVfpHQGXMkItgOXKa04h69EfRqQArlgVR7ZvUB-QfpMXjoGr/pub?output=csv';
+        let dbProducts = [];
+        let html5QrcodeScanner = null;
 
-        const refs = {
+        const els = {
             wrapper: document.getElementById('pages-wrapper'),
-            qty: document.getElementById('qtyInput'), rows: document.getElementById('rowsInput'), cols: document.getElementById('colsInput'), gap: document.getElementById('gapInput'),
-            orientation: document.getElementById('orientationInput'), layout: document.getElementById('layoutMode'), color: document.getElementById('colorPicker'), logo: document.getElementById('logoInput'),
-            header: document.getElementById('headerInput'), zone: document.getElementById('zoneInput'), prefix: document.getElementById('prefixInput'), start: document.getElementById('startInput'), footer: document.getElementById('footerInput'),
-            sZone: document.getElementById('sizeZone'), sCode: document.getElementById('sizeCode'), sFooter: document.getElementById('sizeFooter'),
-            cHeader: document.getElementById('checkHeader'), cZone: document.getElementById('checkZone'), cCode: document.getElementById('checkCode'), cNum: document.getElementById('checkNumbering'), cFooter: document.getElementById('checkFooter'),
-            uiStart: document.getElementById('containerStartNum'), lblMain: document.getElementById('lblMainText'),
-            appLogoInput: document.getElementById('appLogoInput'), appLogoDisplay: document.getElementById('appLogoDisplay'),
-            loadingScreen: document.getElementById('loading-screen')
+            qty: document.getElementById('qtyInput'), rows: document.getElementById('rowsInput'), cols: document.getElementById('colsInput'),
+            prefix: document.getElementById('prefixInput'), start: document.getElementById('startInput'), 
+            name: document.getElementById('nameInput'), family: document.getElementById('familyInput'),
+            checkNum: document.getElementById('checkNumbering'),
+            orientation: document.getElementById('orientationInput'),
+            dbSearch: document.getElementById('dbSearch'), searchResults: document.getElementById('searchResults')
         };
 
-        // SE ACTUALIZÓ LA CONSTANTE PARA USAR EL NUEVO ARCHIVO
-        const LOGO_FILENAME = 'logo.png';
-        let currentLogoSrc = LOGO_FILENAME; 
-
-        window.addEventListener('load', () => {
-            setTimeout(() => {
-                refs.loadingScreen.style.opacity = '0';
-                setTimeout(() => refs.loadingScreen.style.display = 'none', 500);
-            }, 1500);
+        window.addEventListener('load', async () => {
+            await loadDB();
+            renderLabels();
         });
 
-        function handlePrint() {
-            if (document.activeElement) document.activeElement.blur();
-            setTimeout(() => window.print(), 200);
+        async function loadDB() {
+            try {
+                const res = await fetch(CSV_URL);
+                const text = await res.text();
+                const rows = text.split('\n').map(r => r.split(','));
+                const headers = rows[0].map(h => h.trim().toUpperCase().replace(/"/g,''));
+                
+                dbProducts = rows.slice(1).map(r => {
+                    let obj = {};
+                    r.forEach((val, i) => { if(headers[i]) obj[headers[i]] = val.replace(/"/g,'').trim(); });
+                    return obj;
+                }).filter(p => p.CODIGO);
+
+                document.getElementById('dbStatus').innerText = `Online: ${dbProducts.length} productos`;
+                document.getElementById('dbStatus').className = "text-[10px] text-green-600 text-right font-bold";
+            } catch (e) {
+                console.error(e);
+                document.getElementById('dbStatus').innerText = "Sin conexión a Excel";
+            }
+        }
+
+        els.dbSearch.addEventListener('input', (e) => {
+            const val = e.target.value.toLowerCase();
+            if(val.length < 2) { els.searchResults.classList.add('hidden'); return; }
+            
+            const matches = dbProducts.filter(p => 
+                (p.CODIGO && p.CODIGO.toLowerCase().includes(val)) || 
+                (p.NOMBRE && p.NOMBRE.toLowerCase().includes(val))
+            ).slice(0, 5);
+
+            els.searchResults.innerHTML = '';
+            if(matches.length) {
+                els.searchResults.classList.remove('hidden');
+                matches.forEach(p => {
+                    const div = document.createElement('div');
+                    div.className = "p-3 hover:bg-orange-50 cursor-pointer border-b text-sm flex justify-between";
+                    div.innerHTML = `<span><strong>${p.CODIGO}</strong></span> <span class="text-gray-500 truncate ml-2 text-xs">${p.NOMBRE}</span>`;
+                    div.onclick = () => {
+                        els.prefix.value = p.CODIGO;
+                        els.name.value = p.NOMBRE;
+                        els.family.value = p.CATEGORIA || '';
+                        els.checkNum.checked = false; 
+                        els.searchResults.classList.add('hidden');
+                        els.dbSearch.value = '';
+                        renderLabels();
+                    };
+                    els.searchResults.appendChild(div);
+                });
+            } else { els.searchResults.classList.add('hidden'); }
+        });
+
+        function renderLabels() {
+            els.wrapper.innerHTML = '';
+            const qty = parseInt(els.qty.value) || 0;
+            const rows = parseInt(els.rows.value) || 5;
+            const cols = parseInt(els.cols.value) || 4;
+            const start = parseInt(els.start.value) || 1;
+            const orientation = els.orientation.value;
+
+            if(orientation === 'landscape') {
+                document.documentElement.style.setProperty('--page-width', '297mm');
+                document.documentElement.style.setProperty('--page-height', '210mm');
+            } else {
+                document.documentElement.style.setProperty('--page-width', '210mm');
+                document.documentElement.style.setProperty('--page-height', '297mm');
+            }
+            
+            const perPage = rows * cols;
+            const pages = Math.ceil(qty / perPage);
+            let count = 0;
+
+            for(let p=0; p<pages; p++) {
+                const page = document.createElement('div'); page.className = 'page';
+                page.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+                page.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+                page.style.gap = '8px';
+
+                const itemsHere = Math.min(perPage, qty - count);
+                
+                for(let i=0; i<itemsHere; i++) {
+                    const current = start + count;
+                    count++;
+                    
+                    let mainTxt = els.prefix.value;
+                    if(els.checkNum.checked) {
+                        mainTxt = mainTxt.endsWith('-') ? mainTxt + String(current).padStart(2,'0') : mainTxt + '-' + String(current).padStart(2,'0');
+                    }
+
+                    const qrId = `qr-code-${count}`;
+
+                    const card = document.createElement('div');
+                    card.className = 'label-card';
+                    card.innerHTML = `
+                        <div class="strip-orange"></div>
+                        <div class="content-main">
+                            <div class="product-name" title="${els.name.value}">${els.name.value}</div>
+                            <div class="product-code-wrapper">
+                                <span class="label-cod">COD:</span>
+                                <span class="product-code" style="font-size: ${mainTxt.length > 8 ? '1.4rem' : '1.8rem'}">${mainTxt}</span>
+                            </div>
+                            <div class="product-family">${els.family.value}</div>
+                        </div>
+                        <div class="content-right">
+                            <div class="qr-box" id="${qrId}"></div>
+                            <div class="logo-box">
+                                <img src="logo.png" onerror="this.style.display='none'">
+                            </div>
+                        </div>
+                    `;
+                    page.appendChild(card);
+
+                    new QRCode(card.querySelector(`#${qrId}`), {
+                        text: mainTxt,
+                        width: 60,
+                        height: 60,
+                        colorDark : "#000000",
+                        colorLight : "#ffffff",
+                        correctLevel : QRCode.CorrectLevel.L
+                    });
+                }
+                els.wrapper.appendChild(page);
+            }
+        }
+
+        function setView(view) {
+            document.getElementById('view-generator').style.display = view === 'generator' ? 'flex' : 'none';
+            document.getElementById('view-scanner').style.display = view === 'scanner' ? 'flex' : 'none';
+            document.getElementById('panel-settings').style.display = view === 'generator' ? 'flex' : 'none';
+            
+            document.getElementById('btn-gen').className = view === 'generator' ? 'ios-btn btn-active-tab' : 'ios-btn btn-ghost';
+            document.getElementById('btn-scan').className = view === 'scanner' ? 'ios-btn btn-active-tab' : 'ios-btn btn-ghost';
+
+            if(view === 'scanner' && !html5QrcodeScanner) {
+                html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
+                html5QrcodeScanner.render((txt) => {
+                    const prod = dbProducts.find(p => p.CODIGO === txt);
+                    const resDiv = document.getElementById('scanResult');
+                    const datasDiv = document.getElementById('datasheetArea');
+                    const btnData = document.getElementById('btnDatasheet');
+                    
+                    resDiv.classList.remove('hidden');
+                    
+                    if(prod) {
+                        document.getElementById('resCode').innerText = prod.CODIGO;
+                        document.getElementById('resName').innerText = prod.NOMBRE;
+                        document.getElementById('resStock').innerText = prod.STOCK || 0;
+                        document.getElementById('resLoc').innerText = prod.UBICACION || '-';
+                        
+                        // LÓGICA FICHA TÉCNICA
+                        if(prod.FICHA && prod.FICHA.length > 5) {
+                            datasDiv.classList.remove('hidden');
+                            btnData.href = prod.FICHA;
+                        } else {
+                            datasDiv.classList.add('hidden');
+                        }
+
+                    } else {
+                        document.getElementById('resCode').innerText = txt;
+                        document.getElementById('resName').innerText = "Producto no encontrado";
+                        document.getElementById('resStock').innerText = "-";
+                        datasDiv.classList.add('hidden');
+                    }
+                });
+            }
         }
 
         function downloadPDF() {
-            const element = refs.wrapper;
-            element.classList.add('pdf-clean-mode');
-            const originalOverflow = element.style.overflow;
-            element.style.overflow = 'visible'; 
-            const orient = refs.orientation.value === 'landscape' ? 'l' : 'p';
-            const opt = { margin: 0, filename: 'etiquetas_deteco.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 3, useCORS: true, scrollY: 0, backgroundColor: '#ffffff' }, jsPDF: { unit: 'mm', format: 'a4', orientation: orient } };
-            const btn = document.querySelector('button[onclick="downloadPDF()"]');
-            const originalText = btn.innerText;
-            btn.innerText = 'Generando...';
-            html2pdf().set(opt).from(element).save().then(() => { btn.innerText = originalText; element.classList.remove('pdf-clean-mode'); element.style.overflow = originalOverflow; }).catch(err => { console.error(err); alert("Error PDF"); element.classList.remove('pdf-clean-mode'); element.style.overflow = originalOverflow; btn.innerText = originalText; });
+            const el = els.wrapper;
+            const orient = els.orientation.value === 'landscape' ? 'l' : 'p'; 
+            const opt = { 
+                margin:0, 
+                filename:'etiquetas_deteco.pdf', 
+                image:{type:'jpeg',quality:0.98}, 
+                html2canvas:{scale:2}, 
+                jsPDF:{unit:'mm',format:'a4', orientation: orient} 
+            };
+            html2pdf().set(opt).from(el).save();
         }
 
-        function renderLabels() {
-            refs.wrapper.innerHTML = '';
-            const totalQty = parseInt(refs.qty.value) || 0; const rows = parseInt(refs.rows.value) || 5; const cols = parseInt(refs.cols.value) || 4; const gap = parseInt(refs.gap.value) || 0; const startNum = parseInt(refs.start.value) || 1; const orientation = refs.orientation.value; const layoutMode = refs.layout.value;
-            const mulZone = parseFloat(refs.sZone.value) || 1; const mulCode = parseFloat(refs.sCode.value) || 1; const mulFooter = parseFloat(refs.sFooter.value) || 1;
-            const showHeader = refs.cHeader.checked; const showZone = refs.cZone.checked; const showCode = refs.cCode.checked; const useNumbering = refs.cNum.checked; const showFooter = refs.cFooter.checked;
-            refs.uiStart.style.display = useNumbering ? 'flex' : 'none'; refs.lblMain.innerText = useNumbering ? 'Prefijo' : 'Texto';
-            const itemsPerPage = rows * cols; const totalPages = Math.ceil(totalQty / itemsPerPage);
-            document.documentElement.style.setProperty('--primary-color', refs.color.value);
-            const pWidth = orientation === 'landscape' ? '297mm' : '210mm'; const pHeight = orientation === 'landscape' ? '210mm' : '297mm'; document.documentElement.style.setProperty('--page-width', pWidth); document.documentElement.style.setProperty('--page-height', pHeight);
-            
-            let itemsGenerated = 0;
-            
-            for (let p = 0; p < totalPages; p++) {
-                const page = document.createElement('div'); page.className = 'page'; page.style.gridTemplateColumns = `repeat(${cols}, 1fr)`; page.style.gridTemplateRows = `repeat(${rows}, 1fr)`; page.style.gap = `${gap}px`; 
-                const footerCredits = document.createElement('div'); footerCredits.className = 'page-watermark'; footerCredits.innerText = 'Programado y Creado por Ivan Vivanco'; page.appendChild(footerCredits);
-
-                const remainingItems = totalQty - itemsGenerated; const itemsThisPage = Math.min(itemsPerPage, remainingItems);
-                for (let i = 0; i < itemsThisPage; i++) {
-                    const currentNum = startNum + itemsGenerated; itemsGenerated++; const numStr = useNumbering ? currentNum.toString().padStart(2, '0') : '';
-                    const card = document.createElement('div'); card.className = 'label-card';
-                    const fontSizeBase = Math.min((300-gap)/cols, (400-gap)/rows); 
-                    
-                    const logoHtml = currentLogoSrc 
-                        ? `<img src="${currentLogoSrc}" class="logo-img" alt="Logo" onerror="this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjRjI2NTIyIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTIyIDEyaC00bC0zIDkgTDkgM2wtMyA5SDIiLz48L3N2Zz4='">` 
-                        : `<span style="font-size:1rem;">📷</span>`;
-
-                    let headerHTML = ''; if (showHeader) { headerHTML = `<div class="card-header"><div class="logo-container">${logoHtml}</div><div class="header-text" style="font-size:${Math.max(6, fontSizeBase*0.25)}px">${refs.header.value}</div></div>`; }
-                    let zoneHTML = showZone ? `<div class="zone-label" style="font-size:${Math.max(6, (fontSizeBase*0.25) * mulZone)}px">${refs.zone.value}</div>` : '';
-                    let mainText = useNumbering ? `${refs.prefix.value}${numStr}` : refs.prefix.value;
-                    let codeHTML = showCode ? `<div class="main-code" style="font-size:${Math.max(12, (fontSizeBase) * mulCode)}px">${mainText}</div>` : '';
-                    let footerHTML = showFooter ? `<div class="sub-text" style="font-size:${Math.max(5, (fontSizeBase*0.2) * mulFooter)}px">${refs.footer.value}</div>` : '';
-                    card.innerHTML = `${headerHTML}<div class="card-body ${layoutMode}">${zoneHTML}${codeHTML}${footerHTML}</div>`;
-                    page.appendChild(card);
-                }
-                refs.wrapper.appendChild(page);
-            }
-            saveSettings();
-        }
-
-        function loadSettings() {
-            Object.keys(DEFAULTS).forEach(key => {
-                const stored = localStorage.getItem('v19_' + key);
-                const val = stored !== null ? stored : DEFAULTS[key];
-                if(key.startsWith('v')) { const el = refs['c' + key.substring(1)]; if(el) el.checked = (val === 'true' || val === true); }
-                else if(key === 'layout' && refs.layout) refs.layout.value = val;
-                else if(key.startsWith('s')) { const el = refs[key]; if(el) el.value = val; }
-                else if(refs[key]) refs[key].value = val;
+        let timeout;
+        [els.qty, els.rows, els.cols, els.prefix, els.start, els.name, els.family, els.checkNum, els.orientation].forEach(el => {
+            el.addEventListener('input', () => {
+                clearTimeout(timeout);
+                timeout = setTimeout(renderLabels, 300);
             });
-            const savedAppLogo = localStorage.getItem('v19_appLogo');
-            if (savedAppLogo) { refs.appLogoDisplay.innerHTML = `<img src="${savedAppLogo}" style="width:100%; height:100%; object-fit:contain;">`; }
-        }
-
-        function saveSettings() {
-            localStorage.setItem('v19_qty', refs.qty.value); localStorage.setItem('v19_rows', refs.rows.value); localStorage.setItem('v19_cols', refs.cols.value); localStorage.setItem('v19_gap', refs.gap.value); localStorage.setItem('v19_orientation', refs.orientation.value); localStorage.setItem('v19_layout', refs.layout.value); localStorage.setItem('v19_header', refs.header.value); localStorage.setItem('v19_zone', refs.zone.value); localStorage.setItem('v19_prefix', refs.prefix.value); localStorage.setItem('v19_start', refs.start.value); localStorage.setItem('v19_footer', refs.footer.value); localStorage.setItem('v19_color', refs.color.value); localStorage.setItem('v19_sZone', refs.sZone.value); localStorage.setItem('v19_sCode', refs.sCode.value); localStorage.setItem('v19_sFooter', refs.sFooter.value); localStorage.setItem('v19_vHeader', refs.cHeader.checked); localStorage.setItem('v19_vZone', refs.cZone.checked); localStorage.setItem('v19_vCode', refs.cCode.checked); localStorage.setItem('v19_vNum', refs.cNum.checked); localStorage.setItem('v19_vFooter', refs.cFooter.checked);
-        }
-
-        function resetDefaults() { if(confirm('¿Reiniciar todo?')) { localStorage.clear(); location.reload(); } }
-
-        [refs.qty, refs.rows, refs.cols, refs.gap, refs.orientation, refs.layout, refs.color, refs.header, refs.zone, refs.prefix, refs.start, refs.footer, refs.sZone, refs.sCode, refs.sFooter, refs.cHeader, refs.cZone, refs.cCode, refs.cNum, refs.cFooter].forEach(el => el.addEventListener('input', renderLabels));
-
-        refs.logo.addEventListener('change', function(e) { const file = e.target.files[0]; if (file) { const reader = new FileReader(); reader.onload = function(event) { currentLogoSrc = event.target.result; renderLabels(); }; reader.readAsDataURL(file); } });
-        
-        refs.appLogoInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    const src = event.target.result;
-                    refs.appLogoDisplay.innerHTML = `<img src="${src}" style="width:100%; height:100%; object-fit:contain;">`;
-                    try { localStorage.setItem('v19_appLogo', src); } catch(e) {}
-                };
-                reader.readAsDataURL(file);
-            }
         });
 
-        loadSettings();
-        setTimeout(renderLabels, 100);
     </script>
 </body>
 </html>
