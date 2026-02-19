@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Deteco DTX 5.2</title>
+    <title>Deteco DTX 5.4</title>
     
     <!-- LIBRERIAS EXTERNAS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -30,7 +30,7 @@
             margin: 0; 
             display: flex; 
             flex-direction: column; 
-            min-height: 100vh; /* Permite crecer en móvil */
+            min-height: 100vh;
         }
 
         /* HEADER FIJO */
@@ -60,8 +60,8 @@
         .main-layout { 
             display: flex; 
             flex: 1; 
-            flex-direction: column; /* Móvil: Columna */
-            overflow: visible;      /* Móvil: Scroll natural */
+            flex-direction: column;
+            overflow: visible; 
         }
 
         .settings-panel { 
@@ -69,23 +69,22 @@
             background: #fff; 
             border-bottom: 1px solid #e5e5e5; 
             padding: 16px; 
-            /* En móvil no fijamos altura, dejamos que el contenido mande */
             flex-shrink: 0;
         }
 
         .preview-panel { 
             flex: 1; 
             background: #e9e9eb; 
-            padding: 20px 10px; /* Menos padding en móvil */
+            padding: 20px 10px; 
             display: flex; 
             flex-direction: column; 
             align-items: center; 
-            min-height: 500px; /* Asegura espacio para ver */
+            min-height: 500px;
         }
 
         /* --- ESTILOS DE ESCRITORIO (PC/TABLET) --- */
         @media (min-width: 1024px) {
-            body { height: 100vh; overflow: hidden; } /* En PC fijamos la pantalla */
+            body { height: 100vh; overflow: hidden; } 
             .main-layout { flex-direction: row; overflow: hidden; }
             
             .settings-panel { 
@@ -107,13 +106,12 @@
             .app-title { font-size: 1.1rem; }
             .ios-btn { padding: 8px 16px; font-size: 0.85rem; }
             
-            /* Ocultar botón de minimizar en PC */
             #toggleSettingsBtn { display: none; }
         }
 
         /* --- COMPONENTES --- */
         .control-group { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
-        .group-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #86868b; letter-spacing: 0.5px; }
+        .group-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #86868b; letter-spacing: 0.5px; border-bottom: 1px solid #f5f5f7; padding-bottom: 4px; }
         .input-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
         .ios-input { background: #f5f5f7; border: 1px solid transparent; border-radius: 8px; padding: 8px 12px; font-size: 0.9rem; width: 100%; transition: 0.2s; text-align: right; }
         .ios-input:focus { background: #fff; border-color: var(--primary-color); outline: none; }
@@ -153,10 +151,6 @@
         .btn-datasheet { display: inline-flex; align-items: center; justify-content: center; width: 100%; background-color: var(--primary-color); color: white; font-weight: 700; padding: 16px; border-radius: 12px; font-size: 1rem; margin-top: 20px; text-decoration: none; transition: background 0.2s; box-shadow: 0 4px 10px rgba(242, 101, 34, 0.3); }
         .btn-datasheet:hover { background-color: var(--primary-hover); transform: translateY(-1px); }
 
-        /* UTILIDADES MÓVILES */
-        .mobile-only { display: block; }
-        @media (min-width: 1024px) { .mobile-only { display: none; } }
-        
         /* Animación para el menú móvil */
         .settings-content { transition: max-height 0.3s ease-out; overflow: hidden; }
         .settings-collapsed .settings-content { max-height: 0; margin: 0; padding: 0; opacity: 0; }
@@ -192,7 +186,6 @@
         <!-- PANEL IZQUIERDO (CONFIGURACIÓN) -->
         <div class="settings-panel no-print" id="panel-settings">
             
-            <!-- Botón Móvil para Colapsar -->
             <button id="toggleSettingsBtn" onclick="toggleSettings()" class="w-full text-center text-xs font-bold text-orange-600 mb-4 bg-orange-50 py-2 rounded-lg border border-orange-100 uppercase tracking-wider">
                 <i class="fa-solid fa-sliders mr-1"></i> Ocultar Configuración
             </button>
@@ -200,7 +193,7 @@
             <div id="settingsContainer" class="settings-content">
                 <!-- BUSCADOR -->
                 <div class="control-group">
-                    <div class="group-label">Base de Datos</div>
+                    <div class="group-label">Buscador Base de Datos</div>
                     <div class="relative">
                         <i class="fa-solid fa-search absolute left-3 top-2.5 text-gray-400 text-xs"></i>
                         <input type="text" id="dbSearch" placeholder="Buscar producto..." class="ios-input pl-8 text-left bg-white border-gray-200">
@@ -211,18 +204,18 @@
 
                 <!-- CONTROLES DE TAMAÑO -->
                 <div class="control-group bg-gray-50 p-3 rounded-lg border border-gray-100">
-                    <div class="group-label text-orange-600 mb-2">Ajuste de Tamaños</div>
+                    <div class="group-label text-orange-600 mb-2 border-none pb-0">Ajuste de Tamaños</div>
                     <div class="flex flex-col gap-3">
                         <div>
                             <div class="flex justify-between text-xs mb-1"><span>Nombre Producto</span> <span id="valSizeName" class="font-bold">20px</span></div>
                             <input type="range" id="sizeName" min="10" max="60" value="20" step="1">
                         </div>
                         <div>
-                            <div class="flex justify-between text-xs mb-1"><span>Cód. Producto (Peq)</span> <span id="valSizeSku" class="font-bold">12px</span></div>
+                            <div class="flex justify-between text-xs mb-1"><span>Cód. Prod. (Peq)</span> <span id="valSizeSku" class="font-bold">12px</span></div>
                             <input type="range" id="sizeSku" min="8" max="24" value="12" step="1">
                         </div>
                         <div>
-                            <div class="flex justify-between text-xs mb-1"><span>Organizador (Gde)</span> <span id="valSizeOrg" class="font-bold">40px</span></div>
+                            <div class="flex justify-between text-xs mb-1"><span>N° Org. (Gde)</span> <span id="valSizeOrg" class="font-bold">40px</span></div>
                             <input type="range" id="sizeOrg" min="20" max="120" value="40" step="1">
                         </div>
                         <div>
@@ -232,54 +225,48 @@
                     </div>
                 </div>
 
-                <!-- CONTENIDO ETIQUETA -->
+                <!-- CONTENIDO ETIQUETA (INTERFAZ CLARA) -->
                 <div class="control-group">
-                    <div class="group-label">Datos Producto</div>
+                    <div class="group-label">Contenido de la Etiqueta</div>
                     <div class="input-row">
-                        <span class="text-xs font-medium w-20">Cód. Prod.</span>
-                        <input type="text" id="productCodeInput" value="C-01-05" class="ios-input">
+                        <span class="text-xs font-medium w-24">Nombre</span>
+                        <input type="text" id="nameInput" value="GUANTES MULTIFLEX" class="ios-input font-medium">
                     </div>
                     <div class="input-row">
-                        <span class="text-xs font-medium w-20">Nombre</span>
-                        <input type="text" id="nameInput" value="GUANTES MULTIFLEX" class="ios-input">
+                        <span class="text-xs font-medium w-24">Cód. Prod. (Peq)</span>
+                        <input type="text" id="productCodeInput" value="C-01-05" class="ios-input text-gray-600">
                     </div>
                     <div class="input-row">
-                        <span class="text-xs font-medium w-20">Familia</span>
+                        <span class="text-xs font-bold w-24 text-orange-600">N° Organizador</span>
+                        <input type="text" id="orgInput" value="179" class="ios-input font-black text-lg border-2 border-orange-200">
+                    </div>
+                    <div class="input-row">
+                        <span class="text-xs font-medium w-24">Familia</span>
                         <input type="text" id="familyInput" value="EPP" class="ios-input">
                     </div>
                 </div>
 
-                <!-- SECUENCIA ORGANIZADOR -->
+                <!-- OPCIONES DE SECUENCIA -->
                 <div class="control-group">
-                    <div class="group-label">Secuencia Organizador</div>
-                    <div class="input-row">
-                        <span class="text-xs font-medium w-20">Prefijo</span>
-                        <input type="text" id="prefixInput" placeholder="(Opcional)" class="ios-input w-20">
-                    </div>
-                    <div class="input-row">
-                        <span class="text-xs font-medium w-20">Inicio N°</span>
-                        <input type="number" id="startInput" value="179" class="ios-input font-bold text-lg w-20">
-                        <label class="flex items-center gap-2 cursor-pointer ml-2">
-                            <input type="checkbox" id="checkNumbering" checked class="w-4 h-4 accent-orange-500">
-                            <span class="text-xs">Auto</span>
+                    <div class="group-label">Opciones de Impresión</div>
+                    <div class="input-row justify-end mb-2">
+                        <label class="flex items-center gap-2 cursor-pointer bg-orange-50 px-3 py-2 rounded-lg border border-orange-100">
+                            <input type="checkbox" id="checkNumbering" class="w-4 h-4 accent-orange-500">
+                            <span class="text-xs font-medium text-orange-800">Auto-numerar Organizador (+1)</span>
                         </label>
                     </div>
-                </div>
-
-                <!-- DISEÑO DE HOJA -->
-                <div class="control-group">
-                    <div class="group-label">Diseño de Hoja</div>
-                    <div class="input-row mb-2">
-                        <span class="text-xs font-medium">Orientación</span>
-                        <select id="orientationInput" class="ios-input bg-white cursor-pointer w-32">
+                    
+                    <div class="input-row mb-2 mt-4">
+                        <span class="text-xs font-medium w-24">Orientación</span>
+                        <select id="orientationInput" class="ios-input bg-white cursor-pointer">
                             <option value="portrait">Vertical</option>
                             <option value="landscape">Horizontal</option>
                         </select>
                     </div>
                     <div class="grid grid-cols-3 gap-2">
-                        <input type="number" id="qtyInput" value="20" class="ios-input text-center" title="Total">
-                        <input type="number" id="rowsInput" value="5" class="ios-input text-center" title="Filas">
-                        <input type="number" id="colsInput" value="4" class="ios-input text-center" title="Columnas">
+                        <input type="number" id="qtyInput" value="20" class="ios-input text-center" title="Total a Imprimir">
+                        <input type="number" id="rowsInput" value="5" class="ios-input text-center" title="Filas por Hoja">
+                        <input type="number" id="colsInput" value="4" class="ios-input text-center" title="Columnas por Hoja">
                     </div>
                 </div>
                 
@@ -349,8 +336,14 @@
         const els = {
             wrapper: document.getElementById('pages-wrapper'),
             qty: document.getElementById('qtyInput'), rows: document.getElementById('rowsInput'), cols: document.getElementById('colsInput'),
-            prefix: document.getElementById('prefixInput'), start: document.getElementById('startInput'), checkNum: document.getElementById('checkNumbering'),
-            productCode: document.getElementById('productCodeInput'), name: document.getElementById('nameInput'), family: document.getElementById('familyInput'),
+            
+            // NUEVOS CONTROLES SIMPLIFICADOS
+            name: document.getElementById('nameInput'), 
+            productCode: document.getElementById('productCodeInput'), 
+            orgInput: document.getElementById('orgInput'),
+            family: document.getElementById('familyInput'),
+            checkNum: document.getElementById('checkNumbering'),
+            
             orientation: document.getElementById('orientationInput'),
             dbSearch: document.getElementById('dbSearch'), searchResults: document.getElementById('searchResults'),
             sizeName: document.getElementById('sizeName'), sizeSku: document.getElementById('sizeSku'), sizeOrg: document.getElementById('sizeOrg'), sizeFamily: document.getElementById('sizeFamily'),
@@ -426,7 +419,6 @@
             const qty = parseInt(els.qty.value) || 0;
             const rows = parseInt(els.rows.value) || 5;
             const cols = parseInt(els.cols.value) || 4;
-            const start = parseInt(els.start.value) || 1;
             const orientation = els.orientation.value;
             
             const sName = els.sizeName.value + 'px';
@@ -450,7 +442,12 @@
             const perPage = rows * cols;
             const pages = Math.ceil(qty / perPage);
             let count = 0;
-            const baseUrl = window.location.href.split('?')[0];
+            
+            // FIJAMOS LA DIRECCIÓN DE TU GITHUB PARA EL QR
+            const baseUrl = 'https://ivanvivanco.github.io/ETIQUETAS/';
+
+            // Base Text para el Organizador
+            let baseOrgText = els.orgInput.value.trim();
 
             for(let p=0; p<pages; p++) {
                 const page = document.createElement('div'); page.className = 'page';
@@ -460,12 +457,21 @@
 
                 const itemsHere = Math.min(perPage, qty - count);
                 for(let i=0; i<itemsHere; i++) {
-                    const current = start + count;
-                    count++;
                     
-                    let prefix = els.prefix.value;
-                    let orgNum = prefix ? `${prefix}${current}` : `${current}`;
-                    if(!els.checkNum.checked) orgNum = prefix ? prefix : String(start);
+                    let currentOrgText = baseOrgText;
+                    
+                    // Si Auto-numerar está activado, incrementamos
+                    if (els.checkNum.checked) {
+                        if (!isNaN(baseOrgText) && baseOrgText !== '') {
+                            // Es un número puro (ej: 179 -> 180)
+                            currentOrgText = String(parseInt(baseOrgText) + count);
+                        } else {
+                            // Tiene letras (ej: A-01 -> A-011, A-012)
+                            currentOrgText = `${baseOrgText}${count + 1}`;
+                        }
+                    }
+                    
+                    count++;
 
                     const productCode = els.productCode.value;
                     const smartLink = `${baseUrl}?id=${productCode}`;
@@ -485,7 +491,7 @@
                             </div>
                             
                             <div class="organizer-block">
-                                <span class="organizer-number" style="font-size:${sOrg}">${orgNum}</span>
+                                <span class="organizer-number" style="font-size:${sOrg}">${currentOrgText}</span>
                             </div>
                             
                             <div class="product-family" style="font-size:${sFamily}">${els.family.value}</div>
@@ -510,7 +516,6 @@
             document.getElementById('btn-vis').className = view === 'visor' ? 'ios-btn btn-active-tab' : 'ios-btn btn-ghost';
         }
 
-        // Toggle Settings en Móvil
         function toggleSettings() {
             const container = document.getElementById('settingsContainer');
             const btn = document.getElementById('toggleSettingsBtn');
@@ -539,10 +544,16 @@
                     div.className = "p-3 hover:bg-orange-50 cursor-pointer border-b text-sm flex justify-between";
                     div.innerHTML = `<span><strong>${p.CODIGO}</strong></span> <span class="text-gray-500 truncate ml-2 text-xs">${p.NOMBRE}</span>`;
                     div.onclick = () => {
-                        els.productCode.value = p.CODIGO; els.name.value = p.NOMBRE; els.family.value = p.CATEGORIA || '';
-                        els.searchResults.classList.add('hidden'); els.dbSearch.value = '';
+                        // RELLENADO CORRECTO DE TODOS LOS CAMPOS AL BUSCAR
+                        els.productCode.value = p.CODIGO || ''; 
+                        els.name.value = p.NOMBRE || ''; 
+                        els.family.value = p.CATEGORIA || '';
+                        els.orgInput.value = p.ORGANIZADOR || p.UBICACION || ''; // AHORA SÍ RELLENA EL N° GIGANTE
+                        
+                        els.searchResults.classList.add('hidden'); 
+                        els.dbSearch.value = '';
                         renderLabels();
-                        // En móvil, colapsar automáticamente al seleccionar para ver resultado
+                        
                         if(window.innerWidth < 1024) toggleSettings();
                     };
                     els.searchResults.appendChild(div);
@@ -558,7 +569,7 @@
         }
 
         let timeout;
-        [els.qty, els.rows, els.cols, els.prefix, els.start, els.name, els.family, els.checkNum, els.productCode, els.orientation, els.sizeName, els.sizeSku, els.sizeOrg, els.sizeFamily].forEach(el => {
+        [els.qty, els.rows, els.cols, els.orgInput, els.name, els.family, els.checkNum, els.productCode, els.orientation, els.sizeName, els.sizeSku, els.sizeOrg, els.sizeFamily].forEach(el => {
             el.addEventListener('input', () => { clearTimeout(timeout); timeout = setTimeout(renderLabels, 150); });
         });
     </script>
