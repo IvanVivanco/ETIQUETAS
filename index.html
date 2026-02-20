@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Deteco DTX 5.6</title>
+    <title>Deteco DTX 5.9</title>
     
     <!-- LIBRERIAS EXTERNAS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -190,10 +190,8 @@
 
     <div class="main-layout">
         <!-- PANEL IZQUIERDO (CONFIGURACIÓN) -->
-        <!-- OJO: INICIA CON "settings-collapsed" PARA OCULTARSE AUTOMÁTICAMENTE -->
         <div class="settings-panel no-print settings-collapsed" id="panel-settings">
             
-            <!-- Contenedor interno para mantener anchos durante la animación -->
             <div class="settings-inner">
                 <!-- BUSCADOR -->
                 <div class="control-group">
@@ -296,21 +294,43 @@
                 <div class="search-container">
                     <input type="text" id="manualInput" placeholder="Ej: C-01-05" class="search-input" onkeypress="handleEnter(event)">
                     <button onclick="manualSearch()" class="search-btn"><i class="fa-solid fa-search"></i></button>
-                </div>
-                
-                <div id="scanResult" class="hidden bg-white p-8 pb-4 rounded-2xl border border-gray-100 shadow-xl text-center relative">
+                </div> <!-- ESTA ERA LA ETIQUETA DIV DE CIERRE QUE FALTABA -->
+
+                <div id="scanResult" class="hidden bg-white px-4 py-8 sm:p-8 rounded-2xl border border-gray-100 shadow-xl text-center relative">
                     <!-- LOGO CORPORATIVO -->
                     <img src="logo.png" 
-                         class="absolute top-4 left-4 w-16 h-auto object-contain opacity-100" 
+                         class="absolute top-4 left-4 w-12 sm:w-16 h-auto object-contain opacity-100" 
                          onerror="this.style.display='none'">
 
-                    <div class="text-xs font-bold text-orange-500 uppercase tracking-widest mb-1 mt-6">Resultado</div>
-                    <div id="resCode" class="text-4xl font-black text-gray-900 mb-2 tracking-tight">CODE</div>
-                    <div id="resName" class="text-xl text-gray-600 mb-6 font-medium">Nombre del producto</div>
+                    <!-- NUEVO BLOQUE DE CÓDIGO Y NOMBRE (Invertida la jerarquía y subido) -->
+                    <div class="flex flex-col items-center justify-center mt-8 sm:mt-4 mb-2">
+                        <!-- Código más sutil arriba -->
+                        <div class="text-xs sm:text-sm font-bold text-gray-400 uppercase tracking-wider mb-1">
+                            Cód. Producto: <span id="resCode" class="text-base sm:text-lg font-bold text-gray-600 ml-1">CODE</span>
+                        </div>
+                        
+                        <!-- Nombre gigante y principal abajo del código -->
+                        <div id="resName" class="text-2xl sm:text-3xl text-gray-900 font-black px-2 leading-tight uppercase">Nombre del producto</div>
+                    </div>
+
+                    <!-- LÍNEA DIVISORIA NARANJA DETECO -->
+                    <div class="w-full h-1.5 bg-[#F26522] rounded-full my-4 sm:my-6 opacity-90"></div>
                     
-                    <div class="grid grid-cols-2 gap-6 border-t border-b border-gray-100 py-6 mb-4">
-                        <div><div class="text-xs text-gray-400 uppercase font-bold tracking-wider mb-1">Stock</div><div id="resStock" class="text-3xl font-black text-green-600">0</div></div>
-                        <div><div class="text-xs text-gray-400 uppercase font-bold tracking-wider mb-1">ORGANIZADOR</div><div id="resLoc" class="text-3xl font-bold text-gray-800">-</div></div>
+                    <!-- SECCIÓN STOCK (AHORA ES EL PROTAGONISTA GIGANTE) -->
+                    <div class="flex flex-col items-center justify-center border-b border-gray-100 pb-8 mb-4 gap-2">
+                        <div class="text-center w-full">
+                            <div class="text-sm text-gray-400 uppercase font-black tracking-widest mb-0">Stock Actual</div>
+                            <div class="flex items-baseline justify-center gap-2">
+                                <!-- NÚMERO GIGANTE PERSONALIZADO -->
+                                <div id="resStock" class="text-[7rem] sm:text-[10rem] font-black text-green-500 leading-none tracking-tighter">0</div>
+                                <div id="resUnidad" class="text-2xl sm:text-4xl font-bold text-gray-400 uppercase">UND</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Botón Solicitar Reposición (WhatsApp a Mario Sagredo) -->
+                        <button onclick="solicitarReposicion()" class="mt-2 flex items-center justify-center gap-2 bg-[#25D366]/10 text-[#25D366] border border-[#25D366]/30 hover:bg-[#25D366]/20 px-6 py-3 rounded-xl font-bold text-base transition-colors w-full sm:w-auto shadow-sm">
+                            <i class="fa-brands fa-whatsapp text-xl"></i> Solicitar Reposición
+                        </button>
                     </div>
                     
                     <div id="datasheetArea" class="hidden">
@@ -401,12 +421,16 @@
             const noDataDiv = document.getElementById('noDataArea');
 
             if(prod) {
+                // Guardamos el producto actual globalmente para el botón de WhatsApp
+                window.currentProd = prod;
+
                 errDiv.classList.add('hidden');
                 resDiv.classList.remove('hidden');
                 document.getElementById('resCode').innerText = prod.CODIGO;
                 document.getElementById('resName').innerText = prod.NOMBRE;
                 document.getElementById('resStock').innerText = prod.STOCK || 0;
-                document.getElementById('resLoc').innerText = prod.ORGANIZADOR || prod.UBICACION || '-';
+                document.getElementById('resUnidad').innerText = prod.UNIDAD || 'UND'; // <- Imprime UND por defecto
+                
                 if(prod.FICHA && prod.FICHA.length > 5) {
                     datasDiv.classList.remove('hidden'); noDataDiv.classList.add('hidden'); btnData.href = prod.FICHA;
                 } else {
@@ -415,6 +439,20 @@
             } else {
                 resDiv.classList.add('hidden'); errDiv.classList.remove('hidden');
             }
+        }
+
+        // --- NUEVA FUNCIÓN WHATSAPP ---
+        function solicitarReposicion() {
+            if (!window.currentProd) return;
+            const p = window.currentProd;
+            
+            // Número de Mario Sagredo - Encargado de Bodega
+            const miNumero = "56953119811"; 
+            
+            // Mensaje pre-armado saludando de parte tuya
+            const mensaje = `Hola Mario, te habla Iván. Necesitamos reponer el producto *${p.CODIGO}* - ${p.NOMBRE}. Quedan ${p.STOCK || 0} ${p.UNIDAD || 'UND'} en bodega.`;
+            const url = `https://wa.me/${miNumero}?text=${encodeURIComponent(mensaje)}`;
+            window.open(url, '_blank');
         }
 
         function renderLabels() {
