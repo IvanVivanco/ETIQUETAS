@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Deteco DTX 5.4</title>
+    <title>Deteco DTX 5.6</title>
     
     <!-- LIBRERIAS EXTERNAS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -22,7 +22,7 @@
             --page-height: 297mm;
         }
 
-        /* --- LAYOUT GLOBAL ADAPTABLE --- */
+        /* --- LAYOUT GLOBAL --- */
         body { 
             font-family: 'Inter', sans-serif; 
             background-color: var(--ios-bg); 
@@ -39,6 +39,7 @@
             backdrop-filter: blur(20px); 
             border-bottom: 1px solid #e5e5e5; 
             height: 60px; 
+            flex: 0 0 60px; 
             padding: 0 16px; 
             display: flex; 
             justify-content: space-between; 
@@ -48,68 +49,70 @@
             z-index: 1000;
         }
         
-        .app-title { font-weight: 800; font-size: 1rem; color: #000; letter-spacing: -0.5px; }
+        .app-title { font-weight: 800; font-size: 1.1rem; color: #000; letter-spacing: -0.5px; }
         
-        .ios-btn { padding: 8px 12px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; transition: all 0.2s; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; border: none; white-space: nowrap; }
+        .ios-btn { padding: 8px 12px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; border: none; white-space: nowrap; }
         .btn-ghost { background: transparent; color: #86868b; }
+        .btn-ghost:hover { background: #f5f5f7; color: #1d1d1f; }
         .btn-active-tab { background: var(--primary-light); color: var(--primary-color); font-weight: 700; border: 1px solid rgba(242, 101, 34, 0.1); }
         .btn-primary { background: #000; color: white; }
+        .btn-primary:hover { background: #333; }
         .btn-secondary { background: #e5e5e5; color: #000; }
 
-        /* --- ESTRUCTURA RESPONSIVA --- */
+        /* --- ESTRUCTURA RESPONSIVA MÓVIL Y PC --- */
         .main-layout { 
             display: flex; 
-            flex: 1; 
+            flex: 1 1 auto; 
             flex-direction: column;
             overflow: visible; 
         }
 
+        /* PANEL DE AJUSTES RETRÁCTIL */
         .settings-panel { 
-            width: 100%; 
             background: #fff; 
             border-bottom: 1px solid #e5e5e5; 
-            padding: 16px; 
             flex-shrink: 0;
+            overflow-y: auto;
+            overflow-x: hidden;
+            transition: all 0.3s ease-in-out;
+        }
+        
+        /* Contenedor interno para evitar que se aplaste feo al cerrarse */
+        .settings-inner {
+            width: 340px; 
+            padding: 20px;
         }
 
+        /* PREVIEW PANEL */
         .preview-panel { 
-            flex: 1; 
+            flex: 1 1 auto; 
             background: #e9e9eb; 
-            padding: 20px 10px; 
+            padding: 20px; 
             display: flex; 
             flex-direction: column; 
             align-items: center; 
+            overflow: auto; /* IMPORTANTE: Permite scroll X e Y a las etiquetas grandes */
             min-height: 500px;
         }
 
-        /* --- ESTILOS DE ESCRITORIO (PC/TABLET) --- */
-        @media (min-width: 1024px) {
-            body { height: 100vh; overflow: hidden; } 
-            .main-layout { flex-direction: row; overflow: hidden; }
-            
-            .settings-panel { 
-                width: 340px; 
-                height: 100%; 
-                overflow-y: auto; 
-                border-right: 1px solid #e5e5e5; 
-                border-bottom: none;
-                padding: 20px;
-            }
-            
-            .preview-panel { 
-                height: 100%; 
-                overflow-y: auto; 
-                padding: 40px;
-            }
-            
-            .app-header { padding: 0 24px; }
-            .app-title { font-size: 1.1rem; }
-            .ios-btn { padding: 8px 16px; font-size: 0.85rem; }
-            
-            #toggleSettingsBtn { display: none; }
+        /* COMPORTAMIENTO MÓVIL */
+        @media (max-width: 1023px) {
+            .settings-panel { width: 100%; max-height: 1200px; border-right: none; }
+            .settings-inner { width: 100%; padding: 16px; }
+            .settings-collapsed { max-height: 0 !important; border: none !important; }
         }
 
-        /* --- COMPONENTES --- */
+        /* COMPORTAMIENTO ESCRITORIO (PC) */
+        @media (min-width: 1024px) {
+            body { height: 100vh; overflow: hidden; } 
+            .main-layout { flex-direction: row; height: calc(100vh - 60px); overflow: hidden; }
+            .settings-panel { height: 100%; flex: 0 0 340px; width: 340px; border-right: 1px solid #e5e5e5; border-bottom: none; }
+            .settings-collapsed { flex: 0 0 0px !important; width: 0px !important; border: none !important; }
+            .preview-panel { height: 100%; padding: 40px; }
+            .app-header { padding: 0 24px; }
+        }
+
+        /* --- COMPONENTES DEL MENÚ --- */
         .control-group { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
         .group-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #86868b; letter-spacing: 0.5px; border-bottom: 1px solid #f5f5f7; padding-bottom: 4px; }
         .input-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
@@ -142,7 +145,7 @@
         .logo-container img { max-width: 90%; max-height: 100%; object-fit: contain; }
 
         /* --- VISOR --- */
-        #view-visor { background: #fff; flex: 1; padding: 20px; display: none; justify-content: center; align-items: flex-start; overflow-y: visible; min-height: 100vh; }
+        #view-visor { background: #fff; flex: 1; padding: 20px; display: none; justify-content: center; align-items: flex-start; overflow-y: auto; height: 100%; }
         .visor-box { max-width: 600px; width: 100%; margin-top: 20px; padding-bottom: 40px; }
         .search-container { display: flex; gap: 10px; margin-bottom: 30px; }
         .search-input { flex: 1; padding: 15px; border: 2px solid #e5e5e5; border-radius: 12px; font-size: 1.1rem; outline: none; transition: 0.2s; }
@@ -150,10 +153,6 @@
         .search-btn { background: var(--primary-color); color: white; border: none; padding: 0 25px; border-radius: 12px; font-weight: 700; cursor: pointer; }
         .btn-datasheet { display: inline-flex; align-items: center; justify-content: center; width: 100%; background-color: var(--primary-color); color: white; font-weight: 700; padding: 16px; border-radius: 12px; font-size: 1rem; margin-top: 20px; text-decoration: none; transition: background 0.2s; box-shadow: 0 4px 10px rgba(242, 101, 34, 0.3); }
         .btn-datasheet:hover { background-color: var(--primary-hover); transform: translateY(-1px); }
-
-        /* Animación para el menú móvil */
-        .settings-content { transition: max-height 0.3s ease-out; overflow: hidden; }
-        .settings-collapsed .settings-content { max-height: 0; margin: 0; padding: 0; opacity: 0; }
 
         .hidden { display: none !important; }
         @media print {
@@ -170,27 +169,32 @@
     <!-- HEADER -->
     <div class="app-header no-print">
         <div class="flex items-center gap-2 sm:gap-4">
-            <div class="app-title">Deteco <span class="text-orange-600">DTX</span></div>
-            <div class="flex bg-gray-100 p-1 rounded-lg">
+            
+            <!-- BOTON PARA MOSTRAR/OCULTAR CONFIGURACIÓN -->
+            <button onclick="toggleSettings()" id="btn-settings-toggle" class="ios-btn bg-orange-50 text-orange-600 border border-orange-200 hover:bg-orange-100 mr-1 sm:mr-3" title="Mostrar/Ocultar Ajustes">
+                <i class="fa-solid fa-sliders"></i> <span class="hidden md:inline">Ajustes</span>
+            </button>
+
+            <div class="app-title hidden sm:block">Deteco <span class="text-orange-600">DTX</span></div>
+            
+            <div class="flex bg-gray-100 p-1 rounded-lg ml-2">
                 <button onclick="setView('generator')" id="btn-gen" class="ios-btn btn-active-tab">Generador</button>
                 <button onclick="setView('visor')" id="btn-vis" class="ios-btn btn-ghost">Visor</button>
             </div>
         </div>
         <div class="flex gap-2">
-            <button onclick="downloadPDF()" class="ios-btn btn-secondary"><span class="hidden sm:inline">PDF</span> <i class="fa-regular fa-file-pdf sm:ml-1"></i></button>
-            <button onclick="window.print()" class="ios-btn btn-primary"><span class="hidden sm:inline">Imprimir</span> <i class="fa-solid fa-print sm:ml-1"></i></button>
+            <button onclick="downloadPDF()" class="ios-btn btn-secondary"><span class="hidden lg:inline">PDF</span> <i class="fa-regular fa-file-pdf lg:ml-1"></i></button>
+            <button onclick="window.print()" class="ios-btn btn-primary"><span class="hidden lg:inline">Imprimir</span> <i class="fa-solid fa-print lg:ml-1"></i></button>
         </div>
     </div>
 
     <div class="main-layout">
         <!-- PANEL IZQUIERDO (CONFIGURACIÓN) -->
-        <div class="settings-panel no-print" id="panel-settings">
+        <!-- OJO: INICIA CON "settings-collapsed" PARA OCULTARSE AUTOMÁTICAMENTE -->
+        <div class="settings-panel no-print settings-collapsed" id="panel-settings">
             
-            <button id="toggleSettingsBtn" onclick="toggleSettings()" class="w-full text-center text-xs font-bold text-orange-600 mb-4 bg-orange-50 py-2 rounded-lg border border-orange-100 uppercase tracking-wider">
-                <i class="fa-solid fa-sliders mr-1"></i> Ocultar Configuración
-            </button>
-
-            <div id="settingsContainer" class="settings-content">
+            <!-- Contenedor interno para mantener anchos durante la animación -->
+            <div class="settings-inner">
                 <!-- BUSCADOR -->
                 <div class="control-group">
                     <div class="group-label">Buscador Base de Datos</div>
@@ -225,7 +229,7 @@
                     </div>
                 </div>
 
-                <!-- CONTENIDO ETIQUETA (INTERFAZ CLARA) -->
+                <!-- CONTENIDO ETIQUETA -->
                 <div class="control-group">
                     <div class="group-label">Contenido de la Etiqueta</div>
                     <div class="input-row">
@@ -270,8 +274,8 @@
                     </div>
                 </div>
                 
-                <div class="mt-4 pt-4 border-t border-gray-100 text-center">
-                     <button onclick="location.reload()" class="text-xs text-red-400 hover:text-red-600">Reiniciar App</button>
+                <div class="mt-4 pt-6 border-t border-gray-100 text-center">
+                     <button onclick="location.reload()" class="text-xs font-bold text-red-500 hover:text-red-700 bg-red-50 px-4 py-2 rounded-lg transition-colors">Reiniciar App</button>
                 </div>
             </div>
         </div>
@@ -337,7 +341,6 @@
             wrapper: document.getElementById('pages-wrapper'),
             qty: document.getElementById('qtyInput'), rows: document.getElementById('rowsInput'), cols: document.getElementById('colsInput'),
             
-            // NUEVOS CONTROLES SIMPLIFICADOS
             name: document.getElementById('nameInput'), 
             productCode: document.getElementById('productCodeInput'), 
             orgInput: document.getElementById('orgInput'),
@@ -443,10 +446,8 @@
             const pages = Math.ceil(qty / perPage);
             let count = 0;
             
-            // FIJAMOS LA DIRECCIÓN DE TU GITHUB PARA EL QR
             const baseUrl = 'https://ivanvivanco.github.io/ETIQUETAS/';
 
-            // Base Text para el Organizador
             let baseOrgText = els.orgInput.value.trim();
 
             for(let p=0; p<pages; p++) {
@@ -460,13 +461,10 @@
                     
                     let currentOrgText = baseOrgText;
                     
-                    // Si Auto-numerar está activado, incrementamos
                     if (els.checkNum.checked) {
                         if (!isNaN(baseOrgText) && baseOrgText !== '') {
-                            // Es un número puro (ej: 179 -> 180)
                             currentOrgText = String(parseInt(baseOrgText) + count);
                         } else {
-                            // Tiene letras (ej: A-01 -> A-011, A-012)
                             currentOrgText = `${baseOrgText}${count + 1}`;
                         }
                     }
@@ -511,24 +509,33 @@
         function setView(view) {
             document.getElementById('view-generator').style.display = view === 'generator' ? 'flex' : 'none';
             document.getElementById('view-visor').style.display = view === 'visor' ? 'flex' : 'none';
-            document.getElementById('panel-settings').style.display = view === 'generator' ? 'flex' : 'none';
+            
+            // Ocultar botón de ajustes y el panel si estamos en el Visor
+            const btnToggle = document.getElementById('btn-settings-toggle');
+            const panel = document.getElementById('panel-settings');
+            
+            if(view === 'visor') {
+                btnToggle.style.display = 'none';
+                panel.style.display = 'none';
+            } else {
+                btnToggle.style.display = 'inline-flex';
+                panel.style.display = 'block'; // Volver a mostrar su estructura
+            }
+
             document.getElementById('btn-gen').className = view === 'generator' ? 'ios-btn btn-active-tab' : 'ios-btn btn-ghost';
             document.getElementById('btn-vis').className = view === 'visor' ? 'ios-btn btn-active-tab' : 'ios-btn btn-ghost';
         }
 
         function toggleSettings() {
-            const container = document.getElementById('settingsContainer');
-            const btn = document.getElementById('toggleSettingsBtn');
             const panel = document.getElementById('panel-settings');
+            const btn = document.getElementById('btn-settings-toggle');
             
             if (panel.classList.contains('settings-collapsed')) {
                 panel.classList.remove('settings-collapsed');
-                container.style.maxHeight = container.scrollHeight + "px";
-                btn.innerHTML = '<i class="fa-solid fa-sliders mr-1"></i> Ocultar Configuración';
+                btn.classList.add('bg-orange-200'); // Resaltar botón activo
             } else {
                 panel.classList.add('settings-collapsed');
-                container.style.maxHeight = null;
-                btn.innerHTML = '<i class="fa-solid fa-sliders mr-1"></i> Mostrar Configuración';
+                btn.classList.remove('bg-orange-200');
             }
         }
 
@@ -544,17 +551,20 @@
                     div.className = "p-3 hover:bg-orange-50 cursor-pointer border-b text-sm flex justify-between";
                     div.innerHTML = `<span><strong>${p.CODIGO}</strong></span> <span class="text-gray-500 truncate ml-2 text-xs">${p.NOMBRE}</span>`;
                     div.onclick = () => {
-                        // RELLENADO CORRECTO DE TODOS LOS CAMPOS AL BUSCAR
                         els.productCode.value = p.CODIGO || ''; 
                         els.name.value = p.NOMBRE || ''; 
                         els.family.value = p.CATEGORIA || '';
-                        els.orgInput.value = p.ORGANIZADOR || p.UBICACION || ''; // AHORA SÍ RELLENA EL N° GIGANTE
+                        els.orgInput.value = p.ORGANIZADOR || p.UBICACION || '';
                         
                         els.searchResults.classList.add('hidden'); 
                         els.dbSearch.value = '';
                         renderLabels();
                         
-                        if(window.innerWidth < 1024) toggleSettings();
+                        // AUTO-OCULTAR AL SELECCIONAR UN PRODUCTO
+                        const panel = document.getElementById('panel-settings');
+                        const btn = document.getElementById('btn-settings-toggle');
+                        panel.classList.add('settings-collapsed');
+                        btn.classList.remove('bg-orange-200');
                     };
                     els.searchResults.appendChild(div);
                 });
