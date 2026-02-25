@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Deteco DTX 6.8</title>
+    <title>Deteco DTX 6.10</title>
 
     <!-- PWA / WEB APP NATIVA META TAGS -->
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -17,6 +17,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- NUEVA LIBRERÍA: Permite leer Excel (.xlsx) directamente -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 
@@ -168,7 +170,6 @@
             justify-content: center; 
         }
         
-        /* Contenedor que exige que su forma sea un cuadrado perfecto siempre */
         .qr-wrapper {
             width: 100%;
             height: auto;
@@ -188,7 +189,6 @@
             overflow: hidden; 
         }
 
-        /* Fuerza al Canvas e Img a ajustarse sin estirarse en PDF */
         .qr-container img, .qr-container canvas { 
             width: 100% !important; 
             height: 100% !important; 
@@ -213,6 +213,8 @@
         .search-input { flex: 1; padding: 15px; border: 2px solid #e5e5e5; border-radius: 12px; font-size: 1.1rem; outline: none; transition: 0.2s; }
         .search-input:focus { border-color: var(--primary-color); }
         .search-btn { background: var(--primary-color); color: white; border: none; padding: 0 25px; border-radius: 12px; font-weight: 700; cursor: pointer; }
+        .sync-btn { background: #f5f5f7; color: #86868b; border: 1px solid #e5e5e5; padding: 0 15px; border-radius: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+        .sync-btn:hover { background: #e5e5e5; color: #1d1d1f; }
         .btn-datasheet { display: inline-flex; align-items: center; justify-content: center; width: 100%; background-color: var(--primary-color); color: white; font-weight: 700; padding: 16px; border-radius: 12px; font-size: 1rem; margin-top: 20px; text-decoration: none; transition: background 0.2s; box-shadow: 0 4px 10px rgba(242, 101, 34, 0.3); }
         .btn-datasheet:hover { background-color: var(--primary-hover); transform: translateY(-1px); }
 
@@ -323,7 +325,7 @@
                         <input type="text" id="dbSearch" placeholder="Buscar producto..." class="ios-input pl-8 text-left bg-white border-gray-200">
                         <div id="searchResults" class="hidden absolute top-full left-0 w-full bg-white shadow-xl border border-gray-100 rounded-lg mt-1 z-50 max-h-48 overflow-y-auto"></div>
                     </div>
-                    <div id="dbStatus" class="text-[10px] text-gray-400 text-right">Conectando...</div>
+                    <div id="dbStatus" class="text-[10px] text-gray-400 text-right mt-1">Conectando...</div>
                 </div>
 
                 <!-- CONTROLES DE TAMAÑO -->
@@ -401,6 +403,8 @@
 
                     <div class="search-container">
                         <input type="text" id="manualInput" placeholder="Ej: 179" class="search-input" onkeypress="handleEnter(event)">
+                        <!-- NUEVO BOTÓN DE ACTUALIZAR EXCEL -->
+                        <button onclick="loadDB(true)" class="sync-btn" title="Descargar datos más recientes"><i class="fa-solid fa-arrows-rotate" id="syncIcon"></i></button>
                         <button onclick="manualSearch()" class="search-btn"><i class="fa-solid fa-search"></i></button>
                     </div>
 
@@ -420,7 +424,7 @@
                             <div class="text-center w-full">
                                 <div class="text-sm text-gray-400 uppercase font-black tracking-widest mb-0">Stock Actual</div>
                                 <div class="flex items-baseline justify-center gap-2">
-                                    <div id="resStock" class="text-[7rem] sm:text-[10rem] font-black text-green-500 leading-none tracking-tighter">0</div>
+                                    <div id="resStock" class="text-[7rem] sm:text-[10rem] font-black text-green-500 leading-none tracking-tighter transition-colors">0</div>
                                     <div id="resUnidad" class="text-2xl sm:text-4xl font-bold text-gray-400 uppercase">UND</div>
                                 </div>
                             </div>
@@ -497,7 +501,17 @@
             event.preventDefault(); 
         });
 
-        const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSM3lTLNPOgrglxy22q_iVTguBWEsuuTVfpHQGXMkItgOXKa04h69EfRqQArlgVR7ZvUB-QfpMXjoGr/pub?output=csv';
+        // -------------------------------------------------------------
+        // CONFIGURACIÓN DE BASE DE DATOS (EXCEL DROPBOX O GOOGLE SHEETS)
+        // -------------------------------------------------------------
+        
+        // 1. Enlace oficial de Dropbox (con dl=1 para descarga directa oculta)
+        const DROPBOX_EXCEL_URL = 'https://www.dropbox.com/scl/fi/d5wkezasn85r455wr5xgd/Bodega-y-Abastecimiento-de-obras-2025.xlsx?rlkey=wbmr5ln4j6gpzdxp6goj06lbw&st=bba062i3&dl=1'; 
+        
+        // 2. Respaldo Google Sheets
+        const GOOGLE_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSM3lTLNPOgrglxy22q_iVTguBWEsuuTVfpHQGXMkItgOXKa04h69EfRqQArlgVR7ZvUB-QfpMXjoGr/pub?output=csv';
+        // -------------------------------------------------------------
+
         let dbProducts = [];
         let listaPedidos = []; 
         let metodoEnvioActual = ''; 
@@ -520,12 +534,9 @@
                 const urlParams = new URLSearchParams(window.location.search);
                 const searchId = urlParams.get('id');
                 
-                // Elementos del menú
                 const panel = document.getElementById('panel-settings');
                 const btnToggle = document.getElementById('btn-settings-toggle');
 
-                // Si no venimos de un código QR directo (es decir, estamos en el generador)
-                // Forzamos a que el menú inicie abierto escondido detrás de la pantalla de carga
                 if (!searchId) {
                     panel.classList.remove('settings-collapsed');
                     btnToggle.classList.add('bg-orange-200');
@@ -541,47 +552,126 @@
                     renderLabels();
                 }
 
-                // Ocultar Pantalla de Carga suavemente
                 const splash = document.getElementById('splash-screen');
                 setTimeout(() => {
                     splash.style.opacity = '0';
                     setTimeout(() => {
                         splash.style.display = 'none';
-                        
-                        // Efecto "Hinting": Cerrar el menú automáticamente después de 1.2 segundos
-                        // para que el usuario sepa que está ahí guardado
                         if (!searchId) {
                             setTimeout(() => {
                                 panel.classList.add('settings-collapsed');
                                 btnToggle.classList.remove('bg-orange-200');
                             }, 1200);
                         }
-                    }, 700); // Tiempo que tarda en difuminarse
-                }, 500); // Tiempo extra de carga para lucir la animación
+                    }, 700); 
+                }, 500); 
 
             } catch (err) {
                 console.error("Error cargando la aplicación: ", err);
-                // Si falla algo crítico, al menos quitar la pantalla de carga para ver el error
                 document.getElementById('splash-screen').style.display = 'none';
             }
         });
 
-        async function loadDB() {
+        // NUEVA FUNCIÓN OPTIMIZADA Y RESILIENTE A RESTRICCIONES CORS
+        async function loadDB(isManualRefresh = false) {
+            const statusEl = document.getElementById('dbStatus');
+            const syncIcon = document.getElementById('syncIcon');
+            
+            if(isManualRefresh) {
+                syncIcon.classList.add('fa-spin');
+                statusEl.innerText = "Sincronizando...";
+                statusEl.className = "text-[10px] text-orange-500 text-right font-bold mt-1";
+            }
+
             try {
-                const res = await fetch(CSV_URL);
-                const text = await res.text();
-                const rows = text.split('\n').map(r => r.split(','));
-                const headers = rows[0].map(h => h.trim().toUpperCase().replace(/"/g,''));
-                dbProducts = rows.slice(1).map(r => {
-                    let obj = {};
-                    r.forEach((val, i) => { if(headers[i]) obj[headers[i]] = val.replace(/"/g,'').trim(); });
-                    return obj;
-                }).filter(p => p.CODIGO);
-                document.getElementById('dbStatus').innerText = `Online: ${dbProducts.length} productos`;
-                document.getElementById('dbStatus').className = "text-[10px] text-green-600 text-right font-bold";
+                if (DROPBOX_EXCEL_URL && DROPBOX_EXCEL_URL.length > 10) {
+                    // LECTURA DE EXCEL NORMAL (XLSX) VÍA DROPBOX
+                    let res;
+                    
+                    // Estrategia "Fuerza Bruta" para evitar bloqueos CORS
+                    const urlsToTry = [
+                        // Intento 1: Dominio directo nativo de Dropbox
+                        DROPBOX_EXCEL_URL.replace('www.dropbox.com', 'dl.dropboxusercontent.com'),
+                        // Intento 2: Proxy CORS Primario (rápido y estable)
+                        'https://corsproxy.io/?' + encodeURIComponent(DROPBOX_EXCEL_URL),
+                        // Intento 3: Proxy CORS Secundario
+                        'https://api.allorigins.win/raw?url=' + encodeURIComponent(DROPBOX_EXCEL_URL)
+                    ];
+
+                    for (const url of urlsToTry) {
+                        try {
+                            res = await fetch(url);
+                            if (res.ok) break; // Si funciona, rompemos el ciclo y continuamos
+                        } catch (err) {
+                            console.warn("Fallo intento de fetch con:", url);
+                        }
+                    }
+
+                    if (!res || !res.ok) {
+                        throw new Error("Imposible descargar de Dropbox debido a restricciones del navegador.");
+                    }
+
+                    const arrayBuffer = await res.arrayBuffer();
+                    const workbook = XLSX.read(arrayBuffer, { type: 'buffer' });
+                    
+                    // FIX 1: Buscar específicamente la pestaña "STOCK" (no la "BD")
+                    const targetSheetName = workbook.SheetNames.includes('STOCK') ? 'STOCK' : workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[targetSheetName];
+                    
+                    // FIX 2: Sáltarse las primeras 4 filas del Excel porque tus encabezados (COD, DESCRIPCION...) están en la fila 5
+                    const json = XLSX.utils.sheet_to_json(worksheet, { range: 4, defval: "" });
+                    
+                    // NUEVO MAPEO: Adaptado a las columnas de tu Excel de Deteco
+                    dbProducts = json.map(row => {
+                        let normalizedRow = {};
+                        for (let key in row) {
+                            normalizedRow[key.trim().toUpperCase()] = String(row[key]).trim();
+                        }
+                        return {
+                            CODIGO: normalizedRow['COD'] || '',
+                            NOMBRE: normalizedRow['DESCRIPCION'] || '',
+                            STOCK: normalizedRow['STOCK ACTUAL'] || '0',
+                            UNIDAD: normalizedRow['UDM'] || 'UND',
+                            CATEGORIA: normalizedRow['FAMILIA'] || '',
+                            FICHA: normalizedRow['FICHA'] || normalizedRow['FICHA TECNICA'] || normalizedRow['FICHA TÉCNICA'] || ''
+                        };
+                    }).filter(p => p.CODIGO);
+
+                } else {
+                    // LECTURA CLÁSICA DE GOOGLE SHEETS (CSV) - Respaldo
+                    const fetchUrl = isManualRefresh ? `${GOOGLE_CSV_URL}&t=${new Date().getTime()}` : GOOGLE_CSV_URL;
+                    const res = await fetch(fetchUrl);
+                    const text = await res.text();
+                    const rows = text.split('\n').map(r => r.split(','));
+                    const headers = rows[0].map(h => h.trim().toUpperCase().replace(/"/g,''));
+                    dbProducts = rows.slice(1).map(r => {
+                        let normalizedRow = {};
+                        r.forEach((val, i) => { if(headers[i]) normalizedRow[headers[i]] = val.replace(/"/g,'').trim(); });
+                        return {
+                            CODIGO: normalizedRow['COD'] || normalizedRow['CODIGO'] || '',
+                            NOMBRE: normalizedRow['DESCRIPCION'] || normalizedRow['NOMBRE'] || '',
+                            STOCK: normalizedRow['STOCK ACTUAL'] || normalizedRow['STOCK'] || '0',
+                            UNIDAD: normalizedRow['UDM'] || normalizedRow['UNIDAD'] || 'UND',
+                            CATEGORIA: normalizedRow['FAMILIA'] || normalizedRow['CATEGORIA'] || '',
+                            FICHA: normalizedRow['FICHA'] || normalizedRow['FICHA TECNICA'] || ''
+                        };
+                    }).filter(p => p.CODIGO);
+                }
+
+                statusEl.innerText = `Online: ${dbProducts.length} productos actualizados`;
+                statusEl.className = "text-[10px] text-green-600 text-right font-bold mt-1";
+                
+                if(isManualRefresh) {
+                    setTimeout(() => { syncIcon.classList.remove('fa-spin'); }, 500);
+                    const currentInput = document.getElementById('manualInput').value;
+                    if(currentInput) manualSearch(currentInput);
+                }
+
             } catch (e) {
-                console.error(e);
-                document.getElementById('dbStatus').innerText = "Sin conexión a Excel";
+                console.error("Error definitivo:", e);
+                statusEl.innerText = "Error de conexión a la base de datos";
+                statusEl.className = "text-[10px] text-red-500 text-right font-bold mt-1";
+                if(isManualRefresh) syncIcon.classList.remove('fa-spin');
             }
         }
 
@@ -591,14 +681,15 @@
             const rawInput = codeOverride || document.getElementById('manualInput').value;
             if(!rawInput) return;
             const searchCode = rawInput.trim().toUpperCase();
-            let prod = dbProducts.find(p => p.CODIGO.toUpperCase() === searchCode);
-            if (!prod) prod = dbProducts.find(p => p.CODIGO.toUpperCase().includes(searchCode));
+            let prod = dbProducts.find(p => p.CODIGO && p.CODIGO.toUpperCase() === searchCode);
+            if (!prod) prod = dbProducts.find(p => p.CODIGO && p.CODIGO.toUpperCase().includes(searchCode));
 
             const resDiv = document.getElementById('scanResult');
             const errDiv = document.getElementById('scanError');
             const datasDiv = document.getElementById('datasheetArea');
             const btnData = document.getElementById('btnDatasheet');
             const noDataDiv = document.getElementById('noDataArea');
+            const stockEl = document.getElementById('resStock');
 
             if(prod) {
                 window.currentProd = prod; 
@@ -607,7 +698,21 @@
                 resDiv.classList.remove('hidden');
                 document.getElementById('resCode').innerText = prod.CODIGO;
                 document.getElementById('resName').innerText = prod.NOMBRE;
-                document.getElementById('resStock').innerText = prod.STOCK || 0;
+                
+                // Lógica de Stock numérico
+                const stockNum = parseInt(prod.STOCK) || 0;
+                stockEl.innerText = prod.STOCK || 0;
+                
+                // SEMÁFORO DE STOCK
+                stockEl.classList.remove('text-green-500', 'text-yellow-500', 'text-red-500');
+                if (stockNum > 20) {
+                    stockEl.classList.add('text-green-500');
+                } else if (stockNum > 0 && stockNum <= 20) {
+                    stockEl.classList.add('text-yellow-500');
+                } else {
+                    stockEl.classList.add('text-red-500');
+                }
+
                 document.getElementById('resUnidad').innerText = prod.UNIDAD || 'UND';
                 
                 if(prod.FICHA && prod.FICHA.length > 5) {
@@ -865,9 +970,7 @@
                         const card = document.createElement('div');
                         card.className = 'label-card';
                         
-                        /* SE ESTRUCTURA EL HTML PARA EL QR DINÁMICO */
                         card.innerHTML = `
-                            <!-- BOTÓN ELIMINAR INDIVIDUAL -->
                             <button onclick="eliminarEtiqueta(${itemIndex})" class="btn-delete-label no-print absolute top-2 right-2 bg-red-50 text-red-500 hover:bg-red-500 hover:text-white w-7 h-7 rounded-full flex items-center justify-center transition-colors z-10 shadow-sm border border-red-200" title="Quitar etiqueta">
                                 <i class="fa-solid fa-xmark text-sm"></i>
                             </button>
@@ -955,7 +1058,10 @@
                         els.productCode.value = p.CODIGO || ''; 
                         els.name.value = p.NOMBRE || ''; 
                         els.family.value = p.CATEGORIA || '';
-                        els.orgInput.value = p.ORGANIZADOR || p.UBICACION || '';
+                        
+                        // DESVINCULACIÓN DEL ORGANIZADOR: 
+                        // Ya no sobrescribimos el input del organizador para respetar tu ingreso manual
+                        // els.orgInput.value = p.ORGANIZADOR || p.UBICACION || '';
                         
                         els.searchResults.classList.add('hidden'); 
                         els.dbSearch.value = '';
