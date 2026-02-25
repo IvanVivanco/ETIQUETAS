@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Deteco DTX 5.9</title>
+    <title>Deteco DTX 6.8</title>
     
     <!-- LIBRERIAS EXTERNAS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -51,13 +51,17 @@
         
         .app-title { font-weight: 800; font-size: 1.1rem; color: #000; letter-spacing: -0.5px; }
         
-        .ios-btn { padding: 8px 12px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; border: none; white-space: nowrap; }
+        .ios-btn { padding: 8px 12px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; border: none; white-space: nowrap; }
         .btn-ghost { background: transparent; color: #86868b; }
         .btn-ghost:hover { background: #f5f5f7; color: #1d1d1f; }
         .btn-active-tab { background: var(--primary-light); color: var(--primary-color); font-weight: 700; border: 1px solid rgba(242, 101, 34, 0.1); }
         .btn-primary { background: #000; color: white; }
         .btn-primary:hover { background: #333; }
         .btn-secondary { background: #e5e5e5; color: #000; }
+
+        /* Ocultar barra de scroll en contenedor de pestañas móvil */
+        .hide-scroll::-webkit-scrollbar { display: none; }
+        .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
 
         /* --- ESTRUCTURA RESPONSIVA MÓVIL Y PC --- */
         .main-layout { 
@@ -77,13 +81,9 @@
             transition: all 0.3s ease-in-out;
         }
         
-        /* Contenedor interno para evitar que se aplaste feo al cerrarse */
-        .settings-inner {
-            width: 340px; 
-            padding: 20px;
-        }
+        .settings-inner { width: 340px; padding: 20px; }
 
-        /* PREVIEW PANEL */
+        /* PANELES DE VISTAS */
         .preview-panel { 
             flex: 1 1 auto; 
             background: #e9e9eb; 
@@ -91,9 +91,12 @@
             display: flex; 
             flex-direction: column; 
             align-items: center; 
-            overflow: auto; /* IMPORTANTE: Permite scroll X e Y a las etiquetas grandes */
+            overflow: auto; 
             min-height: 500px;
         }
+
+        .view-section { display: none; width: 100%; justify-content: center; }
+        .view-section.active { display: flex; }
 
         /* COMPORTAMIENTO MÓVIL */
         @media (max-width: 1023px) {
@@ -108,7 +111,9 @@
             .main-layout { flex-direction: row; height: calc(100vh - 60px); overflow: hidden; }
             .settings-panel { height: 100%; flex: 0 0 340px; width: 340px; border-right: 1px solid #e5e5e5; border-bottom: none; }
             .settings-collapsed { flex: 0 0 0px !important; width: 0px !important; border: none !important; }
-            .preview-panel { height: 100%; padding: 40px; }
+            
+            /* Contenedor derecho que engloba Visor, Generador o Pedidos */
+            .right-content { flex: 1 1 auto; height: 100%; overflow-y: auto; background: #e9e9eb; }
             .app-header { padding: 0 24px; }
         }
 
@@ -126,26 +131,75 @@
 
         .page { background: white; width: var(--page-width); height: var(--page-height); padding: 10mm; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); display: grid; box-sizing: border-box; position: relative; transition: width 0.3s, height 0.3s; }
         
-        /* --- ETIQUETA --- */
+        /* --- ETIQUETA ADAPTATIVA Y MÁGICA --- */
         .label-card { border: 1px solid #d1d5db; border-radius: 6px; background: white; display: flex; flex-direction: row; overflow: hidden; position: relative; }
         .strip-orange { width: 14px; background-color: var(--primary-color); height: 100%; flex-shrink: 0; }
-        .left-col { flex: 1; padding: 18px 14px; display: flex; flex-direction: column; overflow: hidden; }
+        
+        .left-col { flex: 1 1 50%; padding: 4%; display: flex; flex-direction: column; overflow: hidden; justify-content: center; }
         .header-block { display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px; }
-        .product-name { font-weight: 800; color: #111827; text-transform: uppercase; line-height: 1.1; width: 100%; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+        .product-name { font-weight: 900; color: #111827; text-transform: uppercase; line-height: 1.1; width: 100%; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
         .product-sku-row { display: flex; align-items: baseline; gap: 6px; }
         .sku-label { font-size: 0.65rem; color: #6b7280; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
-        .sku-value { font-weight: 700; color: #374151; }
-        .organizer-block { flex: 1; display: flex; align-items: center; justify-content: flex-start; padding: 4px 0; }
-        .organizer-number { font-weight: 900; color: #000; line-height: 1; letter-spacing: -1px; }
-        .product-family { font-weight: 600; color: #4b5563; text-transform: uppercase; padding-top: 8px; border-top: 1px solid transparent; }
-        .right-col { width: 35%; border-left: 1px solid #f3f4f6; display: flex; flex-direction: column; padding: 6px; }
-        .qr-container { flex: 1; width: 100%; display: flex; align-items: center; justify-content: center; padding: 2px; overflow: hidden; }
-        .qr-container img, .qr-container canvas { width: 100% !important; height: 100% !important; object-fit: contain; }
-        .logo-container { height: 24px; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 2px; margin-top: 6px; }
+        .sku-value { font-weight: 800; color: #374151; }
+        
+        .organizer-block { flex: 1; display: flex; align-items: center; justify-content: flex-start; padding: 4px 0; min-height: 0; }
+        .organizer-number { font-weight: 900; color: #000; line-height: 1; letter-spacing: -1px; word-break: break-word; }
+        
+        .product-family { font-weight: 700; color: #4b5563; text-transform: uppercase; padding-top: 8px; border-top: 1px solid transparent; }
+        
+        /* --- LA MAGIA DEL CONTENEDOR DERECHO ADAPTATIVO --- */
+        .right-col { 
+            flex: 0 0 auto; 
+            max-width: 50%; 
+            min-width: 25%; 
+            border-left: 1px solid #f3f4f6; 
+            display: flex; 
+            flex-direction: column; 
+            padding: 3%; 
+            align-items: center; 
+            justify-content: center; 
+        }
+        
+        /* Contenedor que exige que su forma sea un cuadrado perfecto siempre */
+        .qr-wrapper {
+            width: 100%;
+            height: auto;
+            max-height: 85%;
+            aspect-ratio: 1 / 1; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .qr-container { 
+            width: 100%; 
+            height: 100%; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            overflow: hidden; 
+        }
+
+        /* Fuerza al Canvas e Img a ajustarse sin estirarse en PDF */
+        .qr-container img, .qr-container canvas { 
+            width: 100% !important; 
+            height: 100% !important; 
+            object-fit: contain; 
+        }
+        
+        .logo-container { 
+            height: 15%; 
+            min-height: 16px;
+            max-height: 35px;
+            width: 100%;
+            display: flex; 
+            align-items: flex-end; 
+            justify-content: center; 
+            margin-top: 6px; 
+        }
         .logo-container img { max-width: 90%; max-height: 100%; object-fit: contain; }
 
         /* --- VISOR --- */
-        #view-visor { background: #fff; flex: 1; padding: 20px; display: none; justify-content: center; align-items: flex-start; overflow-y: auto; height: 100%; }
         .visor-box { max-width: 600px; width: 100%; margin-top: 20px; padding-bottom: 40px; }
         .search-container { display: flex; gap: 10px; margin-bottom: 30px; }
         .search-input { flex: 1; padding: 15px; border: 2px solid #e5e5e5; border-radius: 12px; font-size: 1.1rem; outline: none; transition: 0.2s; }
@@ -159,39 +213,99 @@
             .app-header, .settings-panel, .no-print { display: none !important; }
             .preview-panel { padding: 0; background: white; overflow: visible; height: auto; display: block; }
             .page { box-shadow: none; margin: 0; break-after: page; }
-            #view-visor { display: none; }
+            .view-section { display: none !important; }
+            #view-generator { display: flex !important; }
             @page { margin: 0; }
         }
     </style>
 </head>
 <body>
 
+    <!-- PANTALLA DE CARGA (SPLASH SCREEN) -->
+    <div id="splash-screen" class="fixed inset-0 bg-[#F5F5F7] z-[9999] flex flex-col items-center justify-center transition-opacity duration-700 ease-in-out">
+        <div class="flex flex-col items-center animate-pulse">
+            <img src="logo.png" class="w-24 sm:w-32 h-auto mb-4 object-contain" onerror="this.style.display='none'">
+            <h1 class="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight">Deteco <span class="text-orange-600">DTX</span></h1>
+            <div class="text-xs font-bold text-gray-400 tracking-widest mt-3 uppercase">Cargando Sistema...</div>
+        </div>
+        <div class="absolute bottom-8 text-center">
+            <p class="text-[10px] text-gray-400 font-medium tracking-widest uppercase">Creado y programado por Iván Vivanco</p>
+        </div>
+    </div>
+
     <!-- HEADER -->
     <div class="app-header no-print">
-        <div class="flex items-center gap-2 sm:gap-4">
+        <div class="flex items-center gap-2 sm:gap-4 flex-1">
             
-            <!-- BOTON PARA MOSTRAR/OCULTAR CONFIGURACIÓN -->
             <button onclick="toggleSettings()" id="btn-settings-toggle" class="ios-btn bg-orange-50 text-orange-600 border border-orange-200 hover:bg-orange-100 mr-1 sm:mr-3" title="Mostrar/Ocultar Ajustes">
                 <i class="fa-solid fa-sliders"></i> <span class="hidden md:inline">Ajustes</span>
             </button>
 
-            <div class="app-title hidden sm:block">Deteco <span class="text-orange-600">DTX</span></div>
+            <div class="app-title hidden sm:block mr-2">Deteco <span class="text-orange-600">DTX</span></div>
             
-            <div class="flex bg-gray-100 p-1 rounded-lg ml-2">
+            <!-- PESTAÑAS -->
+            <div class="flex bg-gray-100 p-1 rounded-lg overflow-x-auto hide-scroll gap-1">
                 <button onclick="setView('generator')" id="btn-gen" class="ios-btn btn-active-tab">Generador</button>
                 <button onclick="setView('visor')" id="btn-vis" class="ios-btn btn-ghost">Visor</button>
+                <button onclick="setView('pedidos')" id="btn-pedidos" class="ios-btn btn-ghost relative">
+                    Pedidos
+                    <!-- Burbuja de notificación -->
+                    <span id="badge-pedidos" class="hidden absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-white shadow-sm">0</span>
+                </button>
             </div>
         </div>
-        <div class="flex gap-2">
+        <div class="flex gap-2 ml-4">
             <button onclick="downloadPDF()" class="ios-btn btn-secondary"><span class="hidden lg:inline">PDF</span> <i class="fa-regular fa-file-pdf lg:ml-1"></i></button>
             <button onclick="window.print()" class="ios-btn btn-primary"><span class="hidden lg:inline">Imprimir</span> <i class="fa-solid fa-print lg:ml-1"></i></button>
+        </div>
+    </div>
+
+    <!-- MODAL SOLICITAR COMPRA (Cantidad) -->
+    <div id="modalCompra" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[2000] p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl transform transition-all">
+            <div class="flex justify-between items-start mb-4">
+                <h3 class="text-xl font-black text-gray-900">Cant. a Solicitar</h3>
+                <button onclick="cerrarModalCompra()" class="text-gray-400 hover:text-red-500"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            
+            <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 mb-6 text-center">
+                <span id="modalProdCode" class="text-xs font-bold text-orange-500 block mb-1">179</span>
+                <p id="modalProdName" class="text-sm font-bold text-gray-700 leading-tight"></p>
+            </div>
+
+            <div class="mb-8 flex items-center justify-center gap-4">
+                <button onclick="cambiarCant(-1)" class="w-12 h-12 rounded-full bg-gray-100 text-gray-600 font-black text-xl hover:bg-gray-200 transition-colors">-</button>
+                <input type="number" id="inputModalQty" value="1" min="1" class="w-24 border-0 bg-transparent text-5xl font-black text-center text-gray-900 focus:outline-none p-0 hide-scroll">
+                <button onclick="cambiarCant(1)" class="w-12 h-12 rounded-full bg-orange-100 text-orange-600 font-black text-xl hover:bg-orange-200 transition-colors">+</button>
+            </div>
+
+            <button onclick="confirmarCompra()" class="w-full bg-orange-500 text-white hover:bg-orange-600 py-4 rounded-xl font-black text-lg transition-colors flex items-center justify-center gap-2 shadow-md">
+                <i class="fa-solid fa-plus"></i> Agregar a Pedidos
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL SOLICITANTE (Quién pide) -->
+    <div id="modalSolicitante" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[2000] p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl transform transition-all">
+            <div class="flex justify-between items-start mb-2">
+                <h3 class="text-xl font-black text-gray-900">Identificación</h3>
+                <button onclick="cerrarModalSolicitante()" class="text-gray-400 hover:text-red-500"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            
+            <p class="text-sm text-gray-500 mb-6">¿Quién está solicitando esta compra?</p>
+            
+            <input type="text" id="inputNombreSolicitante" placeholder="Ej: Mario Sagredo o Iván" class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-3 font-bold text-gray-900 mb-6 focus:outline-none focus:border-orange-500 focus:bg-white transition-colors">
+
+            <button onclick="ejecutarEnvio()" class="w-full bg-orange-500 text-white hover:bg-orange-600 py-4 rounded-xl font-black text-lg transition-colors shadow-md flex items-center justify-center gap-2">
+                Continuar <i class="fa-solid fa-arrow-right"></i>
+            </button>
         </div>
     </div>
 
     <div class="main-layout">
         <!-- PANEL IZQUIERDO (CONFIGURACIÓN) -->
         <div class="settings-panel no-print settings-collapsed" id="panel-settings">
-            
             <div class="settings-inner">
                 <!-- BUSCADOR -->
                 <div class="control-group">
@@ -208,67 +322,50 @@
                 <div class="control-group bg-gray-50 p-3 rounded-lg border border-gray-100">
                     <div class="group-label text-orange-600 mb-2 border-none pb-0">Ajuste de Tamaños</div>
                     <div class="flex flex-col gap-3">
-                        <div>
-                            <div class="flex justify-between text-xs mb-1"><span>Nombre Producto</span> <span id="valSizeName" class="font-bold">20px</span></div>
-                            <input type="range" id="sizeName" min="10" max="60" value="20" step="1">
-                        </div>
-                        <div>
-                            <div class="flex justify-between text-xs mb-1"><span>Cód. Prod. (Peq)</span> <span id="valSizeSku" class="font-bold">12px</span></div>
-                            <input type="range" id="sizeSku" min="8" max="24" value="12" step="1">
-                        </div>
-                        <div>
-                            <div class="flex justify-between text-xs mb-1"><span>N° Org. (Gde)</span> <span id="valSizeOrg" class="font-bold">40px</span></div>
-                            <input type="range" id="sizeOrg" min="20" max="120" value="40" step="1">
-                        </div>
-                        <div>
-                            <div class="flex justify-between text-xs mb-1"><span>Familia</span> <span id="valSizeFamily" class="font-bold">10px</span></div>
-                            <input type="range" id="sizeFamily" min="8" max="30" value="10" step="1">
-                        </div>
+                        <div><div class="flex justify-between text-xs mb-1"><span>Nombre Producto</span> <span id="valSizeName" class="font-bold">20px</span></div><input type="range" id="sizeName" min="10" max="60" value="20" step="1"></div>
+                        <div><div class="flex justify-between text-xs mb-1"><span>Cód. Prod. (Peq)</span> <span id="valSizeSku" class="font-bold">12px</span></div><input type="range" id="sizeSku" min="8" max="24" value="12" step="1"></div>
+                        <div><div class="flex justify-between text-xs mb-1"><span>N° Org. (Gde)</span> <span id="valSizeOrg" class="font-bold">40px</span></div><input type="range" id="sizeOrg" min="20" max="120" value="40" step="1"></div>
+                        <div><div class="flex justify-between text-xs mb-1"><span>Familia</span> <span id="valSizeFamily" class="font-bold">10px</span></div><input type="range" id="sizeFamily" min="8" max="30" value="10" step="1"></div>
                     </div>
                 </div>
 
                 <!-- CONTENIDO ETIQUETA -->
                 <div class="control-group">
                     <div class="group-label">Contenido de la Etiqueta</div>
-                    <div class="input-row">
-                        <span class="text-xs font-medium w-24">Nombre</span>
-                        <input type="text" id="nameInput" value="GUANTES MULTIFLEX" class="ios-input font-medium">
-                    </div>
-                    <div class="input-row">
-                        <span class="text-xs font-medium w-24">Cód. Prod. (Peq)</span>
-                        <input type="text" id="productCodeInput" value="C-01-05" class="ios-input text-gray-600">
-                    </div>
-                    <div class="input-row">
-                        <span class="text-xs font-bold w-24 text-orange-600">N° Organizador</span>
-                        <input type="text" id="orgInput" value="179" class="ios-input font-black text-lg border-2 border-orange-200">
-                    </div>
-                    <div class="input-row">
-                        <span class="text-xs font-medium w-24">Familia</span>
-                        <input type="text" id="familyInput" value="EPP" class="ios-input">
-                    </div>
+                    <div class="input-row"><span class="text-xs font-medium w-24">Nombre</span><input type="text" id="nameInput" value="GUANTES MULTIFLEX" class="ios-input font-medium"></div>
+                    <div class="input-row"><span class="text-xs font-medium w-24">Cód. Prod.</span><input type="text" id="productCodeInput" value="179" class="ios-input text-gray-600"></div>
+                    <div class="input-row"><span class="text-xs font-bold w-24 text-orange-600">N° Org.</span><input type="text" id="orgInput" value="C-01-05" class="ios-input font-black text-lg border-2 border-orange-200"></div>
+                    <div class="input-row"><span class="text-xs font-medium w-24">Familia</span><input type="text" id="familyInput" value="EPP" class="ios-input"></div>
+                    
+                    <button id="btnAgregarHoja" onclick="agregarALaHoja()" class="w-full bg-orange-500 text-white font-bold py-3 rounded-xl mt-3 hover:bg-orange-600 transition-colors shadow-sm flex justify-center items-center gap-2">
+                        <i class="fa-solid fa-plus"></i> Añadir a la Hoja
+                    </button>
                 </div>
 
-                <!-- OPCIONES DE SECUENCIA -->
+                <!-- OPCIONES DE SECUENCIA Y DISEÑO -->
                 <div class="control-group">
-                    <div class="group-label">Opciones de Impresión</div>
-                    <div class="input-row justify-end mb-2">
-                        <label class="flex items-center gap-2 cursor-pointer bg-orange-50 px-3 py-2 rounded-lg border border-orange-100">
-                            <input type="checkbox" id="checkNumbering" class="w-4 h-4 accent-orange-500">
-                            <span class="text-xs font-medium text-orange-800">Auto-numerar Organizador (+1)</span>
-                        </label>
+                    <div class="group-label flex justify-between items-center">
+                        <span>Diseño de Hoja</span>
+                        <button onclick="limpiarHoja()" class="text-red-500 hover:text-red-700 text-xs font-bold bg-red-50 px-2 py-1 rounded transition-colors"><i class="fa-solid fa-trash-can"></i> Vaciar Hoja</button>
                     </div>
                     
-                    <div class="input-row mb-2 mt-4">
-                        <span class="text-xs font-medium w-24">Orientación</span>
-                        <select id="orientationInput" class="ios-input bg-white cursor-pointer">
-                            <option value="portrait">Vertical</option>
-                            <option value="landscape">Horizontal</option>
-                        </select>
+                    <div class="input-row justify-end mb-2 mt-2">
+                        <label class="flex items-center gap-2 cursor-pointer bg-orange-50 px-3 py-2 rounded-lg border border-orange-100 w-full justify-center">
+                            <input type="checkbox" id="checkNumbering" class="w-4 h-4 accent-orange-500">
+                            <span class="text-xs font-medium text-orange-800">Auto-numerar Org. (+1) al añadir</span>
+                        </label>
                     </div>
-                    <div class="grid grid-cols-3 gap-2">
-                        <input type="number" id="qtyInput" value="20" class="ios-input text-center" title="Total a Imprimir">
-                        <input type="number" id="rowsInput" value="5" class="ios-input text-center" title="Filas por Hoja">
-                        <input type="number" id="colsInput" value="4" class="ios-input text-center" title="Columnas por Hoja">
+                    <div class="input-row mb-2 mt-4"><span class="text-xs font-medium w-24">Orientación</span><select id="orientationInput" class="ios-input bg-white cursor-pointer"><option value="portrait">Vertical</option><option value="landscape">Horizontal</option></select></div>
+                    
+                    <div class="grid grid-cols-2 gap-3 mt-2">
+                        <div class="flex flex-col text-center">
+                            <span class="text-[10px] text-gray-500 font-bold mb-1 uppercase tracking-wider">Filas por Hoja</span>
+                            <input type="number" id="rowsInput" value="5" class="ios-input text-center">
+                        </div>
+                        <div class="flex flex-col text-center">
+                            <span class="text-[10px] text-gray-500 font-bold mb-1 uppercase tracking-wider">Columnas por Hoja</span>
+                            <input type="number" id="colsInput" value="4" class="ios-input text-center">
+                        </div>
                     </div>
                 </div>
                 
@@ -278,111 +375,186 @@
             </div>
         </div>
 
-        <!-- VISTA: GENERADOR (PREVIEW) -->
-        <div class="preview-panel" id="view-generator">
-            <div id="pages-wrapper"></div>
-        </div>
+        <!-- CONTENEDOR DERECHO (PANTALLAS) -->
+        <div class="right-content flex flex-col w-full">
+            
+            <!-- VISTA 1: GENERADOR -->
+            <div class="preview-panel view-section active" id="view-generator">
+                <div id="pages-wrapper"></div>
+            </div>
 
-        <!-- VISTA: VISOR MANUAL -->
-        <div id="view-visor">
-            <div class="visor-box">
-                <div class="text-center mb-8">
-                    <h2 class="text-3xl font-black text-gray-900 mb-2">Visor de Inventario</h2>
-                    <p class="text-gray-500">Ingresa el CÓDIGO DEL PRODUCTO para ver detalles</p>
-                </div>
-
-                <div class="search-container">
-                    <input type="text" id="manualInput" placeholder="Ej: C-01-05" class="search-input" onkeypress="handleEnter(event)">
-                    <button onclick="manualSearch()" class="search-btn"><i class="fa-solid fa-search"></i></button>
-                </div> <!-- ESTA ERA LA ETIQUETA DIV DE CIERRE QUE FALTABA -->
-
-                <div id="scanResult" class="hidden bg-white px-4 py-8 sm:p-8 rounded-2xl border border-gray-100 shadow-xl text-center relative">
-                    <!-- LOGO CORPORATIVO -->
-                    <img src="logo.png" 
-                         class="absolute top-4 left-4 w-12 sm:w-16 h-auto object-contain opacity-100" 
-                         onerror="this.style.display='none'">
-
-                    <!-- NUEVO BLOQUE DE CÓDIGO Y NOMBRE (Invertida la jerarquía y subido) -->
-                    <div class="flex flex-col items-center justify-center mt-8 sm:mt-4 mb-2">
-                        <!-- Código más sutil arriba -->
-                        <div class="text-xs sm:text-sm font-bold text-gray-400 uppercase tracking-wider mb-1">
-                            Cód. Producto: <span id="resCode" class="text-base sm:text-lg font-bold text-gray-600 ml-1">CODE</span>
-                        </div>
-                        
-                        <!-- Nombre gigante y principal abajo del código -->
-                        <div id="resName" class="text-2xl sm:text-3xl text-gray-900 font-black px-2 leading-tight uppercase">Nombre del producto</div>
+            <!-- VISTA 2: VISOR -->
+            <div class="preview-panel view-section" id="view-visor" style="padding: 20px;">
+                <div class="visor-box">
+                    <div class="text-center mb-8">
+                        <h2 class="text-3xl font-black text-gray-900 mb-2">Visor de Inventario</h2>
+                        <p class="text-gray-500">Ingresa el CÓDIGO DEL PRODUCTO para ver detalles</p>
                     </div>
 
-                    <!-- LÍNEA DIVISORIA NARANJA DETECO -->
-                    <div class="w-full h-1.5 bg-[#F26522] rounded-full my-4 sm:my-6 opacity-90"></div>
-                    
-                    <!-- SECCIÓN STOCK (AHORA ES EL PROTAGONISTA GIGANTE) -->
-                    <div class="flex flex-col items-center justify-center border-b border-gray-100 pb-8 mb-4 gap-2">
-                        <div class="text-center w-full">
-                            <div class="text-sm text-gray-400 uppercase font-black tracking-widest mb-0">Stock Actual</div>
-                            <div class="flex items-baseline justify-center gap-2">
-                                <!-- NÚMERO GIGANTE PERSONALIZADO -->
-                                <div id="resStock" class="text-[7rem] sm:text-[10rem] font-black text-green-500 leading-none tracking-tighter">0</div>
-                                <div id="resUnidad" class="text-2xl sm:text-4xl font-bold text-gray-400 uppercase">UND</div>
+                    <div class="search-container">
+                        <input type="text" id="manualInput" placeholder="Ej: 179" class="search-input" onkeypress="handleEnter(event)">
+                        <button onclick="manualSearch()" class="search-btn"><i class="fa-solid fa-search"></i></button>
+                    </div>
+
+                    <div id="scanResult" class="hidden bg-white px-4 py-8 sm:p-8 rounded-3xl border border-gray-100 shadow-xl text-center relative">
+                        <img src="logo.png" class="absolute top-4 left-4 w-12 sm:w-16 h-auto object-contain opacity-100" onerror="this.style.display='none'">
+
+                        <div class="flex flex-col items-center justify-center mt-8 sm:mt-4 mb-2">
+                            <div class="text-xs sm:text-sm font-bold text-gray-400 uppercase tracking-wider mb-1">
+                                Cód. Producto: <span id="resCode" class="text-base sm:text-lg font-bold text-gray-600 ml-1">CODE</span>
                             </div>
+                            <div id="resName" class="text-2xl sm:text-3xl text-gray-900 font-black px-2 leading-tight uppercase">Nombre del producto</div>
+                        </div>
+
+                        <div class="w-full h-1.5 bg-[#F26522] rounded-full my-4 sm:my-6 opacity-90"></div>
+                        
+                        <div class="flex flex-col items-center justify-center border-b border-gray-100 pb-8 mb-6 gap-2">
+                            <div class="text-center w-full">
+                                <div class="text-sm text-gray-400 uppercase font-black tracking-widest mb-0">Stock Actual</div>
+                                <div class="flex items-baseline justify-center gap-2">
+                                    <div id="resStock" class="text-[7rem] sm:text-[10rem] font-black text-green-500 leading-none tracking-tighter">0</div>
+                                    <div id="resUnidad" class="text-2xl sm:text-4xl font-bold text-gray-400 uppercase">UND</div>
+                                </div>
+                            </div>
+                            
+                            <button onclick="abrirModalCompra()" class="mt-4 bg-white text-orange-600 border-2 border-orange-500 hover:bg-orange-50 px-8 py-3 rounded-xl font-bold text-lg transition-colors w-full sm:w-auto shadow-sm tracking-wide">
+                                Solicitar Compra
+                            </button>
                         </div>
                         
-                        <!-- Botón Solicitar Reposición (WhatsApp a Mario Sagredo) -->
-                        <button onclick="solicitarReposicion()" class="mt-2 flex items-center justify-center gap-2 bg-[#25D366]/10 text-[#25D366] border border-[#25D366]/30 hover:bg-[#25D366]/20 px-6 py-3 rounded-xl font-bold text-base transition-colors w-full sm:w-auto shadow-sm">
-                            <i class="fa-brands fa-whatsapp text-xl"></i> Solicitar Reposición
-                        </button>
-                    </div>
-                    
-                    <div id="datasheetArea" class="hidden">
-                        <a id="btnDatasheet" href="#" target="_blank" class="btn-datasheet"><i class="fa-solid fa-file-pdf mr-2"></i> Descargar Ficha Técnica</a>
-                        <p class="text-xs text-gray-400 mt-2 mb-4">Se abrirá en una nueva pestaña</p>
-                    </div>
-                    <div id="noDataArea" class="hidden mt-4 mb-4 text-gray-400 text-sm">No hay ficha técnica disponible.</div>
+                        <div id="datasheetArea" class="hidden">
+                            <a id="btnDatasheet" href="#" target="_blank" class="btn-datasheet"><i class="fa-solid fa-file-pdf mr-2"></i> Descargar Ficha Técnica</a>
+                            <p class="text-xs text-gray-400 mt-2 mb-4">Se abrirá en una nueva pestaña</p>
+                        </div>
+                        <div id="noDataArea" class="hidden mt-4 mb-4 text-gray-400 text-sm">No hay ficha técnica disponible.</div>
 
-                    <!-- CRÉDITOS -->
-                    <div class="border-t border-gray-100 pt-3 mt-2">
-                        <p class="text-[10px] text-gray-300 font-medium">Programado y Creado por Iván Vivanco</p>
+                        <div class="border-t border-gray-100 pt-4 mt-2">
+                            <p class="text-[10px] text-gray-300 font-medium">Programado y Creado por Iván Vivanco</p>
+                        </div>
                     </div>
-                </div>
 
-                <div id="scanError" class="hidden bg-red-50 text-red-600 p-4 rounded-xl text-center mt-4 border border-red-100 font-medium">
-                    <i class="fa-solid fa-circle-exclamation mr-2"></i> Producto no encontrado.
+                    <div id="scanError" class="hidden bg-red-50 text-red-600 p-4 rounded-xl text-center mt-4 border border-red-100 font-medium">
+                        <i class="fa-solid fa-circle-exclamation mr-2"></i> Producto no encontrado.
+                    </div>
                 </div>
             </div>
+
+            <!-- VISTA 3: PEDIDOS DE COMPRA -->
+            <div class="preview-panel view-section" id="view-pedidos" style="padding: 20px; align-items: stretch;">
+                <div class="w-full max-w-4xl mx-auto">
+                    <div class="text-center mb-8">
+                        <h2 class="text-3xl font-black text-gray-900 mb-2">Pedidos de Compra</h2>
+                        <p class="text-gray-500">Lista de productos solicitados para reposición</p>
+                    </div>
+
+                    <div class="bg-white rounded-3xl border border-gray-200 shadow-lg overflow-hidden flex flex-col h-[600px] max-h-[70vh]">
+                        <!-- Cabecera Tabla -->
+                        <div class="bg-gray-50 p-4 border-b border-gray-200 flex justify-between items-center shrink-0">
+                            <span class="font-bold text-gray-700 uppercase tracking-wider text-sm"><i class="fa-solid fa-list-check mr-2 text-orange-500"></i> Resumen de Ítems</span>
+                            <span class="bg-orange-100 text-orange-800 text-xs font-black px-3 py-1 rounded-full border border-orange-200" id="totalItemsText">0 ÍTEMS</span>
+                        </div>
+                        
+                        <!-- Lista de Productos -->
+                        <div class="flex-1 overflow-y-auto p-4 bg-white" id="listaPedidosContenedor">
+                            <div class="h-full flex flex-col items-center justify-center text-gray-400 gap-3">
+                                <i class="fa-solid fa-cart-arrow-down text-5xl text-gray-200"></i>
+                                <p class="font-medium text-lg">No hay solicitudes pendientes.</p>
+                                <button onclick="setView('visor')" class="mt-2 text-orange-500 font-bold hover:underline text-sm">Ir al visor a buscar productos</button>
+                            </div>
+                        </div>
+
+                        <!-- Footer / Acciones -->
+                        <div class="bg-gray-50 p-4 border-t border-gray-200 shrink-0">
+                            <div class="flex flex-col sm:flex-row gap-3">
+                                <button onclick="prepararEnvio('wsp')" class="flex-1 bg-[#25D366] text-white hover:bg-[#20bd5a] py-4 rounded-xl font-black text-sm transition-colors flex items-center justify-center gap-2 shadow-sm">
+                                    <i class="fa-brands fa-whatsapp text-xl"></i> Enviar WhatsApp
+                                </button>
+                                <button onclick="prepararEnvio('correo')" class="flex-1 bg-blue-500 text-white hover:bg-blue-600 py-4 rounded-xl font-black text-sm transition-colors flex items-center justify-center gap-2 shadow-sm">
+                                    <i class="fa-solid fa-envelope text-xl"></i> Enviar Correo
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 
     <!-- LOGICA -->
     <script>
+        // Manejador global para promesas rechazadas
+        window.addEventListener('unhandledrejection', function(event) {
+            console.warn("Promesa rechazada capturada globalmente:", event.reason);
+            event.preventDefault(); 
+        });
+
         const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSM3lTLNPOgrglxy22q_iVTguBWEsuuTVfpHQGXMkItgOXKa04h69EfRqQArlgVR7ZvUB-QfpMXjoGr/pub?output=csv';
         let dbProducts = [];
+        let listaPedidos = []; 
+        let metodoEnvioActual = ''; 
+
+        // Cola de Impresión vacía al iniciar
+        let colaImpresion = [];
 
         const els = {
             wrapper: document.getElementById('pages-wrapper'),
-            qty: document.getElementById('qtyInput'), rows: document.getElementById('rowsInput'), cols: document.getElementById('colsInput'),
-            
-            name: document.getElementById('nameInput'), 
-            productCode: document.getElementById('productCodeInput'), 
-            orgInput: document.getElementById('orgInput'),
-            family: document.getElementById('familyInput'),
-            checkNum: document.getElementById('checkNumbering'),
-            
-            orientation: document.getElementById('orientationInput'),
-            dbSearch: document.getElementById('dbSearch'), searchResults: document.getElementById('searchResults'),
+            rows: document.getElementById('rowsInput'), cols: document.getElementById('colsInput'),
+            name: document.getElementById('nameInput'), productCode: document.getElementById('productCodeInput'), 
+            orgInput: document.getElementById('orgInput'), family: document.getElementById('familyInput'), checkNum: document.getElementById('checkNumbering'),
+            orientation: document.getElementById('orientationInput'), dbSearch: document.getElementById('dbSearch'), searchResults: document.getElementById('searchResults'),
             sizeName: document.getElementById('sizeName'), sizeSku: document.getElementById('sizeSku'), sizeOrg: document.getElementById('sizeOrg'), sizeFamily: document.getElementById('sizeFamily'),
             valSizeName: document.getElementById('valSizeName'), valSizeSku: document.getElementById('valSizeSku'), valSizeOrg: document.getElementById('valSizeOrg'), valSizeFamily: document.getElementById('valSizeFamily')
         };
 
         window.addEventListener('load', async () => {
-            await loadDB();
-            const urlParams = new URLSearchParams(window.location.search);
-            const searchId = urlParams.get('id');
-            if (searchId) {
-                setView('visor');
-                document.getElementById('manualInput').value = searchId;
-                manualSearch(searchId);
-            } else {
-                renderLabels();
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const searchId = urlParams.get('id');
+                
+                // Elementos del menú
+                const panel = document.getElementById('panel-settings');
+                const btnToggle = document.getElementById('btn-settings-toggle');
+
+                // Si no venimos de un código QR directo (es decir, estamos en el generador)
+                // Forzamos a que el menú inicie abierto escondido detrás de la pantalla de carga
+                if (!searchId) {
+                    panel.classList.remove('settings-collapsed');
+                    btnToggle.classList.add('bg-orange-200');
+                }
+
+                await loadDB();
+                
+                if (searchId) {
+                    setView('visor');
+                    document.getElementById('manualInput').value = searchId;
+                    manualSearch(searchId);
+                } else {
+                    renderLabels();
+                }
+
+                // Ocultar Pantalla de Carga suavemente
+                const splash = document.getElementById('splash-screen');
+                setTimeout(() => {
+                    splash.style.opacity = '0';
+                    setTimeout(() => {
+                        splash.style.display = 'none';
+                        
+                        // Efecto "Hinting": Cerrar el menú automáticamente después de 1.2 segundos
+                        // para que el usuario sepa que está ahí guardado
+                        if (!searchId) {
+                            setTimeout(() => {
+                                panel.classList.add('settings-collapsed');
+                                btnToggle.classList.remove('bg-orange-200');
+                            }, 1200);
+                        }
+                    }, 700); // Tiempo que tarda en difuminarse
+                }, 500); // Tiempo extra de carga para lucir la animación
+
+            } catch (err) {
+                console.error("Error cargando la aplicación: ", err);
+                // Si falla algo crítico, al menos quitar la pantalla de carga para ver el error
+                document.getElementById('splash-screen').style.display = 'none';
             }
         });
 
@@ -421,15 +593,14 @@
             const noDataDiv = document.getElementById('noDataArea');
 
             if(prod) {
-                // Guardamos el producto actual globalmente para el botón de WhatsApp
-                window.currentProd = prod;
+                window.currentProd = prod; 
 
                 errDiv.classList.add('hidden');
                 resDiv.classList.remove('hidden');
                 document.getElementById('resCode').innerText = prod.CODIGO;
                 document.getElementById('resName').innerText = prod.NOMBRE;
                 document.getElementById('resStock').innerText = prod.STOCK || 0;
-                document.getElementById('resUnidad').innerText = prod.UNIDAD || 'UND'; // <- Imprime UND por defecto
+                document.getElementById('resUnidad').innerText = prod.UNIDAD || 'UND';
                 
                 if(prod.FICHA && prod.FICHA.length > 5) {
                     datasDiv.classList.remove('hidden'); noDataDiv.classList.add('hidden'); btnData.href = prod.FICHA;
@@ -441,23 +612,204 @@
             }
         }
 
-        // --- NUEVA FUNCIÓN WHATSAPP ---
-        function solicitarReposicion() {
-            if (!window.currentProd) return;
+        // --- FUNCIONES MODAL PEDIDO Y CARRITO ---
+        function abrirModalCompra() {
+            if(!window.currentProd) return;
+            document.getElementById('modalProdCode').innerText = window.currentProd.CODIGO;
+            document.getElementById('modalProdName').innerText = window.currentProd.NOMBRE;
+            document.getElementById('inputModalQty').value = 1;
+            
+            const modal = document.getElementById('modalCompra');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function cerrarModalCompra() {
+            const modal = document.getElementById('modalCompra');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function cambiarCant(val) {
+            const input = document.getElementById('inputModalQty');
+            let current = parseInt(input.value) || 0;
+            let newVal = current + val;
+            if(newVal < 1) newVal = 1;
+            input.value = newVal;
+        }
+
+        function confirmarCompra() {
+            const qty = parseInt(document.getElementById('inputModalQty').value) || 1;
             const p = window.currentProd;
             
-            // Número de Mario Sagredo - Encargado de Bodega
-            const miNumero = "56953119811"; 
+            const existenteIndex = listaPedidos.findIndex(item => item.CODIGO === p.CODIGO);
+            if(existenteIndex >= 0) {
+                listaPedidos[existenteIndex].CANT_SOLICITADA += qty;
+            } else {
+                listaPedidos.push({
+                    CODIGO: p.CODIGO,
+                    NOMBRE: p.NOMBRE,
+                    UNIDAD: p.UNIDAD || 'UND',
+                    CANT_SOLICITADA: qty
+                });
+            }
             
-            // Mensaje pre-armado saludando de parte tuya
-            const mensaje = `Hola Mario, te habla Iván. Necesitamos reponer el producto *${p.CODIGO}* - ${p.NOMBRE}. Quedan ${p.STOCK || 0} ${p.UNIDAD || 'UND'} en bodega.`;
-            const url = `https://wa.me/${miNumero}?text=${encodeURIComponent(mensaje)}`;
-            window.open(url, '_blank');
+            cerrarModalCompra();
+            actualizarUIPedidos();
+        }
+
+        function eliminarPedido(index) {
+            listaPedidos.splice(index, 1);
+            actualizarUIPedidos();
+        }
+
+        function actualizarUIPedidos() {
+            const count = listaPedidos.length;
+            const badge = document.getElementById('badge-pedidos');
+            const totalText = document.getElementById('totalItemsText');
+            const contenedor = document.getElementById('listaPedidosContenedor');
+
+            if(count > 0) {
+                badge.innerText = count;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+            totalText.innerText = `${count} ÍTEMS`;
+
+            if(count === 0) {
+                contenedor.innerHTML = `
+                    <div class="h-full flex flex-col items-center justify-center text-gray-400 gap-3">
+                        <i class="fa-solid fa-cart-arrow-down text-5xl text-gray-200"></i>
+                        <p class="font-medium text-lg">No hay solicitudes pendientes.</p>
+                        <button onclick="setView('visor')" class="mt-2 text-orange-500 font-bold hover:underline text-sm">Ir al visor a buscar productos</button>
+                    </div>`;
+                return;
+            }
+
+            let html = '<ul class="divide-y divide-gray-100">';
+            listaPedidos.forEach((item, index) => {
+                html += `
+                    <li class="py-4 flex items-center justify-between gap-4 hover:bg-orange-50/50 px-2 rounded-lg transition-colors">
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs font-bold text-gray-400 mb-0.5">${item.CODIGO}</p>
+                            <p class="text-sm font-bold text-gray-800 truncate" title="${item.NOMBRE}">${item.NOMBRE}</p>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <div class="bg-orange-100 text-orange-700 px-3 py-1 rounded-lg font-black text-lg border border-orange-200 text-center min-w-[4rem]">
+                                ${item.CANT_SOLICITADA} <span class="text-[10px] uppercase block -mt-1">${item.UNIDAD}</span>
+                            </div>
+                            <button onclick="eliminarPedido(${index})" class="text-gray-300 hover:text-red-500 transition-colors p-2" title="Eliminar">
+                                <i class="fa-solid fa-trash-can text-lg"></i>
+                            </button>
+                        </div>
+                    </li>`;
+            });
+            html += '</ul>';
+            contenedor.innerHTML = html;
+        }
+
+        // --- FUNCIONES ENVÍO Y MODAL SOLICITANTE ---
+        function prepararEnvio(metodo) {
+            if(listaPedidos.length === 0) {
+                alert("No hay productos en la lista de pedidos.");
+                return;
+            }
+            metodoEnvioActual = metodo;
+            
+            const modal = document.getElementById('modalSolicitante');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            setTimeout(() => { document.getElementById('inputNombreSolicitante').focus(); }, 100);
+        }
+
+        function cerrarModalSolicitante() {
+            const modal = document.getElementById('modalSolicitante');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function ejecutarEnvio() {
+            const inputName = document.getElementById('inputNombreSolicitante');
+            let solicitante = inputName.value.trim();
+            
+            if(!solicitante) {
+                alert("Por favor, ingresa tu nombre para continuar con la solicitud.");
+                return;
+            }
+
+            cerrarModalSolicitante();
+
+            let texto = `Hola, soy ${solicitante}. Solicito la compra de los siguientes productos:\n\n`;
+            
+            listaPedidos.forEach((item, index) => {
+                texto += `${index + 1}. ${item.CODIGO} - ${item.NOMBRE} (${item.CANT_SOLICITADA} ${item.UNIDAD})\n`;
+            });
+
+            if(metodoEnvioActual === 'wsp') {
+                const miNumero = "56953119811"; // Número de Mario Sagredo
+                const url = `https://wa.me/${miNumero}?text=${encodeURIComponent(texto)}`;
+                window.open(url, '_blank');
+            } else if (metodoEnvioActual === 'correo') {
+                const correo = "ivivanco@deteco.cl"; 
+                const asunto = `Solicitud de Compra Interna - ${solicitante}`;
+                const url = `mailto:${correo}?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(texto)}`;
+                window.open(url, '_blank');
+            }
+        }
+
+        // --- NUEVAS FUNCIONES PARA LA HOJA DE IMPRESIÓN ---
+        function incrementarAlfanumerico(str) {
+            return str.replace(/\d+$/, function(n) {
+                return String(parseInt(n, 10) + 1).padStart(n.length, '0');
+            });
+        }
+
+        function agregarALaHoja() {
+            colaImpresion.push({
+                nombre: els.name.value || 'SIN NOMBRE',
+                sku: els.productCode.value || '-',
+                org: els.orgInput.value || '-',
+                familia: els.family.value || '-'
+            });
+            
+            if (els.checkNum.checked) {
+                let actualOrg = els.orgInput.value.trim();
+                if (actualOrg !== '') {
+                    els.orgInput.value = incrementarAlfanumerico(actualOrg);
+                }
+            }
+
+            renderLabels();
+            
+            const btn = document.getElementById('btnAgregarHoja');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> ¡Añadida!';
+            btn.classList.replace('bg-orange-500', 'bg-green-500');
+            btn.classList.replace('hover:bg-orange-600', 'hover:bg-green-600');
+            
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.classList.replace('bg-green-500', 'bg-orange-500');
+                btn.classList.replace('hover:bg-green-600', 'hover:bg-orange-600');
+            }, 1000);
+        }
+
+        function limpiarHoja() {
+            if(confirm('¿Estás seguro de vaciar todas las etiquetas de la hoja de impresión?')) {
+                colaImpresion = [];
+                renderLabels();
+            }
+        }
+        
+        function eliminarEtiqueta(index) {
+            colaImpresion.splice(index, 1);
+            renderLabels();
         }
 
         function renderLabels() {
             els.wrapper.innerHTML = '';
-            const qty = parseInt(els.qty.value) || 0;
             const rows = parseInt(els.rows.value) || 5;
             const cols = parseInt(els.cols.value) || 4;
             const orientation = els.orientation.value;
@@ -481,12 +833,11 @@
             }
             
             const perPage = rows * cols;
-            const pages = Math.ceil(qty / perPage);
+            const total = colaImpresion.length;
+            const pages = Math.ceil(total / perPage) || 1; 
             let count = 0;
             
             const baseUrl = 'https://ivanvivanco.github.io/ETIQUETAS/';
-
-            let baseOrgText = els.orgInput.value.trim();
 
             for(let p=0; p<pages; p++) {
                 const page = document.createElement('div'); page.className = 'page';
@@ -494,74 +845,78 @@
                 page.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
                 page.style.gap = '8px';
 
-                const itemsHere = Math.min(perPage, qty - count);
-                for(let i=0; i<itemsHere; i++) {
-                    
-                    let currentOrgText = baseOrgText;
-                    
-                    if (els.checkNum.checked) {
-                        if (!isNaN(baseOrgText) && baseOrgText !== '') {
-                            currentOrgText = String(parseInt(baseOrgText) + count);
-                        } else {
-                            currentOrgText = `${baseOrgText}${count + 1}`;
-                        }
-                    }
-                    
-                    count++;
+                for(let i=0; i<perPage; i++) {
+                    if (count < total) {
+                        const itemIndex = count;
+                        const item = colaImpresion[count];
+                        count++;
+                        
+                        const smartLink = `${baseUrl}?id=${item.sku}`;
+                        const qrId = `qr-code-${count}`;
 
-                    const productCode = els.productCode.value;
-                    const smartLink = `${baseUrl}?id=${productCode}`;
-                    const qrId = `qr-code-${count}`;
-
-                    const card = document.createElement('div');
-                    card.className = 'label-card';
-                    card.innerHTML = `
-                        <div class="strip-orange"></div>
-                        <div class="left-col">
-                            <div class="header-block">
-                                <div class="product-name" style="font-size:${sName}">${els.name.value}</div>
-                                <div class="product-sku-row">
-                                    <span class="sku-label">CÓDIGO:</span>
-                                    <span class="sku-value" style="font-size:${sSku}">${productCode}</span>
+                        const card = document.createElement('div');
+                        card.className = 'label-card';
+                        
+                        /* SE ESTRUCTURA EL HTML PARA EL QR DINÁMICO */
+                        card.innerHTML = `
+                            <!-- BOTÓN ELIMINAR INDIVIDUAL -->
+                            <button onclick="eliminarEtiqueta(${itemIndex})" class="btn-delete-label no-print absolute top-2 right-2 bg-red-50 text-red-500 hover:bg-red-500 hover:text-white w-7 h-7 rounded-full flex items-center justify-center transition-colors z-10 shadow-sm border border-red-200" title="Quitar etiqueta">
+                                <i class="fa-solid fa-xmark text-sm"></i>
+                            </button>
+                            <div class="strip-orange"></div>
+                            <div class="left-col">
+                                <div class="header-block">
+                                    <div class="product-name" style="font-size:${sName}">${item.nombre}</div>
+                                    <div class="product-sku-row">
+                                        <span class="sku-label">CÓDIGO:</span>
+                                        <span class="sku-value" style="font-size:${sSku}">${item.sku}</span>
+                                    </div>
                                 </div>
+                                
+                                <div class="organizer-block">
+                                    <span class="organizer-number" style="font-size:${sOrg}">${item.org}</span>
+                                </div>
+                                
+                                <div class="product-family" style="font-size:${sFamily}">${item.familia}</div>
                             </div>
-                            
-                            <div class="organizer-block">
-                                <span class="organizer-number" style="font-size:${sOrg}">${currentOrgText}</span>
+                            <div class="right-col">
+                                <div class="qr-wrapper">
+                                    <div class="qr-container" id="${qrId}"></div>
+                                </div>
+                                <div class="logo-container"><img src="logo.png" onerror="this.style.display='none'"></div>
                             </div>
-                            
-                            <div class="product-family" style="font-size:${sFamily}">${els.family.value}</div>
-                        </div>
-                        <div class="right-col">
-                            <div class="qr-container" id="${qrId}"></div>
-                            <div class="logo-container"><img src="logo.png" onerror="this.style.display='none'"></div>
-                        </div>
-                    `;
-                    page.appendChild(card);
-                    new QRCode(card.querySelector(`#${qrId}`), { text: smartLink, width: 300, height: 300, correctLevel: QRCode.CorrectLevel.H });
+                        `;
+                        page.appendChild(card);
+                        new QRCode(card.querySelector(`#${qrId}`), { text: smartLink, width: 300, height: 300, correctLevel: QRCode.CorrectLevel.H });
+                    } else {
+                        const emptyCard = document.createElement('div');
+                        emptyCard.className = 'label-card border-dashed border-2 border-gray-300 bg-gray-50 flex items-center justify-center opacity-50';
+                        emptyCard.innerHTML = '<span class="text-gray-400 font-bold text-xs uppercase tracking-widest"><i class="fa-solid fa-ghost mr-1"></i> Espacio Libre</span>';
+                        page.appendChild(emptyCard);
+                    }
                 }
                 els.wrapper.appendChild(page);
             }
         }
 
         function setView(view) {
-            document.getElementById('view-generator').style.display = view === 'generator' ? 'flex' : 'none';
-            document.getElementById('view-visor').style.display = view === 'visor' ? 'flex' : 'none';
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.getElementById(`view-${view}`).classList.add('active');
             
-            // Ocultar botón de ajustes y el panel si estamos en el Visor
             const btnToggle = document.getElementById('btn-settings-toggle');
             const panel = document.getElementById('panel-settings');
             
-            if(view === 'visor') {
+            if(view === 'generator') {
+                btnToggle.style.display = 'inline-flex';
+                panel.style.display = 'block';
+            } else {
                 btnToggle.style.display = 'none';
                 panel.style.display = 'none';
-            } else {
-                btnToggle.style.display = 'inline-flex';
-                panel.style.display = 'block'; // Volver a mostrar su estructura
             }
 
-            document.getElementById('btn-gen').className = view === 'generator' ? 'ios-btn btn-active-tab' : 'ios-btn btn-ghost';
-            document.getElementById('btn-vis').className = view === 'visor' ? 'ios-btn btn-active-tab' : 'ios-btn btn-ghost';
+            document.getElementById('btn-gen').className = view === 'generator' ? 'ios-btn btn-active-tab shrink-0' : 'ios-btn btn-ghost shrink-0';
+            document.getElementById('btn-vis').className = view === 'visor' ? 'ios-btn btn-active-tab shrink-0' : 'ios-btn btn-ghost shrink-0';
+            document.getElementById('btn-pedidos').className = view === 'pedidos' ? 'ios-btn btn-active-tab shrink-0 relative' : 'ios-btn btn-ghost shrink-0 relative';
         }
 
         function toggleSettings() {
@@ -570,7 +925,7 @@
             
             if (panel.classList.contains('settings-collapsed')) {
                 panel.classList.remove('settings-collapsed');
-                btn.classList.add('bg-orange-200'); // Resaltar botón activo
+                btn.classList.add('bg-orange-200');
             } else {
                 panel.classList.add('settings-collapsed');
                 btn.classList.remove('bg-orange-200');
@@ -596,13 +951,13 @@
                         
                         els.searchResults.classList.add('hidden'); 
                         els.dbSearch.value = '';
-                        renderLabels();
                         
-                        // AUTO-OCULTAR AL SELECCIONAR UN PRODUCTO
-                        const panel = document.getElementById('panel-settings');
-                        const btn = document.getElementById('btn-settings-toggle');
-                        panel.classList.add('settings-collapsed');
-                        btn.classList.remove('bg-orange-200');
+                        if(document.getElementById('view-visor').classList.contains('active')) {
+                            const panel = document.getElementById('panel-settings');
+                            const btn = document.getElementById('btn-settings-toggle');
+                            panel.classList.add('settings-collapsed');
+                            btn.classList.remove('bg-orange-200');
+                        }
                     };
                     els.searchResults.appendChild(div);
                 });
@@ -610,14 +965,112 @@
         });
 
         function downloadPDF() {
-            const el = els.wrapper;
-            const orient = els.orientation.value === 'landscape' ? 'l' : 'p';
-            const opt = { margin:0, filename:'etiquetas_deteco.pdf', image:{type:'jpeg',quality:0.98}, html2canvas:{scale:2}, jsPDF:{unit:'mm',format:'a4', orientation: orient} };
-            html2pdf().set(opt).from(el).save();
+            if (!document.getElementById('view-generator').classList.contains('active')) {
+                alert("Debes estar en la pestaña 'Generador' para descargar el PDF de las etiquetas.");
+                return;
+            }
+
+            if (colaImpresion.length === 0) {
+                alert("No hay etiquetas en la hoja para descargar.");
+                return;
+            }
+
+            const element = document.getElementById('pages-wrapper');
+            const rightContent = document.querySelector('.right-content');
+            const previewPanel = document.getElementById('view-generator');
+
+            const originalScrollYWindow = window.scrollY;
+            const originalScrollY = rightContent ? rightContent.scrollTop : 0;
+            const originalOverflowRight = rightContent ? rightContent.style.overflow : '';
+            const originalOverflowPreview = previewPanel ? previewPanel.style.overflow : '';
+            const originalHeightPreview = previewPanel ? previewPanel.style.height : '';
+
+            const btnPdf = document.querySelector('button[onclick="downloadPDF()"]');
+            if (!btnPdf) return;
+            const originalBtnHtml = btnPdf.innerHTML;
+            btnPdf.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> <span class="hidden lg:inline">Cargando...</span>';
+            btnPdf.disabled = true;
+
+            const restoreAll = () => {
+                if (rightContent) {
+                    rightContent.style.overflow = originalOverflowRight;
+                    rightContent.scrollTop = originalScrollY;
+                }
+                if (previewPanel) {
+                    previewPanel.style.overflow = originalOverflowPreview;
+                    previewPanel.style.height = originalHeightPreview;
+                }
+                window.scrollTo(0, originalScrollYWindow);
+
+                const pages = element.querySelectorAll('.page');
+                pages.forEach(p => {
+                    p.style.marginBottom = '30px';
+                    p.style.boxShadow = '0 10px 30px rgba(0,0,0,0.1)';
+                });
+                
+                const deleteBtns = element.querySelectorAll('.btn-delete-label');
+                deleteBtns.forEach(btn => btn.style.display = 'flex');
+
+                btnPdf.innerHTML = originalBtnHtml;
+                btnPdf.disabled = false;
+            };
+
+            window.scrollTo(0, 0); 
+            if (rightContent) {
+                rightContent.scrollTop = 0; 
+                rightContent.style.overflow = 'visible';
+            }
+            if (previewPanel) {
+                previewPanel.scrollTop = 0;
+                previewPanel.style.overflow = 'visible';
+                previewPanel.style.height = 'auto';
+            }
+
+            const pages = element.querySelectorAll('.page');
+            pages.forEach(p => {
+                p.style.marginBottom = '0';
+                p.style.boxShadow = 'none';
+            });
+            
+            const deleteBtns = element.querySelectorAll('.btn-delete-label');
+            deleteBtns.forEach(btn => btn.style.display = 'none');
+
+            setTimeout(() => {
+                const orient = els.orientation.value === 'landscape' ? 'l' : 'p';
+                const opt = {
+                    margin: 0,
+                    filename: 'etiquetas_deteco.pdf',
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { 
+                        scale: 2, 
+                        useCORS: true,
+                        scrollY: 0,
+                        windowY: 0, 
+                        backgroundColor: '#ffffff',
+                        onclone: function(clonedDoc) {
+                            const imgs = clonedDoc.querySelectorAll('img');
+                            imgs.forEach(img => {
+                                if (!img.complete || img.naturalWidth === 0) {
+                                    img.parentNode.removeChild(img);
+                                }
+                            });
+                        }
+                    },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: orient }
+                };
+
+                html2pdf().set(opt).from(element).save().then(() => {
+                    restoreAll();
+                }).catch(err => {
+                    console.error("Error al exportar PDF: ", err);
+                    alert("Ocurrió un error al generar el PDF. Restableciendo la pantalla de forma segura.");
+                    restoreAll();
+                });
+            }, 300);
         }
 
         let timeout;
-        [els.qty, els.rows, els.cols, els.orgInput, els.name, els.family, els.checkNum, els.productCode, els.orientation, els.sizeName, els.sizeSku, els.sizeOrg, els.sizeFamily].forEach(el => {
+        [els.rows, els.cols, els.orientation, els.sizeName, els.sizeSku, els.sizeOrg, els.sizeFamily].forEach(el => {
             el.addEventListener('input', () => { clearTimeout(timeout); timeout = setTimeout(renderLabels, 150); });
         });
     </script>
