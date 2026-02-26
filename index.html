@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <!-- FIX MÓVIL: Evita el zoom accidental y adapta la app a los bordes del iPhone (viewport-fit=cover) -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Deteco DTX 6.14</title>
+    <title>Deteco DTX 6.15</title>
 
     <!-- PWA / WEB APP NATIVA META TAGS -->
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -542,6 +542,22 @@
             }
         });
 
+        // --- NUEVO: AUTO-ACTUALIZACIÓN INTELIGENTE ---
+        // 1. Actualiza cuando la app vuelve a estar visible (ej. al cambiar de app y volver)
+        document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === 'visible') {
+                loadDB(true); // Se muestra el ícono girando para avisarte que refrescó
+            }
+        });
+
+        // 2. Actualiza silenciosamente cada 3 minutos (180000 ms) si la pantalla se queda abierta
+        setInterval(() => {
+            if (document.visibilityState === 'visible') {
+                loadDB(false); 
+            }
+        }, 180000);
+        // ----------------------------------------------
+
         async function loadDB(isManualRefresh = false) {
             const statusEl = document.getElementById('dbStatus');
             const syncIcon = document.getElementById('syncIcon');
@@ -680,8 +696,19 @@
                 } else {
                     datasDiv.classList.add('hidden'); noDataDiv.classList.remove('hidden');
                 }
+
+                // NUEVO: AUTO-SCROLL hacia el resultado suavemente
+                setTimeout(() => {
+                    resDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 150);
+
             } else {
                 resDiv.classList.add('hidden'); errDiv.classList.remove('hidden');
+                
+                // NUEVO: AUTO-SCROLL hacia el recuadro de error
+                setTimeout(() => {
+                    errDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 150);
             }
         }
 
