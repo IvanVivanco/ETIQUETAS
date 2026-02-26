@@ -542,17 +542,40 @@
             }
         });
 
-        // --- NUEVO: AUTO-ACTUALIZACIÓN INTELIGENTE ---
-        // 1. Actualiza cuando la app vuelve a estar visible (ej. al cambiar de app y volver)
-        document.addEventListener("visibilitychange", () => {
-            if (document.visibilityState === 'visible') {
-                loadDB(true); // Se muestra el ícono girando para avisarte que refrescó
+        // --- FIX MÓVIL (SAFARI/IOS): AUTO-ACTUALIZACIÓN BLINDADA ---
+        let ultimaSincronizacion = Date.now();
+
+        function intentarSincronizacion() {
+            const ahora = Date.now();
+            // Evita que se dispare varias veces seguidas al despertar (cooldown de 10 segundos)
+            if (ahora - ultimaSincronizacion > 10000) {
+                ultimaSincronizacion = ahora;
+                
+                // Pequeño retraso de 500ms CLAVE PARA IPHONE: 
+                // Le da tiempo a iOS de despertar la antena WiFi/4G antes de pedir el archivo
+                setTimeout(() => {
+                    loadDB(true);
+                }, 500);
             }
+        }
+
+        // 1. Sensor estándar (PC y Android)
+        document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === 'visible') intentarSincronizacion();
         });
 
-        // 2. Actualiza silenciosamente cada 3 minutos (180000 ms) si la pantalla se queda abierta
+        // 2. Sensor de foco (Especial para Safari y Web Apps guardadas en el inicio de iPhone)
+        window.addEventListener("focus", intentarSincronizacion);
+
+        // 3. Sensor de restauración de caché (Cuando Safari congela la pestaña en la memoria RAM)
+        window.addEventListener("pageshow", (e) => {
+            if (e.persisted) intentarSincronizacion();
+        });
+
+        // 4. Actualiza silenciosamente cada 3 minutos si la pantalla se queda prendida sola
         setInterval(() => {
             if (document.visibilityState === 'visible') {
+                ultimaSincronizacion = Date.now();
                 loadDB(false); 
             }
         }, 180000);
