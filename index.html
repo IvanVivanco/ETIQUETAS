@@ -298,19 +298,19 @@
                 <div class="control-group bg-gray-50 p-3 rounded-lg border border-gray-100">
                     <div class="group-label text-orange-600 mb-2 border-none pb-0">Ajuste de Tamaños</div>
                     <div class="flex flex-col gap-3">
-                        <div><div class="flex justify-between text-xs mb-1"><span>Nombre Producto</span> <span id="valSizeName" class="font-bold">20px</span></div><input type="range" id="sizeName" min="10" max="60" value="20" step="1"></div>
+                        <div><div class="flex justify-between text-xs mb-1"><span>Nombre Producto</span> <span id="valSizeName" class="font-bold">40px</span></div><input type="range" id="sizeName" min="10" max="60" value="40" step="1"></div>
                         <div><div class="flex justify-between text-xs mb-1"><span>Cód. Prod. (Peq)</span> <span id="valSizeSku" class="font-bold">12px</span></div><input type="range" id="sizeSku" min="8" max="24" value="12" step="1"></div>
-                        <div><div class="flex justify-between text-xs mb-1"><span>N° Org. (Gde)</span> <span id="valSizeOrg" class="font-bold">40px</span></div><input type="range" id="sizeOrg" min="20" max="120" value="40" step="1"></div>
-                        <div><div class="flex justify-between text-xs mb-1"><span>Familia</span> <span id="valSizeFamily" class="font-bold">10px</span></div><input type="range" id="sizeFamily" min="8" max="30" value="10" step="1"></div>
+                        <div><div class="flex justify-between text-xs mb-1"><span>N° Org. (Gde)</span> <span id="valSizeOrg" class="font-bold">120px</span></div><input type="range" id="sizeOrg" min="20" max="150" value="120" step="1"></div>
+                        <div><div class="flex justify-between text-xs mb-1"><span>Familia</span> <span id="valSizeFamily" class="font-bold">25px</span></div><input type="range" id="sizeFamily" min="8" max="30" value="25" step="1"></div>
                     </div>
                 </div>
 
                 <!-- CONTENIDO ETIQUETA -->
                 <div class="control-group">
                     <div class="group-label">Contenido de la Etiqueta</div>
-                    <div class="input-row"><span class="text-xs font-medium w-24">Nombre</span><input type="text" id="nameInput" value="GUANTES MULTIFLEX" class="ios-input font-medium"></div>
-                    <div class="input-row"><span class="text-xs font-medium w-24">Cód. Prod.</span><input type="text" id="productCodeInput" value="179" class="ios-input text-gray-600"></div>
-                    <div class="input-row"><span class="text-xs font-bold w-24 text-orange-600">N° Org.</span><input type="text" id="orgInput" value="C-01-05" class="ios-input font-black text-lg border-2 border-orange-200"></div>
+                    <div class="input-row"><span class="text-xs font-medium w-24">Nombre</span><input type="text" id="nameInput" value="GUANTES CABRITILLA" class="ios-input font-medium"></div>
+                    <div class="input-row"><span class="text-xs font-medium w-24">Cód. Prod.</span><input type="text" id="productCodeInput" value="551" class="ios-input text-gray-600"></div>
+                    <div class="input-row"><span class="text-xs font-bold w-24 text-orange-600">N° Org.</span><input type="text" id="orgInput" value="C-02-15" class="ios-input font-black text-lg border-2 border-orange-200"></div>
                     <div class="input-row"><span class="text-xs font-medium w-24">Familia</span><input type="text" id="familyInput" value="EPP" class="ios-input"></div>
                     
                     <button id="btnAgregarHoja" onclick="agregarALaHoja()" class="w-full bg-orange-500 text-white font-bold py-3 rounded-xl mt-3 hover:bg-orange-600 transition-colors shadow-sm flex justify-center items-center gap-2">
@@ -331,16 +331,21 @@
                             <span class="text-xs font-medium text-orange-800">Auto-numerar Org. (+1) al añadir</span>
                         </label>
                     </div>
-                    <div class="input-row mb-2 mt-4"><span class="text-xs font-medium w-24">Orientación</span><select id="orientationInput" class="ios-input bg-white cursor-pointer"><option value="portrait">Vertical</option><option value="landscape">Horizontal</option></select></div>
+                    <div class="input-row mb-2 mt-4"><span class="text-xs font-medium w-24">Orientación</span>
+                        <select id="orientationInput" class="ios-input bg-white cursor-pointer">
+                            <option value="portrait">Vertical</option>
+                            <option value="landscape" selected>Horizontal</option>
+                        </select>
+                    </div>
                     
                     <div class="grid grid-cols-2 gap-3 mt-2">
                         <div class="flex flex-col text-center">
                             <span class="text-[10px] text-gray-500 font-bold mb-1 uppercase tracking-wider">Filas por Hoja</span>
-                            <input type="number" id="rowsInput" value="5" class="ios-input text-center">
+                            <input type="number" id="rowsInput" value="2" class="ios-input text-center">
                         </div>
                         <div class="flex flex-col text-center">
                             <span class="text-[10px] text-gray-500 font-bold mb-1 uppercase tracking-wider">Columnas por Hoja</span>
-                            <input type="number" id="colsInput" value="4" class="ios-input text-center">
+                            <input type="number" id="colsInput" value="1" class="ios-input text-center">
                         </div>
                     </div>
                 </div>
@@ -369,7 +374,12 @@
 
                     <!-- NUEVO LAYOUT DE BUSCADOR BLINDADO CONTRA DESBORDES -->
                     <div class="w-full flex flex-col gap-3 mb-8 px-2">
-                        <input type="text" id="manualInput" placeholder="Ingresa el CÓDIGO o N°..." class="w-full text-center py-4 px-4 rounded-2xl border-2 border-gray-200 text-xl font-black text-gray-800 outline-none focus:border-orange-500 shadow-sm transition-colors bg-white" onkeypress="handleEnter(event)">
+                        <div class="relative w-full">
+                            <input type="text" id="manualInput" placeholder="Ingresa CÓDIGO o NOMBRE..." class="w-full text-center py-4 px-4 rounded-2xl border-2 border-gray-200 text-xl font-black text-gray-800 outline-none focus:border-orange-500 shadow-sm transition-colors bg-white" autocomplete="off" onkeypress="handleEnter(event)">
+                            
+                            <!-- Menú desplegable del Visor -->
+                            <div id="visorSearchResults" class="hidden absolute top-full left-0 w-full bg-white shadow-2xl border border-gray-100 rounded-xl mt-2 z-50 max-h-60 overflow-y-auto text-left"></div>
+                        </div>
                         
                         <div class="grid grid-cols-4 gap-2 w-full">
                             <!-- Camara -->
@@ -682,8 +692,16 @@
             const rawInput = codeOverride || document.getElementById('manualInput').value;
             if(!rawInput) return;
             const searchCode = rawInput.trim().toUpperCase();
+            
+            // Búsqueda inteligente en cascada: 
+            // 1. Coincidencia exacta de código
             let prod = dbProducts.find(p => p.CODIGO && p.CODIGO.toUpperCase() === searchCode);
+            // 2. Coincidencia exacta de nombre
+            if (!prod) prod = dbProducts.find(p => p.NOMBRE && p.NOMBRE.toUpperCase() === searchCode);
+            // 3. Coincidencia parcial de código
             if (!prod) prod = dbProducts.find(p => p.CODIGO && p.CODIGO.toUpperCase().includes(searchCode));
+            // 4. Coincidencia parcial de nombre
+            if (!prod) prod = dbProducts.find(p => p.NOMBRE && p.NOMBRE.toUpperCase().includes(searchCode));
 
             const resDiv = document.getElementById('scanResult');
             const errDiv = document.getElementById('scanError');
@@ -1051,6 +1069,54 @@
                 });
             } else { els.searchResults.classList.add('hidden'); }
         });
+
+        // --- NUEVO: AUTOCOMPLETADO PARA EL BUSCADOR DEL VISOR ---
+        const manualInputEl = document.getElementById('manualInput');
+        const visorResultsEl = document.getElementById('visorSearchResults');
+
+        manualInputEl.addEventListener('input', (e) => {
+            const val = e.target.value.toLowerCase().trim();
+            if(val.length < 2) { visorResultsEl.classList.add('hidden'); return; }
+            
+            // Busca coincidencias en código o nombre
+            const matches = dbProducts.filter(p => 
+                (p.CODIGO && p.CODIGO.toLowerCase().includes(val)) || 
+                (p.NOMBRE && p.NOMBRE.toLowerCase().includes(val))
+            ).slice(0, 6); // Limita a 6 opciones para no tapar toda la pantalla del celular
+            
+            visorResultsEl.innerHTML = '';
+            if(matches.length) {
+                visorResultsEl.classList.remove('hidden');
+                matches.forEach(p => {
+                    const div = document.createElement('div');
+                    div.className = "p-4 hover:bg-orange-50 cursor-pointer border-b border-gray-100 flex items-center justify-between transition-colors";
+                    // BONUS: Muestra el stock directamente en la lista desplegable
+                    div.innerHTML = `
+                        <div class="flex flex-col overflow-hidden">
+                            <span class="text-xs font-bold text-orange-500 mb-0.5">${p.CODIGO}</span>
+                            <span class="text-sm font-bold text-gray-800 truncate leading-tight">${p.NOMBRE}</span>
+                        </div>
+                        <span class="text-[10px] font-black bg-gray-100 text-gray-500 px-2 py-1 rounded-md ml-2 whitespace-nowrap">${p.STOCK} ${p.UNIDAD}</span>
+                    `;
+                    div.onclick = () => {
+                        manualInputEl.value = p.CODIGO;
+                        visorResultsEl.classList.add('hidden');
+                        manualSearch(p.CODIGO); // Ejecuta la búsqueda visual de inmediato al tocarlo
+                    };
+                    visorResultsEl.appendChild(div);
+                });
+            } else { 
+                visorResultsEl.classList.add('hidden'); 
+            }
+        });
+
+        // Ocultar el menú si el usuario toca la pantalla fuera de él
+        document.addEventListener('click', (e) => {
+            if (manualInputEl && visorResultsEl && !manualInputEl.contains(e.target) && !visorResultsEl.contains(e.target)) {
+                visorResultsEl.classList.add('hidden');
+            }
+        });
+        // --------------------------------------------------------
 
         function downloadPDF() {
             if (!document.getElementById('view-generator').classList.contains('active')) { alert("Debes estar en la pestaña 'Generador' para descargar el PDF de las etiquetas."); return; }
