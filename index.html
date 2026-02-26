@@ -255,9 +255,9 @@
             
             <!-- PESTAÑAS -->
             <div class="flex bg-gray-100 p-1 rounded-lg overflow-x-auto hide-scroll gap-1">
-                <button onclick="setView('generator')" id="btn-gen" class="ios-btn btn-active-tab">Generador</button>
-                <button onclick="setView('visor')" id="btn-vis" class="ios-btn btn-ghost">Visor</button>
-                <button onclick="setView('pedidos')" id="btn-pedidos" class="ios-btn btn-ghost relative">
+                <button onclick="setView('generator')" id="btn-gen" class="ios-btn btn-ghost shrink-0">Generador</button>
+                <button onclick="setView('visor')" id="btn-vis" class="ios-btn btn-active-tab shrink-0">Visor</button>
+                <button onclick="setView('pedidos')" id="btn-pedidos" class="ios-btn btn-ghost shrink-0 relative">
                     Pedidos
                     <!-- Burbuja de notificación -->
                     <span id="badge-pedidos" class="hidden absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-white shadow-sm">0</span>
@@ -315,7 +315,7 @@
 
     <div class="main-layout">
         <!-- PANEL IZQUIERDO (CONFIGURACIÓN) -->
-        <div class="settings-panel no-print settings-collapsed" id="panel-settings">
+        <div class="settings-panel no-print settings-collapsed" id="panel-settings" style="display: none;">
             <div class="settings-inner">
                 <!-- BUSCADOR -->
                 <div class="control-group">
@@ -389,12 +389,12 @@
         <div class="right-content flex flex-col w-full">
             
             <!-- VISTA 1: GENERADOR -->
-            <div class="preview-panel view-section active" id="view-generator">
+            <div class="preview-panel view-section" id="view-generator">
                 <div id="pages-wrapper"></div>
             </div>
 
             <!-- VISTA 2: VISOR -->
-            <div class="preview-panel view-section" id="view-visor" style="padding: 20px;">
+            <div class="preview-panel view-section active" id="view-visor" style="padding: 20px;">
                 <div class="visor-box">
                     <div class="text-center mb-8">
                         <h2 class="text-3xl font-black text-gray-900 mb-2">Visor de Inventario</h2>
@@ -516,6 +516,10 @@
         let listaPedidos = []; 
         let metodoEnvioActual = ''; 
 
+        // Variables para la animación del menú
+        let hasSeenGeneratorMenuHint = false;
+        let hintTimeout = null;
+
         // Cola de Impresión vacía al iniciar
         let colaImpresion = [];
 
@@ -534,35 +538,24 @@
                 const urlParams = new URLSearchParams(window.location.search);
                 const searchId = urlParams.get('id');
                 
-                const panel = document.getElementById('panel-settings');
-                const btnToggle = document.getElementById('btn-settings-toggle');
-
-                if (!searchId) {
-                    panel.classList.remove('settings-collapsed');
-                    btnToggle.classList.add('bg-orange-200');
-                }
+                // Forzamos VISOR desde el momento de carga mediante JS para asegurar
+                setView('visor');
 
                 await loadDB();
                 
                 if (searchId) {
-                    setView('visor');
                     document.getElementById('manualInput').value = searchId;
                     manualSearch(searchId);
-                } else {
-                    renderLabels();
                 }
+                
+                // Genera el fondo pero sin mostrarlo todavía
+                renderLabels();
 
                 const splash = document.getElementById('splash-screen');
                 setTimeout(() => {
                     splash.style.opacity = '0';
                     setTimeout(() => {
                         splash.style.display = 'none';
-                        if (!searchId) {
-                            setTimeout(() => {
-                                panel.classList.add('settings-collapsed');
-                                btnToggle.classList.remove('bg-orange-200');
-                            }, 1200);
-                        }
                     }, 700); 
                 }, 500); 
 
@@ -1020,6 +1013,19 @@
             if(view === 'generator') {
                 btnToggle.style.display = 'inline-flex';
                 panel.style.display = 'block';
+
+                // Animación de hinting la primera vez que entra al generador
+                if(!hasSeenGeneratorMenuHint) {
+                    hasSeenGeneratorMenuHint = true;
+                    panel.classList.remove('settings-collapsed');
+                    btnToggle.classList.add('bg-orange-200');
+
+                    hintTimeout = setTimeout(() => {
+                        panel.classList.add('settings-collapsed');
+                        btnToggle.classList.remove('bg-orange-200');
+                    }, 1200);
+                }
+
             } else {
                 btnToggle.style.display = 'none';
                 panel.style.display = 'none';
@@ -1034,6 +1040,12 @@
             const panel = document.getElementById('panel-settings');
             const btn = document.getElementById('btn-settings-toggle');
             
+            // Si el usuario interactúa manualmente, cancelamos la animación automática
+            if(hintTimeout) {
+                clearTimeout(hintTimeout);
+                hintTimeout = null;
+            }
+
             if (panel.classList.contains('settings-collapsed')) {
                 panel.classList.remove('settings-collapsed');
                 btn.classList.add('bg-orange-200');
@@ -1181,6 +1193,53 @@
                     restoreAll();
                 });
             }, 300);
+        }
+
+        // --- FUNCIONES DEL ESCÁNER QR IN-APP ---
+        function openScanner() {
+            const modal = document.getElementById('modalScanner');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+
+            if (!html5QrcodeScanner) {
+                html5QrcodeScanner = new Html5Qrcode("reader");
+            }
+            
+            // Preferir la cámara trasera (environment) para los celulares
+            const config = { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 };
+            
+            html5QrcodeScanner.start({ facingMode: "environment" }, config, (decodedText) => {
+                // 1. Inteligencia artificial básica: Si es un link tuyo, sacar el "179". Si es texto, usarlo.
+                let scannedId = decodedText;
+                try {
+                    const url = new URL(decodedText);
+                    if (url.searchParams.has('id')) {
+                        scannedId = url.searchParams.get('id');
+                    }
+                } catch(e) {
+                    // No es una URL, se asume que es el ID puro
+                }
+
+                // 2. Apagar y cerrar la cámara instantáneamente
+                closeScanner();
+                
+                // 3. Rellenar el buscador y ejecutar la búsqueda automática
+                document.getElementById('manualInput').value = scannedId;
+                manualSearch(scannedId);
+                
+            }).catch((err) => {
+                console.warn("Fallo al iniciar cámara o sin permisos:", err);
+            });
+        }
+
+        function closeScanner() {
+            const modal = document.getElementById('modalScanner');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            
+            if (html5QrcodeScanner) {
+                html5QrcodeScanner.stop().catch(err => console.warn("Cámara ya estaba detenida."));
+            }
         }
 
         let timeout;
