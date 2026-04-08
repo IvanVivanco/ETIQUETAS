@@ -2,9 +2,8 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <!-- FIX MÓVIL: Evita el zoom accidental y adapta la app a los bordes del iPhone (viewport-fit=cover) -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Deteco DTX 6.15</title>
+    <title>Deteco DTX 6.30</title>
 
     <!-- PWA / WEB APP NATIVA META TAGS -->
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -19,7 +18,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <!-- LIBRERIA ESCÁNER QR -->
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
@@ -27,44 +25,16 @@
     <style>
         :root {
             --ios-bg: #F5F5F7;
-            --primary-color: #F26522; /* Naranja Deteco */
+            --primary-color: #F26522;
             --primary-light: #FFF7ED; 
             --primary-hover: #d14d10;
             --page-width: 210mm;
             --page-height: 297mm;
         }
 
-        /* --- LAYOUT GLOBAL BLINDADO PARA MÓVILES --- */
-        html, body { 
-            width: 100%;
-            height: 100%;
-            font-family: 'Inter', sans-serif; 
-            background-color: var(--ios-bg); 
-            color: #1d1d1f; 
-            margin: 0; 
-            padding: 0;
-            overflow-x: hidden; /* Elimina el scroll horizontal para siempre */
-            overscroll-behavior-y: none; /* Elimina el efecto rebote que crea las franjas grises */
-            display: flex; 
-            flex-direction: column; 
-        }
+        html, body { width: 100%; height: 100%; font-family: 'Inter', sans-serif; background-color: var(--ios-bg); color: #1d1d1f; margin: 0; padding: 0; overflow-x: hidden; overscroll-behavior-y: none; display: flex; flex-direction: column; }
 
-        /* HEADER FIJO */
-        .app-header { 
-            background: rgba(255, 255, 255, 0.98); 
-            backdrop-filter: blur(20px); 
-            border-bottom: 1px solid #e5e5e5; 
-            height: 60px; 
-            flex: 0 0 60px; 
-            padding: 0 16px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            position: sticky; 
-            top: 0; 
-            z-index: 1000;
-            width: 100%;
-        }
+        .app-header { background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(20px); border-bottom: 1px solid #e5e5e5; height: 60px; flex: 0 0 60px; padding: 0 16px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; width: 100%; }
         
         .app-title { font-weight: 800; font-size: 1.1rem; color: #000; letter-spacing: -0.5px; }
         
@@ -79,51 +49,16 @@
         .hide-scroll::-webkit-scrollbar { display: none; }
         .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* --- ESTRUCTURA RESPONSIVA --- */
-        .main-layout { 
-            display: flex; 
-            flex: 1 1 auto; 
-            flex-direction: column;
-            overflow: hidden; /* Evita desbordes internos */
-            width: 100%;
-        }
+        .main-layout { display: flex; flex: 1 1 auto; flex-direction: column; overflow: hidden; width: 100%; }
 
-        /* PANEL DE AJUSTES RETRÁCTIL */
-        .settings-panel { 
-            background: #fff; 
-            border-bottom: 1px solid #e5e5e5; 
-            flex-shrink: 0;
-            overflow-y: auto;
-            overflow-x: hidden;
-            transition: all 0.3s ease-in-out;
-        }
-        
+        .settings-panel { background: #fff; border-bottom: 1px solid #e5e5e5; flex-shrink: 0; overflow-y: auto; overflow-x: hidden; transition: all 0.3s ease-in-out; }
         .settings-inner { width: 100%; max-width: 400px; padding: 20px; margin: 0 auto; }
 
-        /* PANELES DE VISTAS */
-        .right-content { 
-            flex: 1 1 auto; 
-            height: 100%; 
-            overflow-y: auto; 
-            overflow-x: hidden; 
-            background-color: var(--ios-bg); 
-            width: 100%; 
-        }
-
-        .preview-panel { 
-            background-color: var(--ios-bg); 
-            padding: 20px 10px; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            width: 100%;
-            min-height: 100%;
-        }
-
-        .view-section { display: none; width: 100%; justify-content: center; }
+        .right-content { flex: 1 1 auto; height: 100%; overflow-y: auto; overflow-x: hidden; background-color: var(--ios-bg); width: 100%; }
+        .preview-panel { background-color: var(--ios-bg); padding: 20px 10px; display: flex; flex-direction: column; align-items: center; width: 100%; min-height: 100%; }
+        .view-section { display: none; width: 100%; justify-content: flex-start; align-items: center; flex-direction: column;}
         .view-section.active { display: flex; }
 
-        /* COMPORTAMIENTO MÓVIL Y PC */
         @media (max-width: 1023px) {
             .settings-panel { width: 100%; max-height: 1200px; border-right: none; }
             .settings-inner { padding: 16px; }
@@ -138,7 +73,6 @@
             .preview-panel { padding: 40px; }
         }
 
-        /* --- COMPONENTES DEL MENÚ --- */
         .control-group { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; width: 100%; }
         .group-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #86868b; letter-spacing: 0.5px; border-bottom: 1px solid #f5f5f7; padding-bottom: 4px; }
         .input-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; }
@@ -151,20 +85,16 @@
 
         .page { background: white; width: var(--page-width); height: var(--page-height); padding: 10mm; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); display: grid; box-sizing: border-box; position: relative; transition: width 0.3s, height 0.3s; max-width: 100%; }
         
-        /* --- ETIQUETA ADAPTATIVA Y MÁGICA --- */
         .label-card { border: 1px solid #d1d5db; border-radius: 6px; background: white; display: flex; flex-direction: row; overflow: hidden; position: relative; }
         .strip-orange { width: 14px; background-color: var(--primary-color); height: 100%; flex-shrink: 0; }
-        
         .left-col { flex: 1 1 50%; padding: 4%; display: flex; flex-direction: column; overflow: hidden; justify-content: center; }
         .header-block { display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px; }
         .product-name { font-weight: 900; color: #111827; text-transform: uppercase; line-height: 1.1; width: 100%; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
         .product-sku-row { display: flex; align-items: baseline; gap: 6px; }
         .sku-label { font-size: 0.65rem; color: #6b7280; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
         .sku-value { font-weight: 800; color: #374151; }
-        
         .organizer-block { flex: 1; display: flex; align-items: center; justify-content: flex-start; padding: 4px 0; min-height: 0; }
         .organizer-number { font-weight: 900; color: #000; line-height: 1; letter-spacing: -1px; word-break: break-word; }
-        
         .product-family { font-weight: 700; color: #4b5563; text-transform: uppercase; padding-top: 8px; border-top: 1px solid transparent; }
         
         .right-col { flex: 0 0 auto; max-width: 50%; min-width: 25%; border-left: 1px solid #f3f4f6; display: flex; flex-direction: column; padding: 3%; align-items: center; justify-content: center; }
@@ -205,21 +135,20 @@
     <!-- HEADER -->
     <div class="app-header no-print">
         <div class="flex items-center gap-2 sm:gap-4 flex-1">
-            
             <button onclick="toggleSettings()" id="btn-settings-toggle" class="ios-btn bg-orange-50 text-orange-600 border border-orange-200 hover:bg-orange-100 mr-1 sm:mr-3" title="Mostrar/Ocultar Ajustes" style="display: none;">
                 <i class="fa-solid fa-sliders"></i> <span class="hidden md:inline">Ajustes</span>
             </button>
-
             <div class="app-title hidden sm:block mr-2 shrink-0">Deteco <span class="text-orange-600">DTX</span></div>
             
-            <!-- PESTAÑAS -->
             <div class="flex bg-gray-200/60 p-1 rounded-lg overflow-x-auto hide-scroll gap-1">
                 <button onclick="setView('generator')" id="btn-gen" class="ios-btn btn-ghost shrink-0">Generador</button>
                 <button onclick="setView('visor')" id="btn-vis" class="ios-btn btn-active-tab shrink-0">Visor</button>
-                <button onclick="setView('pedidos')" id="btn-pedidos" class="ios-btn btn-ghost shrink-0 relative">
-                    Pedidos
-                    <!-- Burbuja de notificación -->
-                    <span id="badge-pedidos" class="hidden absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-white shadow-sm">0</span>
+                <!-- Eliminada pestaña de Pedidos -->
+                <button onclick="intentarVerInventario()" id="btn-inv" class="ios-btn btn-ghost shrink-0 text-gray-600">
+                    <i class="fa-solid fa-clipboard-check mr-1"></i> Inventario
+                </button>
+                <button onclick="setView('mermas')" id="btn-mermas" class="ios-btn btn-ghost shrink-0 text-red-600 relative">
+                    <i class="fa-solid fa-triangle-exclamation mr-1"></i> Mermas <span id="badge-mermas" class="hidden absolute -top-2 -right-2 bg-red-600 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-white shadow-sm">0</span>
                 </button>
             </div>
         </div>
@@ -229,39 +158,133 @@
         </div>
     </div>
 
-    <!-- MODALES -->
-    <div id="modalCompra" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[2000] p-4 backdrop-blur-sm">
-        <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl transform transition-all">
-            <div class="flex justify-between items-start mb-4">
-                <h3 class="text-xl font-black text-gray-900">Cant. a Solicitar</h3>
-                <button onclick="cerrarModalCompra()" class="text-gray-400 hover:text-red-500"><i class="fa-solid fa-xmark text-xl"></i></button>
+    <!-- MODALES GENERALES -->
+    
+    <!-- Modal Contraseña Bodega -->
+    <div id="modalAuth" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[4000] p-4 backdrop-blur-md">
+        <div class="bg-white rounded-3xl p-8 w-full max-w-sm shadow-2xl flex flex-col items-center">
+            <div class="w-16 h-16 bg-orange-50 text-orange-500 border border-orange-100 rounded-full flex items-center justify-center text-3xl mb-4">
+                <i class="fa-solid fa-lock"></i>
             </div>
-            <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 mb-6 text-center">
-                <span id="modalProdCode" class="text-xs font-bold text-orange-500 block mb-1">...</span>
-                <p id="modalProdName" class="text-sm font-bold text-gray-700 leading-tight"></p>
+            <h3 class="text-2xl font-black text-gray-900 mb-2">Acceso Restringido</h3>
+            <p class="text-sm text-gray-500 text-center mb-6">Módulo exclusivo de Auditoría de Bodega. Ingresa tu PIN de acceso.</p>
+            
+            <input type="password" id="inputPinBodega" placeholder="PIN de 4 dígitos" class="w-full text-center tracking-[0.5em] text-3xl font-black py-4 px-4 rounded-2xl border-2 border-gray-200 text-gray-800 outline-none focus:border-orange-500 shadow-sm transition-colors bg-gray-50 mb-4" autocomplete="off" onkeypress="if(event.key === 'Enter') validarPin()">
+            
+            <div id="pinError" class="hidden text-red-500 text-sm font-bold mb-4">PIN Incorrecto.</div>
+
+            <div class="flex gap-3 w-full">
+                <button onclick="cerrarModalAuth()" class="flex-1 bg-gray-100 text-gray-600 hover:bg-gray-200 py-4 rounded-xl font-bold transition-colors">Cancelar</button>
+                <button onclick="validarPin()" class="flex-1 bg-gray-900 text-white hover:bg-black py-4 rounded-xl font-bold transition-colors shadow-md">Desbloquear</button>
             </div>
-            <div class="mb-8 flex items-center justify-center gap-4">
-                <button onclick="cambiarCant(-1)" class="w-12 h-12 rounded-full bg-gray-100 text-gray-600 font-black text-xl hover:bg-gray-200 transition-colors">-</button>
-                <input type="number" id="inputModalQty" value="1" min="1" class="w-24 border-0 bg-transparent text-5xl font-black text-center text-gray-900 focus:outline-none p-0 hide-scroll">
-                <button onclick="cambiarCant(1)" class="w-12 h-12 rounded-full bg-orange-100 text-orange-600 font-black text-xl hover:bg-orange-200 transition-colors">+</button>
+        </div>
+    </div>
+
+    <!-- Modal Ingreso Conteo Físico (CONTEO CIEGO) -->
+    <div id="modalConteo" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[3500] p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl transform transition-all relative border border-gray-100">
+            <button onclick="cerrarConteoModal()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500"><i class="fa-solid fa-xmark text-xl"></i></button>
+            
+            <div class="text-center mt-2 mb-4">
+                <div class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">
+                    Cód: <span id="modalConteoCode" class="font-bold text-orange-500 ml-1">...</span>
+                </div>
+                <div id="modalConteoName" class="text-xl text-gray-900 font-black px-2 leading-tight uppercase w-full break-words">...</div>
             </div>
-            <button onclick="confirmarCompra()" class="w-full bg-orange-500 text-white hover:bg-orange-600 py-4 rounded-xl font-black text-lg transition-colors flex items-center justify-center gap-2 shadow-md">
-                <i class="fa-solid fa-plus"></i> Agregar a Pedidos
+            
+            <!-- Conteo Ciego -->
+            <div class="flex flex-col justify-center items-center gap-2 mb-6 bg-orange-50/50 p-6 rounded-2xl w-full border border-orange-100">
+                <div class="text-[10px] sm:text-xs text-orange-600 font-bold uppercase tracking-widest mb-2 text-center w-full">Ingresa el Conteo Físico Real</div>
+                <input type="number" id="inputConteoFisico" class="w-full text-center text-5xl font-black text-gray-900 border-b-4 border-orange-200 focus:border-orange-500 focus:outline-none bg-transparent hide-scroll" placeholder="0" onkeypress="if(event.key === 'Enter') guardarConteoFisico()">
+            </div>
+
+            <div class="flex gap-2 w-full">
+                <button onclick="guardarConteoFisico()" class="flex-[3] bg-orange-500 text-white hover:bg-orange-600 py-4 rounded-xl font-black text-lg transition-colors shadow-md flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-floppy-disk"></i> Guardar Conteo
+                </button>
+                <button onclick="abrirMermaDesdeInventario()" class="flex-[1] bg-white text-red-600 border-2 border-red-200 hover:bg-red-50 py-2 rounded-xl font-bold transition-colors shadow-sm flex flex-col items-center justify-center" title="Reportar Merma hallada en el conteo">
+                    <i class="fa-solid fa-triangle-exclamation text-xl mb-1"></i>
+                    <span class="text-[9px] uppercase tracking-wider">Merma</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Reporte de MERMAS (CON FOTO) -->
+    <div id="modalMerma" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[3500] p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl transform transition-all relative max-h-[90vh] flex flex-col">
+            <button onclick="cerrarModalMerma()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 z-10"><i class="fa-solid fa-xmark text-xl"></i></button>
+            
+            <div class="flex justify-between items-start mb-2 mt-2 shrink-0">
+                <h3 class="text-xl font-black text-red-600"><i class="fa-solid fa-triangle-exclamation mr-2"></i> Reportar Merma / Daño</h3>
+            </div>
+            
+            <div class="overflow-y-auto w-full hide-scroll pb-4 flex-1">
+                <div class="bg-red-50 p-3 rounded-xl border border-red-100 mb-4 text-center mt-2">
+                    <span id="modalMermaCode" class="text-xs font-bold text-red-500 block mb-1">...</span>
+                    <p id="modalMermaName" class="text-sm font-bold text-gray-700 leading-tight">...</p>
+                </div>
+                
+                <div class="mb-4 flex items-center justify-center gap-4">
+                    <button onclick="cambiarCantMerma(-1)" class="w-12 h-12 rounded-full bg-gray-100 text-gray-600 font-black text-xl hover:bg-gray-200 transition-colors">-</button>
+                    <input type="number" id="inputModalMermaQty" value="1" min="1" class="w-24 border-0 bg-transparent text-4xl font-black text-center text-gray-900 focus:outline-none p-0 hide-scroll">
+                    <button onclick="cambiarCantMerma(1)" class="w-12 h-12 rounded-full bg-red-100 text-red-600 font-black text-xl hover:bg-red-200 transition-colors">+</button>
+                </div>
+
+                <div class="w-full mb-3">
+                    <label class="text-xs font-bold text-gray-500 uppercase tracking-wide ml-1">Motivo principal</label>
+                    <select id="inputMotivoMerma" class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-3 font-bold text-gray-700 mt-1 focus:outline-none focus:border-red-400 appearance-none">
+                        <option value="Daño Físico / Roto">Daño Físico / Roto</option>
+                        <option value="Material Defectuoso">Material Defectuoso</option>
+                        <option value="Extraviado / Perdido">Extraviado / Perdido</option>
+                        <option value="Vencido">Vencido</option>
+                        <option value="Otro">Otro...</option>
+                    </select>
+                </div>
+
+                <div class="w-full mb-4">
+                    <label class="text-xs font-bold text-gray-500 uppercase tracking-wide ml-1">Evidencia (Opcional)</label>
+                    <button onclick="document.getElementById('inputMermaFoto').click()" class="w-full bg-gray-100 text-gray-700 mt-1 py-3 rounded-xl font-bold border border-gray-200 hover:bg-gray-200 transition-colors flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-camera"></i> Tomar Foto
+                    </button>
+                    <input type="file" id="inputMermaFoto" accept="image/*" capture="environment" class="hidden" onchange="procesarFotoMerma(event)">
+                    
+                    <div id="previewMermaFotoContainer" class="hidden mt-2 relative w-full h-32 bg-gray-100 rounded-xl overflow-hidden border border-gray-200">
+                        <img id="previewMermaFoto" src="" class="w-full h-full object-cover">
+                        <button onclick="removerFotoMerma()" class="absolute top-2 right-2 bg-red-500 text-white w-8 h-8 rounded-full shadow-md flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                </div>
+
+                <div class="w-full mb-2">
+                    <label class="text-xs font-bold text-gray-500 uppercase tracking-wide ml-1">Observación (Opcional)</label>
+                    <input type="text" id="inputObsMerma" placeholder="Ej: Se cayó de la grúa..." class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-3 font-medium text-sm text-gray-900 mt-1 focus:outline-none focus:border-red-400">
+                </div>
+            </div>
+
+            <button onclick="confirmarMerma()" class="w-full shrink-0 mt-2 bg-red-600 text-white hover:bg-red-700 py-4 rounded-xl font-black text-lg transition-colors flex items-center justify-center gap-2 shadow-md">
+                <i class="fa-solid fa-plus"></i> Registrar Merma
             </button>
         </div>
     </div>
 
-    <div id="modalSolicitante" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[2000] p-4 backdrop-blur-sm">
-        <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl transform transition-all">
-            <div class="flex justify-between items-start mb-2">
-                <h3 class="text-xl font-black text-gray-900">Identificación</h3>
-                <button onclick="cerrarModalSolicitante()" class="text-gray-400 hover:text-red-500"><i class="fa-solid fa-xmark text-xl"></i></button>
+    <!-- Modal para ver foto ampliada -->
+    <div id="modalVerFoto" class="fixed inset-0 bg-black/95 hidden items-center justify-center z-[5000] p-4 flex-col backdrop-blur-sm">
+        <div class="w-full flex justify-end mb-4 max-w-lg">
+            <button onclick="cerrarModalVerFoto()" class="bg-gray-800 text-white hover:text-red-500 rounded-full w-10 h-10 flex items-center justify-center"><i class="fa-solid fa-xmark text-xl"></i></button>
+        </div>
+        <img id="verFotoGrande" src="" class="max-w-full max-h-[75vh] object-contain rounded-xl border-2 border-gray-800 shadow-2xl">
+        <p id="verFotoTitulo" class="text-white mt-4 font-bold text-center text-sm uppercase tracking-wider"></p>
+    </div>
+
+    <!-- Modal Logs de Inventario -->
+    <div id="modalLogs" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[3500] p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl flex flex-col max-h-[80vh]">
+            <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-100">
+                <h3 class="text-lg font-black text-gray-900"><i class="fa-solid fa-clock-rotate-left text-orange-500 mr-2"></i> Registro de Actividad</h3>
+                <button onclick="cerrarModalLogs()" class="text-gray-400 hover:text-red-500"><i class="fa-solid fa-xmark text-xl"></i></button>
             </div>
-            <p class="text-sm text-gray-500 mb-6">¿Quién está solicitando esta compra?</p>
-            <input type="text" id="inputNombreSolicitante" placeholder="Ej: Mario Sagredo o Iván" class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-3 font-bold text-gray-900 mb-6 focus:outline-none focus:border-orange-500 focus:bg-white transition-colors">
-            <button onclick="ejecutarEnvio()" class="w-full bg-orange-500 text-white hover:bg-orange-600 py-4 rounded-xl font-black text-lg transition-colors shadow-md flex items-center justify-center gap-2">
-                Continuar <i class="fa-solid fa-arrow-right"></i>
-            </button>
+            <div id="logsContainer" class="flex-1 overflow-y-auto w-full text-sm text-gray-600 space-y-2 pr-2"></div>
+            <button onclick="cerrarModalLogs()" class="w-full mt-4 bg-gray-100 text-gray-700 hover:bg-gray-200 py-3 rounded-xl font-bold transition-colors">Cerrar</button>
         </div>
     </div>
 
@@ -271,7 +294,6 @@
                 <h3 class="text-lg font-black text-gray-900"><i class="fa-solid fa-qrcode mr-2 text-orange-500"></i> Escanear Etiqueta</h3>
                 <button onclick="closeScanner()" class="text-gray-400 hover:text-red-500 transition-colors"><i class="fa-solid fa-xmark text-2xl"></i></button>
             </div>
-            <!-- Contenedor del video de la cámara -->
             <div id="reader" class="w-full rounded-2xl overflow-hidden bg-gray-900 border-2 border-dashed border-gray-300 min-h-[250px] flex items-center justify-center shadow-inner"></div>
             <p class="text-sm font-medium text-gray-500 mt-6 text-center leading-tight">
                 Apunta la cámara al código de la caja.<br>La lectura será automática.
@@ -280,10 +302,9 @@
     </div>
 
     <div class="main-layout">
-        <!-- PANEL IZQUIERDO (CONFIGURACIÓN) -->
+        <!-- PANEL IZQUIERDO -->
         <div class="settings-panel no-print settings-collapsed" id="panel-settings" style="display: none;">
             <div class="settings-inner">
-                <!-- BUSCADOR -->
                 <div class="control-group">
                     <div class="group-label">Buscador Base de Datos</div>
                     <div class="relative w-full">
@@ -294,7 +315,6 @@
                     <div id="dbStatus" class="text-[10px] text-gray-400 text-right mt-1">Conectando...</div>
                 </div>
 
-                <!-- CONTROLES DE TAMAÑO -->
                 <div class="control-group bg-gray-50 p-3 rounded-lg border border-gray-100">
                     <div class="group-label text-orange-600 mb-2 border-none pb-0">Ajuste de Tamaños</div>
                     <div class="flex flex-col gap-3">
@@ -305,26 +325,22 @@
                     </div>
                 </div>
 
-                <!-- CONTENIDO ETIQUETA -->
                 <div class="control-group">
                     <div class="group-label">Contenido de la Etiqueta</div>
                     <div class="input-row"><span class="text-xs font-medium w-24">Nombre</span><input type="text" id="nameInput" value="GUANTES CABRITILLA" class="ios-input font-medium"></div>
                     <div class="input-row"><span class="text-xs font-medium w-24">Cód. Prod.</span><input type="text" id="productCodeInput" value="551" class="ios-input text-gray-600"></div>
                     <div class="input-row"><span class="text-xs font-bold w-24 text-orange-600">N° Org.</span><input type="text" id="orgInput" value="C-02-15" class="ios-input font-black text-lg border-2 border-orange-200"></div>
                     <div class="input-row"><span class="text-xs font-medium w-24">Familia</span><input type="text" id="familyInput" value="EPP" class="ios-input"></div>
-                    
                     <button id="btnAgregarHoja" onclick="agregarALaHoja()" class="w-full bg-orange-500 text-white font-bold py-3 rounded-xl mt-3 hover:bg-orange-600 transition-colors shadow-sm flex justify-center items-center gap-2">
                         <i class="fa-solid fa-plus"></i> Añadir a la Hoja
                     </button>
                 </div>
 
-                <!-- OPCIONES DE SECUENCIA Y DISEÑO -->
                 <div class="control-group">
                     <div class="group-label flex justify-between items-center">
                         <span>Diseño de Hoja</span>
                         <button onclick="limpiarHoja()" class="text-red-500 hover:text-red-700 text-xs font-bold bg-red-50 px-2 py-1 rounded transition-colors"><i class="fa-solid fa-trash-can"></i> Vaciar Hoja</button>
                     </div>
-                    
                     <div class="input-row justify-end mb-2 mt-2">
                         <label class="flex items-center gap-2 cursor-pointer bg-orange-50 px-3 py-2 rounded-lg border border-orange-100 w-full justify-center">
                             <input type="checkbox" id="checkNumbering" class="w-4 h-4 accent-orange-500">
@@ -337,7 +353,6 @@
                             <option value="landscape" selected>Horizontal</option>
                         </select>
                     </div>
-                    
                     <div class="grid grid-cols-2 gap-3 mt-2">
                         <div class="flex flex-col text-center">
                             <span class="text-[10px] text-gray-500 font-bold mb-1 uppercase tracking-wider">Filas por Hoja</span>
@@ -356,9 +371,8 @@
             </div>
         </div>
 
-        <!-- CONTENEDOR DERECHO (PANTALLAS) -->
+        <!-- CONTENEDOR DERECHO -->
         <div class="right-content">
-            
             <!-- VISTA 1: GENERADOR -->
             <div class="preview-panel view-section" id="view-generator">
                 <div id="pages-wrapper" class="w-full flex flex-col items-center"></div>
@@ -372,25 +386,19 @@
                         <p class="text-gray-500 text-sm">Búsqueda manual o escaneo de código</p>
                     </div>
 
-                    <!-- NUEVO LAYOUT DE BUSCADOR BLINDADO CONTRA DESBORDES -->
                     <div class="w-full flex flex-col gap-3 mb-8 px-2">
                         <div class="relative w-full">
                             <input type="text" id="manualInput" placeholder="Ingresa CÓDIGO o NOMBRE..." class="w-full text-center py-4 px-4 rounded-2xl border-2 border-gray-200 text-xl font-black text-gray-800 outline-none focus:border-orange-500 shadow-sm transition-colors bg-white" autocomplete="off" onkeypress="handleEnter(event)">
-                            
-                            <!-- Menú desplegable del Visor -->
                             <div id="visorSearchResults" class="hidden absolute top-full left-0 w-full bg-white shadow-2xl border border-gray-100 rounded-xl mt-2 z-50 max-h-60 overflow-y-auto text-left"></div>
                         </div>
                         
                         <div class="grid grid-cols-4 gap-2 w-full">
-                            <!-- Camara -->
-                            <button onclick="openScanner()" class="col-span-1 bg-gray-800 text-white hover:bg-black rounded-2xl py-4 flex items-center justify-center shadow-md active:scale-95 transition-all">
+                            <button onclick="openScanner('visor')" class="col-span-1 bg-gray-800 text-white hover:bg-black rounded-2xl py-4 flex items-center justify-center shadow-md active:scale-95 transition-all">
                                 <i class="fa-solid fa-camera text-2xl"></i>
                             </button>
-                            <!-- Sync -->
                             <button onclick="loadDB(true)" class="col-span-1 bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-2xl py-4 flex items-center justify-center shadow-sm active:scale-95 transition-all" title="Actualizar base de datos">
                                 <i class="fa-solid fa-arrows-rotate text-2xl" id="syncIcon"></i>
                             </button>
-                            <!-- Search -->
                             <button onclick="manualSearch()" class="col-span-2 bg-orange-500 text-white hover:bg-orange-600 rounded-2xl py-4 flex items-center justify-center shadow-md active:scale-95 transition-all gap-2">
                                 <i class="fa-solid fa-search text-xl"></i>
                                 <span class="font-bold text-lg hidden sm:block">Buscar</span>
@@ -405,7 +413,6 @@
                             <div class="text-xs sm:text-sm font-bold text-gray-400 uppercase tracking-wider mb-1">
                                 Cód. Producto: <span id="resCode" class="text-base sm:text-lg font-bold text-gray-600 ml-1">CODE</span>
                             </div>
-                            <!-- break-words asegura que si el nombre es gigantesco, baje a la siguiente línea y no deforme la pantalla -->
                             <div id="resName" class="text-2xl sm:text-3xl text-gray-900 font-black px-2 leading-tight uppercase w-full break-words">Nombre del producto</div>
                         </div>
 
@@ -415,15 +422,67 @@
                             <div class="text-center w-full">
                                 <div class="text-sm text-gray-400 uppercase font-black tracking-widest mb-0">Stock Actual</div>
                                 <div class="flex items-baseline justify-center gap-2 w-full">
-                                    <!-- truncate evita que si el número es irrealmente grande rompa el div -->
                                     <div id="resStock" class="text-[6rem] sm:text-[9rem] font-black text-green-500 leading-none tracking-tighter transition-colors truncate max-w-[80%]">0</div>
                                     <div id="resUnidad" class="text-2xl sm:text-4xl font-bold text-gray-400 uppercase">UND</div>
                                 </div>
                             </div>
-                            
-                            <button onclick="abrirModalCompra()" class="mt-4 bg-white text-orange-600 border-2 border-orange-500 hover:bg-orange-50 px-8 py-3 rounded-xl font-bold text-lg transition-colors w-full sm:w-auto shadow-sm tracking-wide">
-                                Solicitar Compra
+
+                            <!-- Botón Ver Ubicación (A Demanda) -->
+                            <button id="btnShowLocation" onclick="toggleLocationArea()" class="mt-4 bg-orange-50 text-orange-600 border border-orange-200 hover:bg-orange-100 px-6 py-3 rounded-xl font-bold text-sm transition-colors shadow-sm hidden mx-auto items-center justify-center gap-2">
+                                <i class="fa-solid fa-map-location-dot"></i> Ver Ubicación Física
                             </button>
+
+                            <!-- MAPA BODEGA -->
+                            <div id="locationArea" class="hidden w-full mt-4 mb-4 transition-all duration-300">
+                                <div class="bg-gray-50 rounded-3xl p-4 sm:p-6 w-full border border-gray-100 shadow-inner">
+                                    
+                                    <div class="flex flex-col gap-6 items-center w-full">
+                                        <div class="flex flex-col w-full max-w-[200px] bg-white p-2 rounded-xl border-2 border-gray-100 shadow-sm relative mx-auto">
+                                            <div id="map-pasillo-b" class="w-full h-8 rounded-md flex items-center justify-center transition-all duration-300 text-gray-400 border-2 border-transparent">
+                                                <span class="text-[10px] font-black uppercase tracking-widest">Pasillo B</span>
+                                            </div>
+                                            <div class="flex gap-1 mb-1 mt-1 h-3">
+                                                <div class="flex-1 bg-gray-300 rounded-sm"></div>
+                                                <div class="flex-[2] bg-gray-300 rounded-sm"></div>
+                                                <div class="flex-1 bg-gray-300 rounded-sm"></div>
+                                            </div>
+                                            <div class="flex w-full h-32 gap-1 mt-1">
+                                                <div class="w-4 bg-gray-300 rounded-sm"></div>
+                                                <div id="map-pasillo-a" class="flex-[1.5] rounded-md flex items-center justify-center transition-all duration-300 text-gray-400 border-2 border-transparent">
+                                                    <span class="text-[10px] font-black uppercase tracking-widest transform -rotate-90">Pasillo A</span>
+                                                </div>
+                                                <div class="w-5 bg-gray-300 rounded-sm"></div>
+                                                <div id="map-pasillo-cen" class="w-6 rounded-md flex items-center justify-center transition-all duration-300 text-gray-400 border-2 border-transparent" title="Pasillo Central">
+                                                    <span class="text-[8px] font-black uppercase tracking-widest transform -rotate-90">CEN</span>
+                                                </div>
+                                                <div class="w-5 bg-gray-300 rounded-sm"></div>
+                                                <div id="map-pasillo-c" class="flex-[1.5] rounded-md flex items-center justify-center transition-all duration-300 text-gray-400 border-2 border-transparent">
+                                                    <span class="text-[10px] font-black uppercase tracking-widest transform -rotate-90">Pasillo C</span>
+                                                </div>
+                                                <div class="w-4 bg-gray-300 rounded-sm"></div>
+                                            </div>
+                                        </div>
+
+                                        <div class="w-full flex gap-3">
+                                            <div class="bg-white px-2 py-4 rounded-xl border border-gray-200 flex-1 text-center shadow-sm">
+                                                <span class="block text-[10px] text-gray-400 uppercase font-black tracking-wider">Pasillo</span>
+                                                <span id="locPasillo" class="text-2xl sm:text-3xl font-black text-gray-800 leading-none mt-1 block">-</span>
+                                            </div>
+                                            <div class="bg-white px-2 py-4 rounded-xl border border-gray-200 flex-1 text-center shadow-sm">
+                                                <span class="block text-[10px] text-gray-400 uppercase font-black tracking-wider">Estantería</span>
+                                                <span id="locModulo" class="text-2xl sm:text-3xl font-black text-orange-500 leading-none mt-1 block">-</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Botón Reportar Merma Único -->
+                            <div class="mt-4 w-full px-2">
+                                <button onclick="abrirModalMerma()" class="w-full bg-white text-red-600 border-2 border-red-500 hover:bg-red-50 px-4 py-4 rounded-xl font-bold text-base transition-colors shadow-sm flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-triangle-exclamation text-lg"></i> Reportar Merma o Daño
+                                </button>
+                            </div>
                         </div>
                         
                         <div id="datasheetArea" class="hidden w-full">
@@ -445,38 +504,77 @@
                 </div>
             </div>
 
-            <!-- VISTA 3: PEDIDOS DE COMPRA -->
-            <div class="preview-panel view-section" id="view-pedidos">
-                <div class="w-full max-w-2xl mx-auto px-2">
-                    <div class="text-center mb-8">
-                        <h2 class="text-3xl font-black text-gray-900 mb-2">Pedidos de Compra</h2>
-                        <p class="text-gray-500">Lista de productos solicitados para reposición</p>
+            <!-- VISTA 4: INVENTARIO (AUDITORÍA PRO REDISEÑADA) -->
+            <div class="preview-panel view-section" id="view-inventario">
+                <div class="w-full max-w-2xl mx-auto px-2 h-full flex flex-col">
+                    <div class="text-center mb-4 shrink-0 relative w-full pt-2">
+                        <h2 class="text-3xl font-black text-gray-900 mb-1 tracking-tight">INVENTARIO</h2>
+                        <button onclick="finalizarInventario()" class="absolute top-0 right-0 text-gray-300 hover:text-red-500 bg-white p-2 sm:p-3 rounded-full shadow-sm border border-gray-100 transition-colors z-10" title="Borrar todo el progreso e iniciar nuevo mes">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                        <div class="w-full bg-gray-200 rounded-full h-2 mb-1 mt-2 overflow-hidden shadow-inner">
+                            <div id="invProgressBar" class="bg-orange-500 h-full transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                        <p class="text-gray-500 text-xs font-bold uppercase tracking-wider" id="invProgressText">0 de 0 contados</p>
                     </div>
 
-                    <div class="bg-white rounded-3xl border border-gray-200 shadow-lg overflow-hidden flex flex-col h-[600px] max-h-[70vh] w-full">
+                    <div class="flex gap-2 mb-2 shrink-0">
+                        <div class="relative flex-1">
+                            <i class="fa-solid fa-search absolute left-4 top-3.5 text-gray-400"></i>
+                            <input type="text" id="invFilterInput" placeholder="Filtrar por nombre o código..." class="w-full py-3 pl-10 pr-4 rounded-xl border-2 border-gray-200 text-sm font-bold text-gray-900 outline-none focus:border-orange-500 shadow-sm transition-colors bg-white" autocomplete="off" oninput="toggleOcultarContados()">
+                        </div>
+                        <button onclick="openScanner('inventario')" class="bg-gray-900 text-white hover:bg-black rounded-xl px-5 flex items-center justify-center shadow-md active:scale-95 transition-all"><i class="fa-solid fa-qrcode text-xl"></i></button>
+                    </div>
+
+                    <div class="flex items-center justify-end mb-2 px-1 shrink-0">
+                        <label class="flex items-center gap-2 cursor-pointer bg-white px-3 py-1.5 rounded-xl border border-gray-200 shadow-sm hover:bg-gray-50 transition-colors">
+                            <input type="checkbox" id="checkOcultarContados" class="w-4 h-4 accent-orange-500" onchange="toggleOcultarContados()">
+                            <span class="text-[10px] font-bold text-gray-600 uppercase tracking-wider">Ocultar ya contados</span>
+                        </label>
+                    </div>
+
+                    <!-- Contenedor del listado moderno -->
+                    <div class="flex-1 overflow-hidden flex flex-col mb-4">
+                        <div class="overflow-y-auto w-full h-full pb-10 hide-scroll" id="invFullListContainer"></div>
+                    </div>
+
+                    <div class="flex gap-2 shrink-0 mb-4 w-full px-1">
+                        <button onclick="abrirModalLogs()" class="bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 py-3 rounded-xl font-bold text-xs transition-colors shadow-sm flex flex-col items-center justify-center shrink-0 w-20">
+                            <i class="fa-solid fa-clock-rotate-left mb-1 text-lg"></i> Logs
+                        </button>
+                        <button onclick="exportarInventarioExcel()" id="btnExcelInv" class="flex-1 bg-[#107c41] text-white hover:bg-[#0b5e31] py-3 rounded-xl font-black text-sm transition-colors shadow-md flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-file-excel text-xl"></i> Bajar Excel del Mes
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VISTA 5: MERMAS Y DAÑOS -->
+            <div class="preview-panel view-section" id="view-mermas">
+                <div class="w-full max-w-2xl mx-auto px-2 relative h-full flex flex-col">
+                    <div class="text-center mb-6 shrink-0 relative w-full pt-2">
+                        <h2 class="text-3xl font-black text-red-600 mb-2">Registro de Mermas</h2>
+                        <button onclick="finalizarMermas()" class="absolute top-0 right-0 text-gray-300 hover:text-red-500 bg-white p-2 sm:p-3 rounded-full shadow-sm border border-gray-100 transition-colors z-10" title="Borrar toda la lista de mermas">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                        <p class="text-gray-500">Pérdidas, daños o material defectuoso</p>
+                    </div>
+
+                    <div class="bg-white rounded-3xl border border-gray-200 shadow-lg overflow-hidden flex flex-col flex-1 min-h-[300px] mb-4 w-full">
                         <div class="bg-gray-50 p-4 border-b border-gray-200 flex justify-between items-center shrink-0 w-full">
-                            <span class="font-bold text-gray-700 uppercase tracking-wider text-sm"><i class="fa-solid fa-list-check mr-2 text-orange-500"></i> Resumen de Ítems</span>
-                            <span class="bg-orange-100 text-orange-800 text-xs font-black px-3 py-1 rounded-full border border-orange-200" id="totalItemsText">0 ÍTEMS</span>
+                            <span class="font-bold text-gray-700 uppercase tracking-wider text-sm"><i class="fa-solid fa-triangle-exclamation mr-2 text-red-500"></i> Resumen de Mermas</span>
+                            <span class="bg-red-100 text-red-800 text-xs font-black px-3 py-1 rounded-full border border-red-200" id="totalMermasText">0 REPORTES</span>
                         </div>
                         
-                        <div class="flex-1 overflow-y-auto p-4 bg-white w-full" id="listaPedidosContenedor">
-                            <div class="h-full flex flex-col items-center justify-center text-gray-400 gap-3">
-                                <i class="fa-solid fa-cart-arrow-down text-5xl text-gray-200"></i>
-                                <p class="font-medium text-lg">No hay solicitudes pendientes.</p>
-                                <button onclick="setView('visor')" class="mt-2 text-orange-500 font-bold hover:underline text-sm">Ir al visor a buscar productos</button>
-                            </div>
+                        <div class="flex-1 overflow-y-auto p-4 bg-white w-full" id="listaMermasContenedor">
+                            <!-- JS Fill -->
                         </div>
+                    </div>
 
-                        <div class="bg-gray-50 p-4 border-t border-gray-200 shrink-0 w-full">
-                            <div class="flex flex-col sm:flex-row gap-3 w-full">
-                                <button onclick="prepararEnvio('wsp')" class="flex-1 bg-[#25D366] text-white hover:bg-[#20bd5a] py-4 rounded-xl font-black text-sm transition-colors flex items-center justify-center gap-2 shadow-sm w-full">
-                                    <i class="fa-brands fa-whatsapp text-xl"></i> WhatsApp
-                                </button>
-                                <button onclick="prepararEnvio('correo')" class="flex-1 bg-blue-500 text-white hover:bg-blue-600 py-4 rounded-xl font-black text-sm transition-colors flex items-center justify-center gap-2 shadow-sm w-full">
-                                    <i class="fa-solid fa-envelope text-xl"></i> Correo
-                                </button>
-                            </div>
-                        </div>
+                    <div class="flex gap-2 shrink-0 mb-4 w-full px-1">
+                        <button onclick="exportarMermasExcel()" id="btnExcelMermas" class="flex-1 bg-[#107c41] text-white hover:bg-[#0b5e31] py-4 rounded-xl font-black text-sm transition-colors shadow-md flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-share-nodes text-xl"></i> Compartir Reporte de Mermas
+                        </button>
                     </div>
                 </div>
             </div>
@@ -491,25 +589,42 @@
             event.preventDefault(); 
         });
 
-        // -------------------------------------------------------------
-        // CONFIGURACIÓN DE BASE DE DATOS (EXCEL DROPBOX O GOOGLE SHEETS)
-        // -------------------------------------------------------------
         const DROPBOX_EXCEL_URL = 'https://www.dropbox.com/scl/fi/d5wkezasn85r455wr5xgd/Bodega-y-Abastecimiento-de-obras-2025.xlsx?rlkey=wbmr5ln4j6gpzdxp6goj06lbw&st=bba062i3&dl=1'; 
         const GOOGLE_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSM3lTLNPOgrglxy22q_iVTguBWEsuuTVfpHQGXMkItgOXKa04h69EfRqQArlgVR7ZvUB-QfpMXjoGr/pub?output=csv';
-        // -------------------------------------------------------------
 
         let dbProducts = [];
-        let listaPedidos = []; 
-        let metodoEnvioActual = ''; 
-
-        // Variables para la animación del menú
         let hasSeenGeneratorMenuHint = false;
         let hintTimeout = null;
-
-        // Variable para el escáner QR
         let html5QrcodeScanner = null;
-
+        let scannerTargetView = 'visor'; 
         let colaImpresion = [];
+        let currentMermaFotoBase64 = null; 
+
+        // --- SISTEMAS DE AUTO-GUARDADO ---
+        const PIN_BODEGA = "1234"; 
+        let inventarioDesbloqueado = false;
+        let listaInventarioFisico = JSON.parse(localStorage.getItem('deteco_inventario')) || [];
+        let inventarioLogs = JSON.parse(localStorage.getItem('deteco_inv_logs')) || [];
+        let invCurrentProd = null;
+
+        let listaMermas = JSON.parse(localStorage.getItem('deteco_mermas')) || [];
+
+        function saveInventarioState() {
+            localStorage.setItem('deteco_inventario', JSON.stringify(listaInventarioFisico));
+            localStorage.setItem('deteco_inv_logs', JSON.stringify(inventarioLogs));
+        }
+
+        function saveMermasState() {
+            localStorage.setItem('deteco_mermas', JSON.stringify(listaMermas));
+        }
+
+        function addLog(msg) {
+            const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
+            inventarioLogs.unshift(`[${time}] ${msg}`);
+            if(inventarioLogs.length > 50) inventarioLogs.pop(); 
+            saveInventarioState();
+            renderLogs();
+        }
 
         const els = {
             wrapper: document.getElementById('pages-wrapper'),
@@ -526,9 +641,7 @@
                 const urlParams = new URLSearchParams(window.location.search);
                 const searchId = urlParams.get('id');
                 
-                // Forzamos VISOR al cargar
                 setView('visor');
-
                 await loadDB();
                 
                 if (searchId) {
@@ -537,70 +650,41 @@
                 }
                 
                 renderLabels();
+                actualizarUIMermas();
 
                 const splash = document.getElementById('splash-screen');
                 setTimeout(() => {
                     splash.style.opacity = '0';
-                    setTimeout(() => {
-                        splash.style.display = 'none';
-                    }, 700); 
+                    setTimeout(() => { splash.style.display = 'none'; }, 700); 
                 }, 500); 
 
             } catch (err) {
-                console.error("Error cargando la aplicación: ", err);
+                console.error("Error cargando la app: ", err);
                 document.getElementById('splash-screen').style.display = 'none';
             }
         });
 
-        // --- FIX MÓVIL (SAFARI/IOS): AUTO-ACTUALIZACIÓN BLINDADA ---
         let ultimaSincronizacion = Date.now();
-
         function intentarSincronizacion() {
             const ahora = Date.now();
-            // Evita que se dispare varias veces seguidas al despertar (cooldown de 10 segundos)
             if (ahora - ultimaSincronizacion > 10000) {
                 ultimaSincronizacion = ahora;
-                
-                // Pequeño retraso de 500ms CLAVE PARA IPHONE: 
-                // Le da tiempo a iOS de despertar la antena WiFi/4G antes de pedir el archivo
-                setTimeout(() => {
-                    loadDB(true);
-                }, 500);
+                setTimeout(() => { loadDB(true); }, 500);
             }
         }
-
-        // 1. Sensor estándar (PC y Android)
-        document.addEventListener("visibilitychange", () => {
-            if (document.visibilityState === 'visible') intentarSincronizacion();
-        });
-
-        // 2. Sensor de foco (Especial para Safari y Web Apps guardadas en el inicio de iPhone)
+        document.addEventListener("visibilitychange", () => { if (document.visibilityState === 'visible') intentarSincronizacion(); });
         window.addEventListener("focus", intentarSincronizacion);
+        window.addEventListener("pageshow", (e) => { if (e.persisted) intentarSincronizacion(); });
+        setInterval(() => { if (document.visibilityState === 'visible') { ultimaSincronizacion = Date.now(); loadDB(false); } }, 180000);
 
-        // 3. Sensor de restauración de caché (Cuando Safari congela la pestaña en la memoria RAM)
-        window.addEventListener("pageshow", (e) => {
-            if (e.persisted) intentarSincronizacion();
-        });
-
-        // 4. Actualiza silenciosamente cada 3 minutos si la pantalla se queda prendida sola
-        setInterval(() => {
-            if (document.visibilityState === 'visible') {
-                ultimaSincronizacion = Date.now();
-                loadDB(false); 
-            }
-        }, 180000);
-        // ----------------------------------------------
-
+        // --- LECTURA BASE DE DATOS ---
         async function loadDB(isManualRefresh = false) {
             const statusEl = document.getElementById('dbStatus');
             const syncIcon = document.getElementById('syncIcon');
             
             if(isManualRefresh) {
                 syncIcon.classList.add('fa-spin');
-                if(statusEl) {
-                    statusEl.innerText = "Sincronizando...";
-                    statusEl.className = "text-[10px] text-orange-500 text-right font-bold mt-1";
-                }
+                if(statusEl) { statusEl.innerText = "Sincronizando..."; statusEl.className = "text-[10px] text-orange-500 text-right font-bold mt-1"; }
             }
 
             try {
@@ -613,14 +697,8 @@
                     ];
 
                     for (const url of urlsToTry) {
-                        try {
-                            res = await fetch(url);
-                            if (res.ok) break; 
-                        } catch (err) {
-                            console.warn("Fallo intento de fetch con:", url);
-                        }
+                        try { res = await fetch(url); if (res.ok) break; } catch (err) { console.warn("Fallo intento fetch:", url); }
                     }
-
                     if (!res || !res.ok) throw new Error("Imposible descargar de Dropbox");
 
                     const arrayBuffer = await res.arrayBuffer();
@@ -632,232 +710,317 @@
                     
                     dbProducts = json.map(row => {
                         let normalizedRow = {};
-                        for (let key in row) {
-                            normalizedRow[key.trim().toUpperCase()] = String(row[key]).trim();
-                        }
+                        for (let key in row) { normalizedRow[key.trim().toUpperCase()] = String(row[key]).trim(); }
                         return {
-                            CODIGO: normalizedRow['COD'] || '',
-                            NOMBRE: normalizedRow['DESCRIPCION'] || '',
-                            STOCK: normalizedRow['STOCK ACTUAL'] || '0',
-                            UNIDAD: normalizedRow['UDM'] || 'UND',
-                            CATEGORIA: normalizedRow['FAMILIA'] || '',
-                            FICHA: normalizedRow['FICHA'] || normalizedRow['FICHA TECNICA'] || ''
+                            CODIGO: normalizedRow['COD'] || '', NOMBRE: normalizedRow['DESCRIPCION'] || '',
+                            STOCK: normalizedRow['STOCK ACTUAL'] || '0', UNIDAD: normalizedRow['UDM'] || 'UND',
+                            CATEGORIA: normalizedRow['FAMILIA'] || '', FICHA: normalizedRow['FICHA'] || normalizedRow['FICHA TECNICA'] || '',
+                            ORGANIZADOR: normalizedRow['ORGANIZADOR'] || normalizedRow['UBICACION'] || normalizedRow['UBICACIÓN'] || normalizedRow['PASILLO'] || ''
                         };
                     }).filter(p => p.CODIGO);
-
                 } else {
                     const fetchUrl = isManualRefresh ? `${GOOGLE_CSV_URL}&t=${new Date().getTime()}` : GOOGLE_CSV_URL;
-                    const res = await fetch(fetchUrl);
-                    const text = await res.text();
+                    const res = await fetch(fetchUrl); const text = await res.text();
                     const rows = text.split('\n').map(r => r.split(','));
                     const headers = rows[0].map(h => h.trim().toUpperCase().replace(/"/g,''));
                     dbProducts = rows.slice(1).map(r => {
                         let normalizedRow = {};
                         r.forEach((val, i) => { if(headers[i]) normalizedRow[headers[i]] = val.replace(/"/g,'').trim(); });
                         return {
-                            CODIGO: normalizedRow['COD'] || normalizedRow['CODIGO'] || '',
-                            NOMBRE: normalizedRow['DESCRIPCION'] || normalizedRow['NOMBRE'] || '',
-                            STOCK: normalizedRow['STOCK ACTUAL'] || normalizedRow['STOCK'] || '0',
-                            UNIDAD: normalizedRow['UDM'] || normalizedRow['UNIDAD'] || 'UND',
-                            CATEGORIA: normalizedRow['FAMILIA'] || normalizedRow['CATEGORIA'] || '',
-                            FICHA: normalizedRow['FICHA'] || normalizedRow['FICHA TECNICA'] || ''
+                            CODIGO: normalizedRow['COD'] || normalizedRow['CODIGO'] || '', NOMBRE: normalizedRow['DESCRIPCION'] || normalizedRow['NOMBRE'] || '',
+                            STOCK: normalizedRow['STOCK ACTUAL'] || normalizedRow['STOCK'] || '0', UNIDAD: normalizedRow['UDM'] || normalizedRow['UNIDAD'] || 'UND',
+                            CATEGORIA: normalizedRow['FAMILIA'] || normalizedRow['CATEGORIA'] || '', FICHA: normalizedRow['FICHA'] || normalizedRow['FICHA TECNICA'] || '',
+                            ORGANIZADOR: normalizedRow['ORGANIZADOR'] || normalizedRow['UBICACION'] || normalizedRow['UBICACIÓN'] || normalizedRow['PASILLO'] || ''
                         };
                     }).filter(p => p.CODIGO);
                 }
 
-                if(statusEl) {
-                    statusEl.innerText = `Online: ${dbProducts.length} productos`;
-                    statusEl.className = "text-[10px] text-green-600 text-right font-bold mt-1";
-                }
+                dbProducts.sort((a, b) => a.NOMBRE.localeCompare(b.NOMBRE));
+
+                if(statusEl) { statusEl.innerText = `Online: ${dbProducts.length} productos`; statusEl.className = "text-[10px] text-green-600 text-right font-bold mt-1"; }
                 
                 if(isManualRefresh) {
                     setTimeout(() => { syncIcon.classList.remove('fa-spin'); }, 500);
-                    const currentInput = document.getElementById('manualInput').value;
-                    if(currentInput) manualSearch(currentInput);
+                    const currentVisInput = document.getElementById('manualInput').value;
+                    if(currentVisInput && document.getElementById('view-visor').classList.contains('active')) manualSearch(currentVisInput);
+                    if(document.getElementById('view-inventario').classList.contains('active')) renderFullInventoryList(document.getElementById('invFilterInput').value);
                 }
 
             } catch (e) {
-                console.error("Error definitivo:", e);
-                if(statusEl) {
-                    statusEl.innerText = "Error de conexión";
-                    statusEl.className = "text-[10px] text-red-500 text-right font-bold mt-1";
-                }
+                console.error("Error:", e);
+                if(statusEl) { statusEl.innerText = "Error de conexión"; statusEl.className = "text-[10px] text-red-500 text-right font-bold mt-1"; }
                 if(isManualRefresh) syncIcon.classList.remove('fa-spin');
             }
         }
 
-        function handleEnter(e) { if(e.key === 'Enter') manualSearch(); }
+        // --- FUNCION TOGGLE UBICACION ---
+        function toggleLocationArea() {
+            const locArea = document.getElementById('locationArea');
+            if(locArea.classList.contains('hidden')) {
+                locArea.classList.remove('hidden');
+                setTimeout(() => { locArea.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100);
+            } else {
+                locArea.classList.add('hidden');
+            }
+        }
+
+        // --- VISOR LOGICA ---
+        function handleEnter(e) { if(e.key === 'Enter') { document.getElementById('visorSearchResults').classList.add('hidden'); manualSearch(); } }
 
         function manualSearch(codeOverride) {
             const rawInput = codeOverride || document.getElementById('manualInput').value;
             if(!rawInput) return;
             const searchCode = rawInput.trim().toUpperCase();
             
-            // Búsqueda inteligente en cascada: 
-            // 1. Coincidencia exacta de código
             let prod = dbProducts.find(p => p.CODIGO && p.CODIGO.toUpperCase() === searchCode);
-            // 2. Coincidencia exacta de nombre
             if (!prod) prod = dbProducts.find(p => p.NOMBRE && p.NOMBRE.toUpperCase() === searchCode);
-            // 3. Coincidencia parcial de código
             if (!prod) prod = dbProducts.find(p => p.CODIGO && p.CODIGO.toUpperCase().includes(searchCode));
-            // 4. Coincidencia parcial de nombre
             if (!prod) prod = dbProducts.find(p => p.NOMBRE && p.NOMBRE.toUpperCase().includes(searchCode));
 
-            const resDiv = document.getElementById('scanResult');
-            const errDiv = document.getElementById('scanError');
-            const datasDiv = document.getElementById('datasheetArea');
-            const btnData = document.getElementById('btnDatasheet');
-            const noDataDiv = document.getElementById('noDataArea');
-            const stockEl = document.getElementById('resStock');
+            const resDiv = document.getElementById('scanResult'); const errDiv = document.getElementById('scanError');
+            const datasDiv = document.getElementById('datasheetArea'); const btnData = document.getElementById('btnDatasheet');
+            const noDataDiv = document.getElementById('noDataArea'); const stockEl = document.getElementById('resStock');
+            document.getElementById('visorSearchResults').classList.add('hidden');
+            
+            // Ocultar mapa por defecto en cada búsqueda
+            document.getElementById('locationArea').classList.add('hidden');
+            const btnShowLoc = document.getElementById('btnShowLocation');
 
             if(prod) {
                 window.currentProd = prod; 
-
-                errDiv.classList.add('hidden');
-                resDiv.classList.remove('hidden');
-                document.getElementById('resCode').innerText = prod.CODIGO;
-                document.getElementById('resName').innerText = prod.NOMBRE;
+                errDiv.classList.add('hidden'); resDiv.classList.remove('hidden');
+                document.getElementById('resCode').innerText = prod.CODIGO; document.getElementById('resName').innerText = prod.NOMBRE;
                 
                 const stockNum = parseInt(prod.STOCK) || 0;
                 stockEl.innerText = prod.STOCK || 0;
                 
                 stockEl.classList.remove('text-green-500', 'text-yellow-500', 'text-red-500');
-                if (stockNum > 20) {
-                    stockEl.classList.add('text-green-500');
-                } else if (stockNum > 0 && stockNum <= 20) {
-                    stockEl.classList.add('text-yellow-500');
-                } else {
-                    stockEl.classList.add('text-red-500');
-                }
+                if (stockNum > 20) { stockEl.classList.add('text-green-500'); } 
+                else if (stockNum > 0 && stockNum <= 20) { stockEl.classList.add('text-yellow-500'); } 
+                else { stockEl.classList.add('text-red-500'); }
 
                 document.getElementById('resUnidad').innerText = prod.UNIDAD || 'UND';
                 
                 if(prod.FICHA && prod.FICHA.length > 5) {
                     datasDiv.classList.remove('hidden'); noDataDiv.classList.add('hidden'); btnData.href = prod.FICHA;
+                } else { datasDiv.classList.add('hidden'); noDataDiv.classList.remove('hidden'); }
+
+                // --- MAPEO DE BODEGA VISUAL ---
+                const org = prod.ORGANIZADOR || '';
+                
+                if (org && org.trim() !== '') {
+                    btnShowLoc.classList.remove('hidden', 'bg-gray-100', 'text-gray-400', 'border-transparent', 'cursor-not-allowed');
+                    btnShowLoc.classList.add('flex', 'bg-indigo-50', 'text-indigo-600', 'border-indigo-200', 'hover:bg-indigo-100');
+                    btnShowLoc.innerHTML = '<i class="fa-solid fa-map-location-dot"></i> Ver Ubicación en Bodega';
+                    btnShowLoc.disabled = false;
+
+                    ['a', 'b', 'cen', 'c'].forEach(id => {
+                        const el = document.getElementById(`map-pasillo-${id}`);
+                        if(el) {
+                            el.classList.remove('bg-orange-100', 'text-orange-700', 'border-orange-400');
+                            el.classList.add('text-gray-400', 'border-transparent');
+                        }
+                    });
+
+                    const match = org.match(/^(A|B|C|CEN|CENTRAL)[\s\-]*(\d+)?/i);
+
+                    if (match) {
+                        let pasillo = match[1].toUpperCase();
+                        let modulo = match[2] || '-';
+
+                        let mapId = pasillo.toLowerCase();
+                        if(mapId === 'central' || mapId === 'cen') { mapId = 'cen'; pasillo = 'CEN'; }
+
+                        document.getElementById('locPasillo').innerText = pasillo;
+                        document.getElementById('locModulo').innerText = modulo;
+
+                        const activeMap = document.getElementById(`map-pasillo-${mapId}`);
+                        if(activeMap) {
+                            activeMap.classList.remove('text-gray-400', 'border-transparent');
+                            activeMap.classList.add('bg-orange-100', 'text-orange-700', 'border-orange-400');
+                        }
+                    } else {
+                        document.getElementById('locPasillo').innerText = org.substring(0,3);
+                        document.getElementById('locModulo').innerText = '-';
+                    }
                 } else {
-                    datasDiv.classList.add('hidden'); noDataDiv.classList.remove('hidden');
+                    btnShowLoc.classList.remove('hidden', 'bg-indigo-50', 'text-indigo-600', 'border-indigo-200', 'hover:bg-indigo-100');
+                    btnShowLoc.classList.add('flex', 'bg-gray-100', 'text-gray-400', 'border-transparent', 'cursor-not-allowed');
+                    btnShowLoc.innerHTML = '<i class="fa-solid fa-location-dot"></i> Ubicación no registrada';
+                    btnShowLoc.disabled = true;
                 }
 
-                // NUEVO: AUTO-SCROLL hacia el resultado suavemente
-                setTimeout(() => {
-                    resDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }, 150);
-
+                setTimeout(() => { resDiv.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 150);
             } else {
                 resDiv.classList.add('hidden'); errDiv.classList.remove('hidden');
-                
-                // NUEVO: AUTO-SCROLL hacia el recuadro de error
-                setTimeout(() => {
-                    errDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }, 150);
+                setTimeout(() => { errDiv.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 150);
             }
         }
 
-        // --- FUNCIONES DEL ESCÁNER QR IN-APP ---
-        function openScanner() {
-            const modal = document.getElementById('modalScanner');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
+        const manualInputEl = document.getElementById('manualInput');
+        const visorResultsEl = document.getElementById('visorSearchResults');
 
-            if (!html5QrcodeScanner) {
-                html5QrcodeScanner = new Html5Qrcode("reader");
+        manualInputEl.addEventListener('input', (e) => {
+            const val = e.target.value.toLowerCase().trim();
+            if(val.length < 2) { visorResultsEl.classList.add('hidden'); return; }
+            const matches = dbProducts.filter(p => (p.CODIGO && p.CODIGO.toLowerCase().includes(val)) || (p.NOMBRE && p.NOMBRE.toLowerCase().includes(val))).slice(0, 6);
+            visorResultsEl.innerHTML = '';
+            if(matches.length) {
+                visorResultsEl.classList.remove('hidden');
+                matches.forEach(p => {
+                    const div = document.createElement('div');
+                    div.className = "p-4 hover:bg-orange-50 cursor-pointer border-b border-gray-100 flex items-center justify-between transition-colors";
+                    div.innerHTML = `<div class="flex flex-col overflow-hidden"><span class="text-xs font-bold text-orange-500 mb-0.5">${p.CODIGO}</span><span class="text-sm font-bold text-gray-800 truncate leading-tight">${p.NOMBRE}</span></div><span class="text-[10px] font-black bg-gray-100 text-gray-500 px-2 py-1 rounded-md ml-2 whitespace-nowrap">${p.STOCK} ${p.UNIDAD}</span>`;
+                    div.onclick = () => { manualInputEl.value = p.CODIGO; visorResultsEl.classList.add('hidden'); manualSearch(p.CODIGO); };
+                    visorResultsEl.appendChild(div);
+                });
+            } else { visorResultsEl.classList.add('hidden'); }
+        });
+
+        document.addEventListener('click', (e) => {
+            if (manualInputEl && visorResultsEl && !manualInputEl.contains(e.target) && !visorResultsEl.contains(e.target)) {
+                visorResultsEl.classList.add('hidden');
             }
-            
-            const config = { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 };
-            
-            html5QrcodeScanner.start({ facingMode: "environment" }, config, (decodedText) => {
-                let scannedId = decodedText;
-                try {
-                    const url = new URL(decodedText);
-                    if (url.searchParams.has('id')) {
-                        scannedId = url.searchParams.get('id');
-                    }
-                } catch(e) {}
+        });
 
-                closeScanner();
-                document.getElementById('manualInput').value = scannedId;
-                manualSearch(scannedId);
-                
-            }).catch((err) => {
-                console.warn("Fallo al iniciar cámara o sin permisos:", err);
-                alert("Por favor, permite el acceso a la cámara en tu navegador para usar el escáner.");
-                closeScanner();
-            });
+        // --- SISTEMA DE COMPRESIÓN DE FOTOS PARA MERMAS ---
+        function procesarFotoMerma(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (e) => {
+                const img = new Image();
+                img.src = e.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 600; 
+                    const scaleSize = MAX_WIDTH / img.width;
+                    canvas.width = MAX_WIDTH;
+                    canvas.height = img.height * scaleSize;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    
+                    currentMermaFotoBase64 = canvas.toDataURL('image/jpeg', 0.6); 
+                    
+                    document.getElementById('previewMermaFoto').src = currentMermaFotoBase64;
+                    document.getElementById('previewMermaFotoContainer').classList.remove('hidden');
+                }
+            }
         }
 
-        function closeScanner() {
-            const modal = document.getElementById('modalScanner');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-            
-            if (html5QrcodeScanner) {
-                html5QrcodeScanner.stop().catch(err => console.warn("Cámara ya estaba detenida."));
+        function removerFotoMerma() {
+            currentMermaFotoBase64 = null;
+            document.getElementById('inputMermaFoto').value = '';
+            document.getElementById('previewMermaFotoContainer').classList.add('hidden');
+            document.getElementById('previewMermaFoto').src = '';
+        }
+
+        function abrirFotoMerma(codigo, index) {
+            const merma = listaMermas[index];
+            if(merma && merma.FOTO) {
+                document.getElementById('verFotoGrande').src = merma.FOTO;
+                document.getElementById('verFotoTitulo').innerText = `${merma.CANTIDAD}x ${merma.NOMBRE} (${merma.MOTIVO})`;
+                document.getElementById('modalVerFoto').classList.remove('hidden');
+                document.getElementById('modalVerFoto').classList.add('flex');
             }
         }
 
-        // --- FUNCIONES MODAL PEDIDO Y CARRITO ---
-        function abrirModalCompra() {
+        function cerrarModalVerFoto() {
+            document.getElementById('modalVerFoto').classList.add('hidden');
+            document.getElementById('modalVerFoto').classList.remove('flex');
+        }
+
+        // --- LÓGICA MÓDULO MERMAS ---
+        function abrirModalMerma() {
             if(!window.currentProd) return;
-            document.getElementById('modalProdCode').innerText = window.currentProd.CODIGO;
-            document.getElementById('modalProdName').innerText = window.currentProd.NOMBRE;
-            document.getElementById('inputModalQty').value = 1;
-            const modal = document.getElementById('modalCompra');
+            document.getElementById('modalMermaCode').innerText = window.currentProd.CODIGO;
+            document.getElementById('modalMermaName').innerText = window.currentProd.NOMBRE;
+            document.getElementById('inputModalMermaQty').value = 1;
+            document.getElementById('inputMotivoMerma').selectedIndex = 0;
+            document.getElementById('inputObsMerma').value = '';
+            removerFotoMerma(); 
+            const modal = document.getElementById('modalMerma');
             modal.classList.remove('hidden'); modal.classList.add('flex');
         }
 
-        function cerrarModalCompra() {
-            const modal = document.getElementById('modalCompra');
+        function cerrarModalMerma() {
+            const modal = document.getElementById('modalMerma');
             modal.classList.add('hidden'); modal.classList.remove('flex');
         }
 
-        function cambiarCant(val) {
-            const input = document.getElementById('inputModalQty');
+        function cambiarCantMerma(val) {
+            const input = document.getElementById('inputModalMermaQty');
             let current = parseInt(input.value) || 0;
             let newVal = current + val;
             if(newVal < 1) newVal = 1;
             input.value = newVal;
         }
 
-        function confirmarCompra() {
-            const qty = parseInt(document.getElementById('inputModalQty').value) || 1;
+        function confirmarMerma() {
+            const qty = parseInt(document.getElementById('inputModalMermaQty').value) || 1;
+            const motivo = document.getElementById('inputMotivoMerma').value;
+            const obs = document.getElementById('inputObsMerma').value.trim();
             const p = window.currentProd;
-            const existenteIndex = listaPedidos.findIndex(item => item.CODIGO === p.CODIGO);
-            if(existenteIndex >= 0) { listaPedidos[existenteIndex].CANT_SOLICITADA += qty; } 
-            else { listaPedidos.push({ CODIGO: p.CODIGO, NOMBRE: p.NOMBRE, UNIDAD: p.UNIDAD || 'UND', CANT_SOLICITADA: qty }); }
-            cerrarModalCompra(); actualizarUIPedidos();
+
+            const nuevaMerma = {
+                'CÓDIGO': p.CODIGO,
+                'NOMBRE': p.NOMBRE,
+                'CANTIDAD': qty,
+                'UNIDAD': p.UNIDAD || 'UND',
+                'MOTIVO': motivo,
+                'OBSERVACIONES': obs,
+                'FECHA/HORA': new Date().toLocaleString(),
+                'FOTO': currentMermaFotoBase64 
+            };
+
+            listaMermas.unshift(nuevaMerma);
+            saveMermasState();
+            cerrarModalMerma(); 
+            actualizarUIMermas();
+            alert(`Merma registrada: ${qty}x ${p.NOMBRE}`);
         }
 
-        function eliminarPedido(index) { listaPedidos.splice(index, 1); actualizarUIPedidos(); }
+        function eliminarMerma(index) { 
+            listaMermas.splice(index, 1); 
+            saveMermasState();
+            actualizarUIMermas(); 
+        }
 
-        function actualizarUIPedidos() {
-            const count = listaPedidos.length;
-            const badge = document.getElementById('badge-pedidos');
-            const totalText = document.getElementById('totalItemsText');
-            const contenedor = document.getElementById('listaPedidosContenedor');
+        function actualizarUIMermas() {
+            const count = listaMermas.length;
+            const badge = document.getElementById('badge-mermas');
+            const totalText = document.getElementById('totalMermasText');
+            const contenedor = document.getElementById('listaMermasContenedor');
 
             if(count > 0) { badge.innerText = count; badge.classList.remove('hidden'); } 
             else { badge.classList.add('hidden'); }
-            totalText.innerText = `${count} ÍTEMS`;
+            totalText.innerText = `${count} REPORTES`;
 
             if(count === 0) {
-                contenedor.innerHTML = `<div class="h-full flex flex-col items-center justify-center text-gray-400 gap-3"><i class="fa-solid fa-cart-arrow-down text-5xl text-gray-200"></i><p class="font-medium text-lg">No hay solicitudes pendientes.</p><button onclick="setView('visor')" class="mt-2 text-orange-500 font-bold hover:underline text-sm">Ir al visor a buscar productos</button></div>`;
+                contenedor.innerHTML = `<div class="h-full flex flex-col items-center justify-center text-gray-400 gap-3"><i class="fa-solid fa-dumpster text-5xl text-gray-200"></i><p class="font-medium text-lg">No hay mermas reportadas.</p></div>`;
                 return;
             }
 
             let html = '<ul class="divide-y divide-gray-100 w-full">';
-            listaPedidos.forEach((item, index) => {
+            listaMermas.forEach((item, index) => {
+                let fotoBtn = item.FOTO ? `<button onclick="abrirFotoMerma('${item['CÓDIGO']}', ${index})" class="text-blue-500 bg-blue-50 hover:bg-blue-100 p-2 rounded-lg mr-2 border border-blue-200 transition-colors shadow-sm"><i class="fa-solid fa-camera"></i></button>` : '';
+                
                 html += `
-                    <li class="py-4 flex items-center justify-between gap-4 hover:bg-orange-50/50 px-2 rounded-lg transition-colors w-full">
-                        <div class="flex-1 min-w-0">
-                            <p class="text-xs font-bold text-gray-400 mb-0.5">${item.CODIGO}</p>
-                            <p class="text-sm font-bold text-gray-800 truncate" title="${item.NOMBRE}">${item.NOMBRE}</p>
+                    <li class="py-4 flex items-center justify-between gap-2 hover:bg-red-50/50 px-2 rounded-lg transition-colors w-full">
+                        <div class="flex-1 min-w-0 pr-2">
+                            <p class="text-[10px] font-bold text-red-500 mb-0.5">${item['CÓDIGO']} - ${item['FECHA/HORA'].split(',')[0]}</p>
+                            <p class="text-sm font-bold text-gray-800 truncate" title="${item['NOMBRE']}">${item['NOMBRE']}</p>
+                            <p class="text-xs font-medium text-gray-500 truncate mt-1"><i class="fa-solid fa-triangle-exclamation mr-1"></i>${item['MOTIVO']}</p>
                         </div>
-                        <div class="flex items-center gap-4 shrink-0">
-                            <div class="bg-orange-100 text-orange-700 px-3 py-1 rounded-lg font-black text-lg border border-orange-200 text-center min-w-[4rem]">
-                                ${item.CANT_SOLICITADA} <span class="text-[10px] uppercase block -mt-1">${item.UNIDAD}</span>
+                        <div class="flex items-center shrink-0">
+                            ${fotoBtn}
+                            <div class="bg-red-100 text-red-700 px-3 py-1 rounded-lg font-black text-lg border border-red-200 text-center min-w-[3.5rem] mr-2 shadow-sm">
+                                ${item['CANTIDAD']} <span class="text-[9px] uppercase block -mt-1">${item['UNIDAD']}</span>
                             </div>
-                            <button onclick="eliminarPedido(${index})" class="text-gray-300 hover:text-red-500 transition-colors p-2" title="Eliminar">
-                                <i class="fa-solid fa-trash-can text-lg"></i>
+                            <button onclick="eliminarMerma(${index})" class="text-gray-300 hover:text-red-500 transition-colors p-2" title="Eliminar error">
+                                <i class="fa-solid fa-xmark text-xl"></i>
                             </button>
                         </div>
                     </li>`;
@@ -866,186 +1029,251 @@
             contenedor.innerHTML = html;
         }
 
-        // --- FUNCIONES ENVÍO Y MODAL SOLICITANTE ---
-        function prepararEnvio(metodo) {
-            if(listaPedidos.length === 0) { alert("No hay productos en la lista de pedidos."); return; }
-            metodoEnvioActual = metodo;
-            const modal = document.getElementById('modalSolicitante');
-            modal.classList.remove('hidden'); modal.classList.add('flex');
-            setTimeout(() => { document.getElementById('inputNombreSolicitante').focus(); }, 100);
-        }
-
-        function cerrarModalSolicitante() {
-            const modal = document.getElementById('modalSolicitante');
-            modal.classList.add('hidden'); modal.classList.remove('flex');
-        }
-
-        function ejecutarEnvio() {
-            const inputName = document.getElementById('inputNombreSolicitante');
-            let solicitante = inputName.value.trim();
-            if(!solicitante) { alert("Por favor, ingresa tu nombre para continuar con la solicitud."); return; }
-            cerrarModalSolicitante();
-
-            let texto = `Hola, soy ${solicitante}. Solicito la compra de los siguientes productos:\n\n`;
-            listaPedidos.forEach((item, index) => { texto += `${index + 1}. ${item.CODIGO} - ${item.NOMBRE} (${item.CANT_SOLICITADA} ${item.UNIDAD})\n`; });
-
-            if(metodoEnvioActual === 'wsp') {
-                const miNumero = "56953119811"; 
-                const url = `https://wa.me/${miNumero}?text=${encodeURIComponent(texto)}`;
-                window.open(url, '_blank');
-            } else if (metodoEnvioActual === 'correo') {
-                const correo = "ivivanco@deteco.cl"; 
-                const asunto = `Solicitud de Compra Interna - ${solicitante}`;
-                const url = `mailto:${correo}?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(texto)}`;
-                window.open(url, '_blank');
-            }
-        }
-
-        // --- NUEVAS FUNCIONES PARA LA HOJA DE IMPRESIÓN ---
-        function incrementarAlfanumerico(str) {
-            return str.replace(/\d+$/, function(n) { return String(parseInt(n, 10) + 1).padStart(n.length, '0'); });
-        }
-
-        function agregarALaHoja() {
-            colaImpresion.push({
-                nombre: els.name.value || 'SIN NOMBRE', sku: els.productCode.value || '-',
-                org: els.orgInput.value || '-', familia: els.family.value || '-'
-            });
-            if (els.checkNum.checked) {
-                let actualOrg = els.orgInput.value.trim();
-                if (actualOrg !== '') { els.orgInput.value = incrementarAlfanumerico(actualOrg); }
-            }
-            renderLabels();
-            const btn = document.getElementById('btnAgregarHoja');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-check"></i> ¡Añadida!';
-            btn.classList.replace('bg-orange-500', 'bg-green-500'); btn.classList.replace('hover:bg-orange-600', 'hover:bg-green-600');
+        function exportarMermasExcel() {
+            const btn = document.getElementById('btnExcelMermas');
+            const iconOriginal = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-xl"></i> Procesando...';
+            
             setTimeout(() => {
-                btn.innerHTML = originalText;
-                btn.classList.replace('bg-green-500', 'bg-orange-500'); btn.classList.replace('hover:bg-green-600', 'hover:bg-orange-600');
-            }, 1000);
+                const fecha = new Date(); const nombreArchivo = `Mermas_Deteco_${fecha.getDate()}-${fecha.getMonth()+1}-${fecha.getFullYear()}.xlsx`;
+                procesarDescargaOCompartir(listaMermas, nombreArchivo, "Reporte Mermas").finally(() => {
+                    btn.innerHTML = iconOriginal;
+                });
+            }, 300);
         }
 
-        function limpiarHoja() { if(confirm('¿Estás seguro de vaciar todas las etiquetas de la hoja de impresión?')) { colaImpresion = []; renderLabels(); } }
-        function eliminarEtiqueta(index) { colaImpresion.splice(index, 1); renderLabels(); }
-
-        function renderLabels() {
-            els.wrapper.innerHTML = '';
-            const rows = parseInt(els.rows.value) || 5;
-            const cols = parseInt(els.cols.value) || 4;
-            const orientation = els.orientation.value;
-            
-            const sName = els.sizeName.value + 'px'; const sSku = els.sizeSku.value + 'px';
-            const sOrg = els.sizeOrg.value + 'px'; const sFamily = els.sizeFamily.value + 'px';
-            
-            els.valSizeName.innerText = sName; els.valSizeSku.innerText = sSku;
-            els.valSizeOrg.innerText = sOrg; els.valSizeFamily.innerText = sFamily;
-
-            if(orientation === 'landscape') {
-                document.documentElement.style.setProperty('--page-width', '297mm');
-                document.documentElement.style.setProperty('--page-height', '210mm');
-            } else {
-                document.documentElement.style.setProperty('--page-width', '210mm');
-                document.documentElement.style.setProperty('--page-height', '297mm');
+        function finalizarMermas() {
+            if(listaMermas.length === 0) { alert("No hay mermas para borrar."); return; }
+            if(confirm("⚠️ ¿Seguro que deseas borrar toda la lista de mermas de este dispositivo? ¡Asegúrate de bajar el Excel primero!")) {
+                listaMermas = [];
+                saveMermasState();
+                actualizarUIMermas();
             }
-            
-            const perPage = rows * cols;
-            const total = colaImpresion.length;
-            const pages = Math.ceil(total / perPage) || 1; 
-            let count = 0;
-            const baseUrl = 'https://ivanvivanco.github.io/ETIQUETAS/';
+        }
 
-            for(let p=0; p<pages; p++) {
-                const page = document.createElement('div'); page.className = 'page';
-                page.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
-                page.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
-                page.style.gap = '8px';
+        // --- LÓGICA MÓDULO INVENTARIO PRO ---
+        function intentarVerInventario() {
+            if(inventarioDesbloqueado) { setView('inventario'); renderFullInventoryList(''); } 
+            else {
+                document.getElementById('modalAuth').classList.remove('hidden'); document.getElementById('modalAuth').classList.add('flex');
+                document.getElementById('pinError').classList.add('hidden'); document.getElementById('inputPinBodega').value = '';
+                setTimeout(() => document.getElementById('inputPinBodega').focus(), 100);
+            }
+        }
 
-                for(let i=0; i<perPage; i++) {
-                    if (count < total) {
-                        const itemIndex = count;
-                        const item = colaImpresion[count];
-                        count++;
-                        const smartLink = `${baseUrl}?id=${item.sku}`;
-                        const qrId = `qr-code-${count}`;
+        function cerrarModalAuth() { document.getElementById('modalAuth').classList.add('hidden'); document.getElementById('modalAuth').classList.remove('flex'); }
 
-                        const card = document.createElement('div'); card.className = 'label-card';
-                        card.innerHTML = `
-                            <button onclick="eliminarEtiqueta(${itemIndex})" class="btn-delete-label no-print absolute top-2 right-2 bg-red-50 text-red-500 hover:bg-red-500 hover:text-white w-7 h-7 rounded-full flex items-center justify-center transition-colors z-10 shadow-sm border border-red-200" title="Quitar etiqueta">
-                                <i class="fa-solid fa-xmark text-sm"></i>
-                            </button>
-                            <div class="strip-orange"></div>
-                            <div class="left-col">
-                                <div class="header-block">
-                                    <div class="product-name" style="font-size:${sName}">${item.nombre}</div>
-                                    <div class="product-sku-row"><span class="sku-label">CÓDIGO:</span><span class="sku-value" style="font-size:${sSku}">${item.sku}</span></div>
-                                </div>
-                                <div class="organizer-block"><span class="organizer-number" style="font-size:${sOrg}">${item.org}</span></div>
-                                <div class="product-family" style="font-size:${sFamily}">${item.familia}</div>
-                            </div>
-                            <div class="right-col">
-                                <div class="qr-wrapper"><div class="qr-container" id="${qrId}"></div></div>
-                                <div class="logo-container"><img src="logo.png" onerror="this.style.display='none'"></div>
-                            </div>
-                        `;
-                        page.appendChild(card);
-                        new QRCode(card.querySelector(`#${qrId}`), { text: smartLink, width: 300, height: 300, correctLevel: QRCode.CorrectLevel.H });
-                    } else {
-                        const emptyCard = document.createElement('div');
-                        emptyCard.className = 'label-card border-dashed border-2 border-gray-300 bg-gray-50 flex items-center justify-center opacity-50';
-                        emptyCard.innerHTML = '<span class="text-gray-400 font-bold text-xs uppercase tracking-widest"><i class="fa-solid fa-ghost mr-1"></i> Espacio Libre</span>';
-                        page.appendChild(emptyCard);
-                    }
+        function validarPin() {
+            const pinIngresado = document.getElementById('inputPinBodega').value;
+            if(pinIngresado === PIN_BODEGA) {
+                inventarioDesbloqueado = true; addLog("Sesión de inventario iniciada."); cerrarModalAuth();
+                setView('inventario'); renderFullInventoryList('');
+            } else { document.getElementById('pinError').classList.remove('hidden'); document.getElementById('inputPinBodega').value = ''; }
+        }
+
+        function toggleOcultarContados() { const filterText = document.getElementById('invFilterInput').value; renderFullInventoryList(filterText); }
+
+        function renderFullInventoryList(filterText = '') {
+            const container = document.getElementById('invFullListContainer'); if(!container) return;
+            const val = filterText.toLowerCase().trim(); const hideCounted = document.getElementById('checkOcultarContados').checked;
+            const total = dbProducts.length; let contados = 0;
+
+            let html = '<ul class="flex flex-col gap-3 px-2 pb-4 pt-1">';
+            dbProducts.forEach(p => {
+                const isCounted = listaInventarioFisico.find(item => item['CÓDIGO'] === p.CODIGO);
+                if (isCounted) contados++;
+                if (val && !p.CODIGO.toLowerCase().includes(val) && !p.NOMBRE.toLowerCase().includes(val)) return; 
+                if (hideCounted && isCounted) return; 
+
+                let statusBadge = ''; 
+                let cardClass = 'bg-white hover:border-orange-400 hover:shadow-md border-gray-200';
+                let iconBox = '<div class="w-10 h-10 rounded-xl bg-gray-50 border border-gray-200 flex items-center justify-center shrink-0 text-gray-400"><i class="fa-solid fa-box-open"></i></div>';
+
+                if (isCounted) {
+                    cardClass = 'bg-green-50 border-green-200 hover:bg-green-100'; 
+                    iconBox = '<div class="w-10 h-10 rounded-xl bg-green-100 border border-green-200 flex items-center justify-center shrink-0 text-green-600"><i class="fa-solid fa-check-double"></i></div>';
+                    statusBadge = `
+                        <div class="flex flex-col items-end">
+                            <span class="bg-green-500 text-white text-[9px] font-black px-2 py-0.5 rounded shadow-sm uppercase flex items-center gap-1"><i class="fa-solid fa-check"></i> Contado</span>
+                            <span class="text-xs font-black text-gray-700 mt-1">${isCounted['INVENTARIO FÍSICO']} ${p.UNIDAD}</span>
+                        </div>`;
                 }
-                els.wrapper.appendChild(page);
+
+                html += `
+                    <li class="p-3 flex items-center justify-between gap-3 cursor-pointer transition-all border rounded-2xl shadow-sm ${cardClass}" onclick="abrirConteoModal('${p.CODIGO}')">
+                        ${iconBox}
+                        <div class="flex-1 min-w-0">
+                            <p class="text-[10px] font-black text-orange-500 tracking-widest mb-0.5 uppercase">${p.CODIGO}</p>
+                            <p class="text-sm font-bold text-gray-800 leading-tight truncate">${p.NOMBRE}</p>
+                        </div>
+                        <div class="shrink-0 flex items-center justify-end min-w-[3.5rem]">
+                            ${statusBadge || '<div class="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center border border-gray-200"><i class="fa-solid fa-chevron-right text-gray-400 text-xs"></i></div>'}
+                        </div>
+                    </li>`;
+            });
+            html += '</ul>';
+            
+            if(dbProducts.length === 0) { html = `<div class="p-8 text-center text-gray-400 font-medium">Aún no hay base de datos cargada.</div>`; } 
+            else if (html === '<ul class="flex flex-col gap-3 px-2 pb-4 pt-1"></ul>') { html = `<div class="p-8 text-center text-gray-400 font-medium text-sm"><i class="fa-solid fa-box-open text-3xl mb-3 block opacity-30"></i>¡Todo listo!<br>No hay productos pendientes que coincidan.</div>`; }
+
+            container.innerHTML = html;
+            const pct = total === 0 ? 0 : Math.round((contados / total) * 100);
+            document.getElementById('invProgressBar').style.width = pct + '%'; document.getElementById('invProgressText').innerText = `${contados} de ${total} productos contados (${pct}%)`;
+        }
+
+        function abrirConteoModal(codigo) {
+            let prod = dbProducts.find(p => p.CODIGO === codigo);
+            if(!prod) { alert("Producto no encontrado."); return; }
+            invCurrentProd = prod;
+            document.getElementById('modalConteoCode').innerText = prod.CODIGO;
+            document.getElementById('modalConteoName').innerText = prod.NOMBRE;
+            const isCounted = listaInventarioFisico.find(item => item['CÓDIGO'] === prod.CODIGO);
+            const inputFisico = document.getElementById('inputConteoFisico');
+            inputFisico.value = isCounted ? isCounted['INVENTARIO FÍSICO'] : '';
+            const modal = document.getElementById('modalConteo');
+            modal.classList.remove('hidden'); modal.classList.add('flex');
+            setTimeout(() => inputFisico.focus(), 100);
+        }
+
+        function cerrarConteoModal() { document.getElementById('modalConteo').classList.add('hidden'); document.getElementById('modalConteo').classList.remove('flex'); invCurrentProd = null; }
+
+        function abrirMermaDesdeInventario() {
+            if(!invCurrentProd) return;
+            window.currentProd = invCurrentProd; 
+            cerrarConteoModal(); 
+            abrirModalMerma(); 
+        }
+
+        function guardarConteoFisico() {
+            if(!invCurrentProd) return;
+            const inputVal = document.getElementById('inputConteoFisico').value;
+            if(inputVal === '') { alert("Ingresa un número válido."); return; }
+            
+            const conteoFisico = parseInt(inputVal); const stockSistema = parseInt(invCurrentProd.STOCK) || 0; const diferencia = conteoFisico - stockSistema;
+            let estado = "CUADRADO"; if(diferencia > 0) estado = "SOBRANTE"; if(diferencia < 0) estado = "FALTANTE";
+
+            const existenteIndex = listaInventarioFisico.findIndex(item => item['CÓDIGO'] === invCurrentProd.CODIGO);
+            const dataConteo = { 'CÓDIGO': invCurrentProd.CODIGO, 'NOMBRE': invCurrentProd.NOMBRE, 'STOCK SISTEMA': stockSistema, 'INVENTARIO FÍSICO': conteoFisico, 'DIFERENCIA': diferencia, 'ESTADO': estado, 'FECHA/HORA': new Date().toLocaleString() };
+
+            if(existenteIndex >= 0) { listaInventarioFisico[existenteIndex] = dataConteo; addLog(`Modificado: ${invCurrentProd.NOMBRE} a ${conteoFisico} und.`); } 
+            else { listaInventarioFisico.push(dataConteo); addLog(`Contado: ${invCurrentProd.NOMBRE} (${conteoFisico} und).`); }
+
+            saveInventarioState(); cerrarConteoModal(); renderFullInventoryList(document.getElementById('invFilterInput').value);
+        }
+
+        function abrirModalLogs() { renderLogs(); document.getElementById('modalLogs').classList.remove('hidden'); document.getElementById('modalLogs').classList.add('flex'); }
+        function cerrarModalLogs() { document.getElementById('modalLogs').classList.add('hidden'); document.getElementById('modalLogs').classList.remove('flex'); }
+
+        function renderLogs() {
+            const container = document.getElementById('logsContainer');
+            if(inventarioLogs.length === 0) { container.innerHTML = '<p class="text-gray-400 text-center py-4">No hay actividad reciente.</p>'; return; }
+            container.innerHTML = inventarioLogs.map(l => `<div class="border-b border-gray-50 pb-1 mb-1">${l}</div>`).join('');
+        }
+
+        function finalizarInventario() {
+            if(listaInventarioFisico.length === 0) { alert("No has iniciado ningún conteo aún."); return; }
+            if(confirm("⚠️ ¿ESTÁS SEGURO? Esto borrará TODO tu progreso actual para iniciar un mes nuevo. Asegúrate de haber descargado el Excel primero.")) {
+                listaInventarioFisico = []; inventarioLogs = []; addLog("Inventario finalizado y borrado del dispositivo."); saveInventarioState();
+                renderFullInventoryList(document.getElementById('invFilterInput').value); alert("Progreso borrado exitosamente.");
             }
         }
 
+        // --- SISTEMA DE COMPARTIR EXCEL ---
+        async function procesarDescargaOCompartir(datosExcel, nombreArchivo, nombreHoja) {
+            if(datosExcel.length === 0) { alert("No hay datos para exportar."); return; }
+            
+            const datosLimpios = datosExcel.map(item => {
+                let { FOTO, ...resto } = item;
+                if(FOTO) resto['EVIDENCIA'] = 'FOTO ADJUNTA EN LA APP';
+                return resto;
+            });
+
+            const worksheet = XLSX.utils.json_to_sheet(datosLimpios); 
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, nombreHoja);
+
+            try {
+                const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+                const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                const file = new File([blob], nombreArchivo, { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    await navigator.share({
+                        files: [file],
+                        title: 'Reporte Deteco',
+                        text: `Adjunto reporte generado el ${new Date().toLocaleString()}`
+                    });
+                    addLog(`Archivo compartido: ${nombreArchivo}`);
+                } else {
+                    XLSX.writeFile(workbook, nombreArchivo);
+                    addLog(`Excel descargado (PC): ${nombreArchivo}`);
+                }
+            } catch (error) {
+                console.log("Compartir cancelado o falló:", error);
+            }
+        }
+
+        function exportarInventarioExcel() {
+            const btn = document.getElementById('btnExcelInv');
+            const iconOriginal = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-xl"></i> Procesando...';
+            
+            setTimeout(() => {
+                const fecha = new Date(); const nombreArchivo = `Inventario_Deteco_${fecha.getDate()}-${fecha.getMonth()+1}-${fecha.getFullYear()}.xlsx`;
+                procesarDescargaOCompartir(listaInventarioFisico, nombreArchivo, "Auditoría Física").finally(() => {
+                    btn.innerHTML = iconOriginal;
+                });
+            }, 300);
+        }
+
+        // --- ESCÁNER QR ---
+        function openScanner(target) {
+            scannerTargetView = target; 
+            const modal = document.getElementById('modalScanner');
+            modal.classList.remove('hidden'); modal.classList.add('flex');
+            if (!html5QrcodeScanner) { html5QrcodeScanner = new Html5Qrcode("reader"); }
+            const config = { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 };
+            
+            html5QrcodeScanner.start({ facingMode: "environment" }, config, (decodedText) => {
+                let scannedId = decodedText; try { const url = new URL(decodedText); if (url.searchParams.has('id')) { scannedId = url.searchParams.get('id'); } } catch(e) {}
+                closeScanner(); 
+                if(scannerTargetView === 'visor') { document.getElementById('manualInput').value = scannedId; manualSearch(scannedId); } 
+                else if (scannerTargetView === 'inventario') { abrirConteoModal(scannedId); }
+            }).catch((err) => { console.warn("Fallo cámara:", err); alert("Por favor, permite el acceso a la cámara en tu navegador."); closeScanner(); });
+        }
+        function closeScanner() { const modal = document.getElementById('modalScanner'); modal.classList.add('hidden'); modal.classList.remove('flex'); if (html5QrcodeScanner) { html5QrcodeScanner.stop().catch(err => console.warn(err)); } }
+
+        // --- NAVEGACIÓN ---
         function setView(view) {
+            if(view === 'inventario' && !inventarioDesbloqueado) { intentarVerInventario(); return; }
+            if(view !== 'inventario' && inventarioDesbloqueado) { inventarioDesbloqueado = false; document.getElementById('inputPinBodega').value = ''; }
+
             document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
             document.getElementById(`view-${view}`).classList.add('active');
-            
-            const btnToggle = document.getElementById('btn-settings-toggle');
-            const panel = document.getElementById('panel-settings');
+            const btnToggle = document.getElementById('btn-settings-toggle'); const panel = document.getElementById('panel-settings');
             
             if(view === 'generator') {
-                btnToggle.style.display = 'inline-flex';
-                panel.style.display = 'block';
-
+                btnToggle.style.display = 'inline-flex'; panel.style.display = 'block';
                 if(!hasSeenGeneratorMenuHint) {
-                    hasSeenGeneratorMenuHint = true;
-                    panel.classList.remove('settings-collapsed');
-                    btnToggle.classList.add('bg-orange-200');
-
-                    hintTimeout = setTimeout(() => {
-                        panel.classList.add('settings-collapsed');
-                        btnToggle.classList.remove('bg-orange-200');
-                    }, 1200);
+                    hasSeenGeneratorMenuHint = true; panel.classList.remove('settings-collapsed'); btnToggle.classList.add('bg-orange-200');
+                    hintTimeout = setTimeout(() => { panel.classList.add('settings-collapsed'); btnToggle.classList.remove('bg-orange-200'); }, 1200);
                 }
-
-            } else {
-                btnToggle.style.display = 'none';
-                panel.style.display = 'none';
-            }
+            } else { btnToggle.style.display = 'none'; panel.style.display = 'none'; }
 
             document.getElementById('btn-gen').className = view === 'generator' ? 'ios-btn btn-active-tab shrink-0' : 'ios-btn btn-ghost shrink-0';
             document.getElementById('btn-vis').className = view === 'visor' ? 'ios-btn btn-active-tab shrink-0' : 'ios-btn btn-ghost shrink-0';
-            document.getElementById('btn-pedidos').className = view === 'pedidos' ? 'ios-btn btn-active-tab shrink-0 relative' : 'ios-btn btn-ghost shrink-0 relative';
+            document.getElementById('btn-inv').className = view === 'inventario' ? 'ios-btn btn-active-tab shrink-0 text-gray-800 border-gray-200 bg-white shadow-sm' : 'ios-btn btn-ghost shrink-0 text-gray-500';
+            document.getElementById('btn-mermas').className = view === 'mermas' ? 'ios-btn btn-active-tab shrink-0 text-red-600 border-red-200 bg-red-50 relative' : 'ios-btn btn-ghost shrink-0 text-red-600 relative';
         }
 
         function toggleSettings() {
-            const panel = document.getElementById('panel-settings');
-            const btn = document.getElementById('btn-settings-toggle');
-            
+            const panel = document.getElementById('panel-settings'); const btn = document.getElementById('btn-settings-toggle');
             if(hintTimeout) { clearTimeout(hintTimeout); hintTimeout = null; }
-
-            if (panel.classList.contains('settings-collapsed')) {
-                panel.classList.remove('settings-collapsed'); btn.classList.add('bg-orange-200');
-            } else {
-                panel.classList.add('settings-collapsed'); btn.classList.remove('bg-orange-200');
-            }
+            if (panel.classList.contains('settings-collapsed')) { panel.classList.remove('settings-collapsed'); btn.classList.add('bg-orange-200'); } 
+            else { panel.classList.add('settings-collapsed'); btn.classList.remove('bg-orange-200'); }
         }
 
+        // --- GENERADOR ETIQUETAS ---
         els.dbSearch.addEventListener('input', (e) => {
             const val = e.target.value.toLowerCase();
             if(val.length < 2) { els.searchResults.classList.add('hidden'); return; }
@@ -1054,8 +1282,7 @@
             if(matches.length) {
                 els.searchResults.classList.remove('hidden');
                 matches.forEach(p => {
-                    const div = document.createElement('div');
-                    div.className = "p-3 hover:bg-orange-50 cursor-pointer border-b text-sm flex justify-between";
+                    const div = document.createElement('div'); div.className = "p-3 hover:bg-orange-50 cursor-pointer border-b text-sm flex justify-between";
                     div.innerHTML = `<span><strong>${p.CODIGO}</strong></span> <span class="text-gray-500 truncate ml-2 text-xs">${p.NOMBRE}</span>`;
                     div.onclick = () => {
                         els.productCode.value = p.CODIGO || ''; els.name.value = p.NOMBRE || ''; els.family.value = p.CATEGORIA || '';
@@ -1070,82 +1297,80 @@
             } else { els.searchResults.classList.add('hidden'); }
         });
 
-        // --- NUEVO: AUTOCOMPLETADO PARA EL BUSCADOR DEL VISOR ---
-        const manualInputEl = document.getElementById('manualInput');
-        const visorResultsEl = document.getElementById('visorSearchResults');
+        function incrementarAlfanumerico(str) { return str.replace(/\d+$/, function(n) { return String(parseInt(n, 10) + 1).padStart(n.length, '0'); }); }
 
-        manualInputEl.addEventListener('input', (e) => {
-            const val = e.target.value.toLowerCase().trim();
-            if(val.length < 2) { visorResultsEl.classList.add('hidden'); return; }
-            
-            // Busca coincidencias en código o nombre
-            const matches = dbProducts.filter(p => 
-                (p.CODIGO && p.CODIGO.toLowerCase().includes(val)) || 
-                (p.NOMBRE && p.NOMBRE.toLowerCase().includes(val))
-            ).slice(0, 6); // Limita a 6 opciones para no tapar toda la pantalla del celular
-            
-            visorResultsEl.innerHTML = '';
-            if(matches.length) {
-                visorResultsEl.classList.remove('hidden');
-                matches.forEach(p => {
-                    const div = document.createElement('div');
-                    div.className = "p-4 hover:bg-orange-50 cursor-pointer border-b border-gray-100 flex items-center justify-between transition-colors";
-                    // BONUS: Muestra el stock directamente en la lista desplegable
-                    div.innerHTML = `
-                        <div class="flex flex-col overflow-hidden">
-                            <span class="text-xs font-bold text-orange-500 mb-0.5">${p.CODIGO}</span>
-                            <span class="text-sm font-bold text-gray-800 truncate leading-tight">${p.NOMBRE}</span>
-                        </div>
-                        <span class="text-[10px] font-black bg-gray-100 text-gray-500 px-2 py-1 rounded-md ml-2 whitespace-nowrap">${p.STOCK} ${p.UNIDAD}</span>
-                    `;
-                    div.onclick = () => {
-                        manualInputEl.value = p.CODIGO;
-                        visorResultsEl.classList.add('hidden');
-                        manualSearch(p.CODIGO); // Ejecuta la búsqueda visual de inmediato al tocarlo
-                    };
-                    visorResultsEl.appendChild(div);
-                });
-            } else { 
-                visorResultsEl.classList.add('hidden'); 
-            }
-        });
+        function agregarALaHoja() {
+            colaImpresion.push({ nombre: els.name.value || 'SIN NOMBRE', sku: els.productCode.value || '-', org: els.orgInput.value || '-', familia: els.family.value || '-' });
+            if (els.checkNum.checked) { let actualOrg = els.orgInput.value.trim(); if (actualOrg !== '') { els.orgInput.value = incrementarAlfanumerico(actualOrg); } }
+            renderLabels();
+            const btn = document.getElementById('btnAgregarHoja'); const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> ¡Añadida!'; btn.classList.replace('bg-orange-500', 'bg-green-500'); btn.classList.replace('hover:bg-orange-600', 'hover:bg-green-600');
+            setTimeout(() => { btn.innerHTML = originalText; btn.classList.replace('bg-green-500', 'bg-orange-500'); btn.classList.replace('hover:bg-green-600', 'hover:bg-orange-600'); }, 1000);
+        }
 
-        // Ocultar el menú si el usuario toca la pantalla fuera de él
-        document.addEventListener('click', (e) => {
-            if (manualInputEl && visorResultsEl && !manualInputEl.contains(e.target) && !visorResultsEl.contains(e.target)) {
-                visorResultsEl.classList.add('hidden');
+        function limpiarHoja() { if(confirm('¿Vaciar todas las etiquetas?')) { colaImpresion = []; renderLabels(); } }
+        function eliminarEtiqueta(index) { colaImpresion.splice(index, 1); renderLabels(); }
+
+        function renderLabels() {
+            els.wrapper.innerHTML = '';
+            const rows = parseInt(els.rows.value) || 5; const cols = parseInt(els.cols.value) || 4; const orientation = els.orientation.value;
+            const sName = els.sizeName.value + 'px'; const sSku = els.sizeSku.value + 'px'; const sOrg = els.sizeOrg.value + 'px'; const sFamily = els.sizeFamily.value + 'px';
+            els.valSizeName.innerText = sName; els.valSizeSku.innerText = sSku; els.valSizeOrg.innerText = sOrg; els.valSizeFamily.innerText = sFamily;
+
+            if(orientation === 'landscape') { document.documentElement.style.setProperty('--page-width', '297mm'); document.documentElement.style.setProperty('--page-height', '210mm'); } 
+            else { document.documentElement.style.setProperty('--page-width', '210mm'); document.documentElement.style.setProperty('--page-height', '297mm'); }
+            
+            const perPage = rows * cols; const total = colaImpresion.length; const pages = Math.ceil(total / perPage) || 1; let count = 0;
+            const baseUrl = 'https://ivanvivanco.github.io/ETIQUETAS/';
+
+            for(let p=0; p<pages; p++) {
+                const page = document.createElement('div'); page.className = 'page';
+                page.style.gridTemplateColumns = `repeat(${cols}, 1fr)`; page.style.gridTemplateRows = `repeat(${rows}, 1fr)`; page.style.gap = '8px';
+
+                for(let i=0; i<perPage; i++) {
+                    if (count < total) {
+                        const itemIndex = count; const item = colaImpresion[count]; count++;
+                        const smartLink = `${baseUrl}?id=${item.sku}`; const qrId = `qr-code-${count}`;
+                        const card = document.createElement('div'); card.className = 'label-card';
+                        card.innerHTML = `
+                            <button onclick="eliminarEtiqueta(${itemIndex})" class="btn-delete-label no-print absolute top-2 right-2 bg-red-50 text-red-500 hover:bg-red-500 hover:text-white w-7 h-7 rounded-full flex items-center justify-center transition-colors z-10 shadow-sm border border-red-200"><i class="fa-solid fa-xmark text-sm"></i></button>
+                            <div class="strip-orange"></div>
+                            <div class="left-col">
+                                <div class="header-block"><div class="product-name" style="font-size:${sName}">${item.nombre}</div><div class="product-sku-row"><span class="sku-label">CÓDIGO:</span><span class="sku-value" style="font-size:${sSku}">${item.sku}</span></div></div>
+                                <div class="organizer-block"><span class="organizer-number" style="font-size:${sOrg}">${item.org}</span></div>
+                                <div class="product-family" style="font-size:${sFamily}">${item.familia}</div>
+                            </div>
+                            <div class="right-col"><div class="qr-wrapper"><div class="qr-container" id="${qrId}"></div></div><div class="logo-container"><img src="logo.png" onerror="this.style.display='none'"></div></div>
+                        `;
+                        page.appendChild(card); new QRCode(card.querySelector(`#${qrId}`), { text: smartLink, width: 300, height: 300, correctLevel: QRCode.CorrectLevel.H });
+                    } else {
+                        const emptyCard = document.createElement('div'); emptyCard.className = 'label-card border-dashed border-2 border-gray-300 bg-gray-50 flex items-center justify-center opacity-50';
+                        emptyCard.innerHTML = '<span class="text-gray-400 font-bold text-xs uppercase tracking-widest"><i class="fa-solid fa-ghost mr-1"></i> Espacio Libre</span>';
+                        page.appendChild(emptyCard);
+                    }
+                }
+                els.wrapper.appendChild(page);
             }
-        });
-        // --------------------------------------------------------
+        }
 
         function downloadPDF() {
-            if (!document.getElementById('view-generator').classList.contains('active')) { alert("Debes estar en la pestaña 'Generador' para descargar el PDF de las etiquetas."); return; }
+            if (!document.getElementById('view-generator').classList.contains('active')) { alert("Debes estar en 'Generador' para descargar el PDF."); return; }
             if (colaImpresion.length === 0) { alert("No hay etiquetas en la hoja para descargar."); return; }
 
-            const element = document.getElementById('pages-wrapper');
-            const rightContent = document.querySelector('.right-content');
-            const previewPanel = document.getElementById('view-generator');
-
-            const originalScrollYWindow = window.scrollY;
-            const originalScrollY = rightContent ? rightContent.scrollTop : 0;
-            const originalOverflowRight = rightContent ? rightContent.style.overflow : '';
-            const originalOverflowPreview = previewPanel ? previewPanel.style.overflow : '';
-            const originalHeightPreview = previewPanel ? previewPanel.style.height : '';
+            const element = document.getElementById('pages-wrapper'); const rightContent = document.querySelector('.right-content'); const previewPanel = document.getElementById('view-generator');
+            const originalScrollYWindow = window.scrollY; const originalScrollY = rightContent ? rightContent.scrollTop : 0;
+            const originalOverflowRight = rightContent ? rightContent.style.overflow : ''; const originalOverflowPreview = previewPanel ? previewPanel.style.overflow : ''; const originalHeightPreview = previewPanel ? previewPanel.style.height : '';
 
             const btnPdf = document.querySelector('button[onclick="downloadPDF()"]');
             if (!btnPdf) return;
-            const originalBtnHtml = btnPdf.innerHTML;
-            btnPdf.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> <span class="hidden lg:inline">Cargando...</span>';
-            btnPdf.disabled = true;
+            const originalBtnHtml = btnPdf.innerHTML; btnPdf.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> <span class="hidden lg:inline">Cargando...</span>'; btnPdf.disabled = true;
 
             const restoreAll = () => {
                 if (rightContent) { rightContent.style.overflow = originalOverflowRight; rightContent.scrollTop = originalScrollY; }
                 if (previewPanel) { previewPanel.style.overflow = originalOverflowPreview; previewPanel.style.height = originalHeightPreview; }
                 window.scrollTo(0, originalScrollYWindow);
-                const pages = element.querySelectorAll('.page');
-                pages.forEach(p => { p.style.marginBottom = '30px'; p.style.boxShadow = '0 10px 30px rgba(0,0,0,0.1)'; });
-                const deleteBtns = element.querySelectorAll('.btn-delete-label');
-                deleteBtns.forEach(btn => btn.style.display = 'flex');
+                const pages = element.querySelectorAll('.page'); pages.forEach(p => { p.style.marginBottom = '30px'; p.style.boxShadow = '0 10px 30px rgba(0,0,0,0.1)'; });
+                const deleteBtns = element.querySelectorAll('.btn-delete-label'); deleteBtns.forEach(btn => btn.style.display = 'flex');
                 btnPdf.innerHTML = originalBtnHtml; btnPdf.disabled = false;
             };
 
@@ -1153,35 +1378,22 @@
             if (rightContent) { rightContent.scrollTop = 0; rightContent.style.overflow = 'visible'; }
             if (previewPanel) { previewPanel.scrollTop = 0; previewPanel.style.overflow = 'visible'; previewPanel.style.height = 'auto'; }
 
-            const pages = element.querySelectorAll('.page');
-            pages.forEach(p => { p.style.marginBottom = '0'; p.style.boxShadow = 'none'; });
-            const deleteBtns = element.querySelectorAll('.btn-delete-label');
-            deleteBtns.forEach(btn => btn.style.display = 'none');
+            const pages = element.querySelectorAll('.page'); pages.forEach(p => { p.style.marginBottom = '0'; p.style.boxShadow = 'none'; });
+            const deleteBtns = element.querySelectorAll('.btn-delete-label'); deleteBtns.forEach(btn => btn.style.display = 'none');
 
             setTimeout(() => {
                 const orient = els.orientation.value === 'landscape' ? 'l' : 'p';
                 const opt = {
                     margin: 0, filename: 'etiquetas_deteco.pdf', image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { 
-                        scale: 2, useCORS: true, scrollY: 0, windowY: 0, backgroundColor: '#ffffff',
-                        onclone: function(clonedDoc) {
-                            const imgs = clonedDoc.querySelectorAll('img');
-                            imgs.forEach(img => { if (!img.complete || img.naturalWidth === 0) { img.parentNode.removeChild(img); } });
-                        }
-                    },
+                    html2canvas: { scale: 2, useCORS: true, scrollY: 0, windowY: 0, backgroundColor: '#ffffff', onclone: function(clonedDoc) { const imgs = clonedDoc.querySelectorAll('img'); imgs.forEach(img => { if (!img.complete || img.naturalWidth === 0) { img.parentNode.removeChild(img); } }); } },
                     jsPDF: { unit: 'mm', format: 'a4', orientation: orient }
                 };
-
-                html2pdf().set(opt).from(element).save().then(() => { restoreAll(); }).catch(err => {
-                    console.error("Error al exportar PDF: ", err); alert("Ocurrió un error al generar el PDF. Restableciendo la pantalla de forma segura."); restoreAll();
-                });
+                html2pdf().set(opt).from(element).save().then(() => { restoreAll(); }).catch(err => { console.error(err); alert("Error al generar PDF."); restoreAll(); });
             }, 300);
         }
 
         let timeout;
-        [els.rows, els.cols, els.orientation, els.sizeName, els.sizeSku, els.sizeOrg, els.sizeFamily].forEach(el => {
-            el.addEventListener('input', () => { clearTimeout(timeout); timeout = setTimeout(renderLabels, 150); });
-        });
+        [els.rows, els.cols, els.orientation, els.sizeName, els.sizeSku, els.sizeOrg, els.sizeFamily].forEach(el => { el.addEventListener('input', () => { clearTimeout(timeout); timeout = setTimeout(renderLabels, 150); }); });
     </script>
 </body>
 </html>
