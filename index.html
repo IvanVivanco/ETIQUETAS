@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Deteco DTX 6.35</title>
+    <title>Deteco DTX 6.36</title>
 
     <!-- PWA / WEB APP NATIVA META TAGS -->
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -527,7 +527,7 @@
                             <div id="locationArea" class="hidden w-full mt-4 mb-4 transition-all duration-300">
                                 <div class="bg-white rounded-3xl p-4 sm:p-6 w-full border border-gray-200 shadow-sm">
                                     <div class="flex items-center justify-center mb-2">
-                                        <h4 class="text-[10px] font-black text-gray-400 uppercase tracking-widest"><i class="fa-solid fa-map-location-dot mr-1"></i> Plano de Bodega</h4>
+                                        <h4 class="text-[10px] font-black text-gray-400 uppercase tracking-widest"><i class="fa-solid fa-map-location-dot mr-1"></i> Layout de Bodega</h4>
                                     </div>
                                     
                                     <!-- Contenedor del Mapa con Grilla Técnica -->
@@ -573,15 +573,11 @@
 
                                     </div>
 
-                                    <!-- Detalles Básicos -->
-                                    <div class="w-full flex gap-3">
-                                        <div class="bg-gray-50 px-2 py-4 rounded-xl border border-gray-200 flex-1 text-center shadow-sm">
-                                            <span class="block text-[10px] text-gray-400 uppercase font-black tracking-wider">Pasillo</span>
-                                            <span id="locPasillo" class="text-2xl sm:text-3xl font-black text-gray-800 leading-none mt-1 block">-</span>
-                                        </div>
-                                        <div class="bg-gray-50 px-2 py-4 rounded-xl border border-gray-200 flex-1 text-center shadow-sm">
-                                            <span class="block text-[10px] text-gray-400 uppercase font-black tracking-wider">Estantería</span>
-                                            <span id="locModulo" class="text-2xl sm:text-3xl font-black text-orange-500 leading-none mt-1 block">-</span>
+                                    <!-- Detalles Básicos (UNIFICADOS) -->
+                                    <div class="w-full flex justify-center">
+                                        <div class="bg-gray-50 px-6 py-4 rounded-xl border border-gray-200 w-full max-w-sm text-center shadow-sm">
+                                            <span class="block text-[10px] text-gray-400 uppercase font-black tracking-wider">Ubicación</span>
+                                            <span id="locModulo" class="text-3xl sm:text-4xl font-black text-orange-500 leading-none mt-1 block">-</span>
                                         </div>
                                     </div>
                                     <p id="locRaw" class="text-[9px] font-medium text-gray-400 mt-4 text-center tracking-widest uppercase"></p>
@@ -986,7 +982,6 @@
                     btnShowLoc.innerHTML = '<i class="fa-solid fa-map-location-dot"></i> Ver Ubicación en Bodega';
                     btnShowLoc.disabled = false;
 
-                    // Limpiar marcas previas
                     document.querySelectorAll('.rk-active').forEach(el => el.classList.remove('rk-active'));
                     document.querySelectorAll('[id^="lbl-pasillo-"]').forEach(el => {
                         el.classList.remove('text-white', 'bg-orange-500', 'scale-110', 'border-orange-500');
@@ -1000,8 +995,7 @@
                         let pasillo = match[1].toUpperCase();
                         let estanteria = match[2] || '';
 
-                        document.getElementById('locPasillo').innerText = pasillo;
-                        document.getElementById('locModulo').innerText = estanteria ? `${pasillo}-${estanteria.padStart(2, '0')}` : '-';
+                        document.getElementById('locModulo').innerText = estanteria ? `${pasillo}-${estanteria.padStart(2, '0')}` : pasillo;
                         document.getElementById('locRaw').innerText = `CÓDIGO EXCEL: ${org}`;
                         document.getElementById('locRaw').classList.remove('text-red-500', 'font-black');
 
@@ -1017,8 +1011,7 @@
                             if(rkEl) { rkEl.classList.add('rk-active'); }
                         }
                     } else {
-                        document.getElementById('locPasillo').innerText = org.substring(0,3);
-                        document.getElementById('locModulo').innerText = '-';
+                        document.getElementById('locModulo').innerText = org.substring(0, 5) || '-';
                         document.getElementById('locRaw').innerText = `CÓDIGO NO RECONOCIDO: ${org}`;
                     }
                 } else {
@@ -1026,6 +1019,7 @@
                     btnShowLoc.classList.add('flex', 'bg-gray-100', 'text-gray-400', 'border-transparent', 'cursor-not-allowed');
                     btnShowLoc.innerHTML = '<i class="fa-solid fa-location-dot"></i> Ubicación no registrada';
                     btnShowLoc.disabled = true;
+                    document.getElementById('locModulo').innerText = '-';
                 }
 
                 setTimeout(() => { resDiv.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 150);
@@ -1641,6 +1635,7 @@
 
             const btnGen = document.getElementById('btn-gen'); if(btnGen) btnGen.className = view === 'generator' ? 'ios-btn btn-active-tab shrink-0' : 'ios-btn btn-ghost shrink-0';
             const btnVis = document.getElementById('btn-vis'); if(btnVis) btnVis.className = view === 'visor' ? 'ios-btn btn-active-tab shrink-0' : 'ios-btn btn-ghost shrink-0';
+            
             const btnInv = document.getElementById('btn-inv'); if(btnInv) btnInv.className = view === 'inventario' ? 'ios-btn btn-active-tab shrink-0 text-gray-800 border-gray-200 bg-white shadow-sm' : 'ios-btn btn-ghost shrink-0 text-gray-500';
             const btnMer = document.getElementById('btn-mermas'); if(btnMer) btnMer.className = view === 'mermas' ? 'ios-btn btn-active-tab shrink-0 text-red-600 border-red-200 bg-red-50 relative' : 'ios-btn btn-ghost shrink-0 text-red-600 relative';
         }
