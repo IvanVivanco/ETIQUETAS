@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Deteco DTX 6.30</title>
+    <title>Deteco DTX 6.35</title>
 
     <!-- PWA / WEB APP NATIVA META TAGS -->
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -116,6 +116,28 @@
             #view-generator { display: flex !important; }
             @page { margin: 0; }
         }
+
+        /* CLASES MAPA BODEGA MODERNO */
+        .map-grid-bg {
+            background-color: #f8fafc;
+            background-image: radial-gradient(#cbd5e1 1.5px, transparent 1.5px);
+            background-size: 16px 16px;
+        }
+        .rk-block {
+            background-color: #e2e8f0; 
+            border-radius: 4px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            width: 100%;
+            height: 100%;
+        }
+        .rk-active {
+            background-color: #F26522 !important;
+            transform: scale(1.15);
+            box-shadow: 0 0 0 4px rgba(242,101,34,0.2), 0 4px 10px rgba(0,0,0,0.15);
+            z-index: 20;
+            position: relative;
+            border: 1px solid #c2410c;
+        }
     </style>
 </head>
 <body>
@@ -143,7 +165,6 @@
             <div class="flex bg-gray-200/60 p-1 rounded-lg overflow-x-auto hide-scroll gap-1">
                 <button onclick="setView('generator')" id="btn-gen" class="ios-btn btn-ghost shrink-0">Generador</button>
                 <button onclick="setView('visor')" id="btn-vis" class="ios-btn btn-active-tab shrink-0">Visor</button>
-                <!-- Eliminada pestaña de Pedidos -->
                 <button onclick="intentarVerInventario()" id="btn-inv" class="ios-btn btn-ghost shrink-0 text-gray-600">
                     <i class="fa-solid fa-clipboard-check mr-1"></i> Inventario
                 </button>
@@ -180,6 +201,78 @@
         </div>
     </div>
 
+    <!-- Modal Inicio Sesión de Inventario -->
+    <div id="modalInicioInventario" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[4000] p-4 backdrop-blur-md">
+        <div class="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl flex flex-col transform transition-all relative border border-gray-100">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-orange-100 text-orange-500 rounded-full flex items-center justify-center text-3xl mx-auto mb-3 shadow-sm border border-orange-200">
+                    <i class="fa-solid fa-clipboard-user"></i>
+                </div>
+                <h3 class="text-2xl font-black text-gray-900 mb-1">Nueva Auditoría</h3>
+                <p class="text-sm text-gray-500">Ingresa los datos para registrar el inicio del conteo.</p>
+            </div>
+            
+            <div class="space-y-4 mb-8">
+                <div>
+                    <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Nombre del Responsable</label>
+                    <input type="text" id="invInputNombre" placeholder="Ej: Iván Vivanco" class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-3 font-bold text-gray-900 mt-1 focus:outline-none focus:border-orange-500 transition-colors">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">RUT</label>
+                    <input type="text" id="invInputRut" placeholder="Ej: 17.555.444-2" class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-3 font-bold text-gray-900 mt-1 focus:outline-none focus:border-orange-500 transition-colors">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Período (Mes y Año)</label>
+                    <input type="month" id="invInputPeriodo" class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-3 font-bold text-gray-900 mt-1 focus:outline-none focus:border-orange-500 transition-colors uppercase">
+                </div>
+            </div>
+
+            <div class="flex gap-3 w-full mt-auto">
+                <button onclick="cerrarModalInicioInventario()" class="flex-1 bg-gray-100 text-gray-600 hover:bg-gray-200 py-4 rounded-xl font-bold transition-colors">Cancelar</button>
+                <button onclick="confirmarInicioInventario()" class="flex-1 bg-orange-500 text-white hover:bg-orange-600 py-4 rounded-xl font-black transition-colors shadow-md">Comenzar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Ingresar Nuevo Producto Manual -->
+    <div id="modalNuevoProducto" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[4500] p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl transform transition-all relative border border-gray-100">
+            <button onclick="cerrarModalNuevoProducto()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500"><i class="fa-solid fa-xmark text-xl"></i></button>
+            <div class="text-center mt-2 mb-4">
+                <div class="w-12 h-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-2xl mx-auto mb-2 shadow-sm border border-green-200">
+                    <i class="fa-solid fa-plus"></i>
+                </div>
+                <h3 class="text-xl font-black text-gray-900">Agregar Manual</h3>
+                <p class="text-xs text-gray-500">Material no registrado en sistema</p>
+            </div>
+            
+            <div class="space-y-4 mb-6">
+                <div>
+                    <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Código (Opcional)</label>
+                    <input type="text" id="nuevoProdCode" placeholder="Ej: 9999 o M-01" class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-3 font-bold text-gray-900 mt-1 focus:outline-none focus:border-green-500 transition-colors">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Nombre del Material <span class="text-red-500">*</span></label>
+                    <input type="text" id="nuevoProdName" placeholder="Ej: Cinta adhesiva doble faz" class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-3 font-bold text-gray-900 mt-1 focus:outline-none focus:border-green-500 transition-colors uppercase">
+                </div>
+                <div class="flex gap-3">
+                    <div class="flex-[2]">
+                        <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Cantidad <span class="text-red-500">*</span></label>
+                        <input type="number" id="nuevoProdQty" placeholder="0" class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-3 font-black text-green-600 text-2xl text-center mt-1 focus:outline-none focus:border-green-500 transition-colors hide-scroll">
+                    </div>
+                    <div class="flex-[1]">
+                        <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">UDM</label>
+                        <input type="text" id="nuevoProdUdm" value="UND" class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-2 py-3 font-bold text-gray-700 text-center mt-1 focus:outline-none focus:border-green-500 transition-colors uppercase">
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="guardarNuevoProductoManual()" class="w-full bg-green-600 text-white hover:bg-green-700 py-4 rounded-xl font-black text-lg transition-colors shadow-md flex items-center justify-center gap-2">
+                <i class="fa-solid fa-floppy-disk"></i> Guardar Material
+            </button>
+        </div>
+    </div>
+
     <!-- Modal Ingreso Conteo Físico (CONTEO CIEGO) -->
     <div id="modalConteo" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[3500] p-4 backdrop-blur-sm">
         <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl transform transition-all relative border border-gray-100">
@@ -192,7 +285,6 @@
                 <div id="modalConteoName" class="text-xl text-gray-900 font-black px-2 leading-tight uppercase w-full break-words">...</div>
             </div>
             
-            <!-- Conteo Ciego -->
             <div class="flex flex-col justify-center items-center gap-2 mb-6 bg-orange-50/50 p-6 rounded-2xl w-full border border-orange-100">
                 <div class="text-[10px] sm:text-xs text-orange-600 font-bold uppercase tracking-widest mb-2 text-center w-full">Ingresa el Conteo Físico Real</div>
                 <input type="number" id="inputConteoFisico" class="w-full text-center text-5xl font-black text-gray-900 border-b-4 border-orange-200 focus:border-orange-500 focus:outline-none bg-transparent hide-scroll" placeholder="0" onkeypress="if(event.key === 'Enter') guardarConteoFisico()">
@@ -204,7 +296,7 @@
                 </button>
                 <button onclick="abrirMermaDesdeInventario()" class="flex-[1] bg-white text-red-600 border-2 border-red-200 hover:bg-red-50 py-2 rounded-xl font-bold transition-colors shadow-sm flex flex-col items-center justify-center" title="Reportar Merma hallada en el conteo">
                     <i class="fa-solid fa-triangle-exclamation text-xl mb-1"></i>
-                    <span class="text-[9px] uppercase tracking-wider">Merma</span>
+                    <span class="text-[9px] uppercase tracking-wider mt-1">Merma</span>
                 </button>
             </div>
         </div>
@@ -427,57 +519,76 @@
                                 </div>
                             </div>
 
-                            <!-- Botón Ver Ubicación (A Demanda) -->
                             <button id="btnShowLocation" onclick="toggleLocationArea()" class="mt-4 bg-orange-50 text-orange-600 border border-orange-200 hover:bg-orange-100 px-6 py-3 rounded-xl font-bold text-sm transition-colors shadow-sm hidden mx-auto items-center justify-center gap-2">
                                 <i class="fa-solid fa-map-location-dot"></i> Ver Ubicación Física
                             </button>
 
-                            <!-- MAPA BODEGA -->
+                            <!-- MAPA BODEGA 2D DISEÑO MODERNO (ESTILO CROQUIS EXACTO) -->
                             <div id="locationArea" class="hidden w-full mt-4 mb-4 transition-all duration-300">
-                                <div class="bg-gray-50 rounded-3xl p-4 sm:p-6 w-full border border-gray-100 shadow-inner">
+                                <div class="bg-white rounded-3xl p-4 sm:p-6 w-full border border-gray-200 shadow-sm">
+                                    <div class="flex items-center justify-center mb-2">
+                                        <h4 class="text-[10px] font-black text-gray-400 uppercase tracking-widest"><i class="fa-solid fa-map-location-dot mr-1"></i> Plano de Bodega</h4>
+                                    </div>
                                     
-                                    <div class="flex flex-col gap-6 items-center w-full">
-                                        <div class="flex flex-col w-full max-w-[200px] bg-white p-2 rounded-xl border-2 border-gray-100 shadow-sm relative mx-auto">
-                                            <div id="map-pasillo-b" class="w-full h-8 rounded-md flex items-center justify-center transition-all duration-300 text-gray-400 border-2 border-transparent">
-                                                <span class="text-[10px] font-black uppercase tracking-widest">Pasillo B</span>
-                                            </div>
-                                            <div class="flex gap-1 mb-1 mt-1 h-3">
-                                                <div class="flex-1 bg-gray-300 rounded-sm"></div>
-                                                <div class="flex-[2] bg-gray-300 rounded-sm"></div>
-                                                <div class="flex-1 bg-gray-300 rounded-sm"></div>
-                                            </div>
-                                            <div class="flex w-full h-32 gap-1 mt-1">
-                                                <div class="w-4 bg-gray-300 rounded-sm"></div>
-                                                <div id="map-pasillo-a" class="flex-[1.5] rounded-md flex items-center justify-center transition-all duration-300 text-gray-400 border-2 border-transparent">
-                                                    <span class="text-[10px] font-black uppercase tracking-widest transform -rotate-90">Pasillo A</span>
-                                                </div>
-                                                <div class="w-5 bg-gray-300 rounded-sm"></div>
-                                                <div id="map-pasillo-cen" class="w-6 rounded-md flex items-center justify-center transition-all duration-300 text-gray-400 border-2 border-transparent" title="Pasillo Central">
-                                                    <span class="text-[8px] font-black uppercase tracking-widest transform -rotate-90">CEN</span>
-                                                </div>
-                                                <div class="w-5 bg-gray-300 rounded-sm"></div>
-                                                <div id="map-pasillo-c" class="flex-[1.5] rounded-md flex items-center justify-center transition-all duration-300 text-gray-400 border-2 border-transparent">
-                                                    <span class="text-[10px] font-black uppercase tracking-widest transform -rotate-90">Pasillo C</span>
-                                                </div>
-                                                <div class="w-4 bg-gray-300 rounded-sm"></div>
-                                            </div>
+                                    <!-- Contenedor del Mapa con Grilla Técnica -->
+                                    <div class="relative w-full max-w-[340px] aspect-[4/5] mx-auto map-grid-bg rounded-2xl border border-gray-200 shadow-inner overflow-hidden mt-2 mb-6">
+                                        
+                                        <!-- Píldoras de Nombres de Pasillos -->
+                                        <div id="lbl-pasillo-a" class="absolute left-[20%] top-[20%] bg-white/90 backdrop-blur px-3 py-1 rounded-full font-black text-[12px] text-gray-400 border border-gray-100 shadow-sm transition-all duration-300 z-10">PASILLO A</div>
+                                        <div id="lbl-pasillo-b" class="absolute right-[14%] top-[50%] -translate-y-1/2 rotate-90 bg-white/90 backdrop-blur px-3 py-1 rounded-full font-black text-[12px] text-gray-400 border border-gray-100 shadow-sm transition-all duration-300 z-10 origin-center">PASILLO B</div>
+                                        <div id="lbl-pasillo-c" class="absolute left-[20%] bottom-[20%] bg-white/90 backdrop-blur px-3 py-1 rounded-full font-black text-[12px] text-gray-400 border border-gray-100 shadow-sm transition-all duration-300 z-10">PASILLO C</div>
+
+                                        <!-- Top Arm: A9-A20 -->
+                                        <div class="absolute top-[4%] left-[4%] w-[80%] h-[12%] grid grid-cols-3 gap-2">
+                                            <div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-A9" class="rk-block"></div><div id="rk-A10" class="rk-block"></div><div id="rk-A11" class="rk-block"></div><div id="rk-A12" class="rk-block"></div></div>
+                                            <div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-A13" class="rk-block"></div><div id="rk-A14" class="rk-block"></div><div id="rk-A15" class="rk-block"></div><div id="rk-A16" class="rk-block"></div></div>
+                                            <div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-A17" class="rk-block"></div><div id="rk-A18" class="rk-block"></div><div id="rk-A19" class="rk-block"></div><div id="rk-A20" class="rk-block"></div></div>
                                         </div>
 
-                                        <div class="w-full flex gap-3">
-                                            <div class="bg-white px-2 py-4 rounded-xl border border-gray-200 flex-1 text-center shadow-sm">
-                                                <span class="block text-[10px] text-gray-400 uppercase font-black tracking-wider">Pasillo</span>
-                                                <span id="locPasillo" class="text-2xl sm:text-3xl font-black text-gray-800 leading-none mt-1 block">-</span>
-                                            </div>
-                                            <div class="bg-white px-2 py-4 rounded-xl border border-gray-200 flex-1 text-center shadow-sm">
-                                                <span class="block text-[10px] text-gray-400 uppercase font-black tracking-wider">Estantería</span>
-                                                <span id="locModulo" class="text-2xl sm:text-3xl font-black text-orange-500 leading-none mt-1 block">-</span>
-                                            </div>
+                                        <!-- Upper Peninsula: A1-A8 -->
+                                        <div class="absolute top-[32%] left-[4%] w-[58%] h-[12%] grid grid-cols-2 gap-2">
+                                            <div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-A1" class="rk-block"></div><div id="rk-A2" class="rk-block"></div><div id="rk-A3" class="rk-block"></div><div id="rk-A4" class="rk-block"></div></div>
+                                            <div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-A5" class="rk-block"></div><div id="rk-A6" class="rk-block"></div><div id="rk-A7" class="rk-block"></div><div id="rk-A8" class="rk-block"></div></div>
+                                        </div>
+
+                                        <!-- Lower Peninsula: C13-C20 -->
+                                        <div class="absolute bottom-[32%] left-[4%] w-[58%] h-[12%] grid grid-cols-2 gap-2">
+                                            <div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-C13" class="rk-block"></div><div id="rk-C14" class="rk-block"></div><div id="rk-C15" class="rk-block"></div><div id="rk-C16" class="rk-block"></div></div>
+                                            <div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-C17" class="rk-block"></div><div id="rk-C18" class="rk-block"></div><div id="rk-C19" class="rk-block"></div><div id="rk-C20" class="rk-block"></div></div>
+                                        </div>
+
+                                        <!-- Bottom Arm: C1-C12 -->
+                                        <div class="absolute bottom-[4%] left-[4%] w-[80%] h-[12%] grid grid-cols-3 gap-2">
+                                            <div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-C1" class="rk-block"></div><div id="rk-C2" class="rk-block"></div><div id="rk-C3" class="rk-block"></div><div id="rk-C4" class="rk-block"></div></div>
+                                            <div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-C5" class="rk-block"></div><div id="rk-C6" class="rk-block"></div><div id="rk-C7" class="rk-block"></div><div id="rk-C8" class="rk-block"></div></div>
+                                            <div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-C9" class="rk-block"></div><div id="rk-C10" class="rk-block"></div><div id="rk-C11" class="rk-block"></div><div id="rk-C12" class="rk-block"></div></div>
+                                        </div>
+
+                                        <!-- Right Backbone: B1-B12 -->
+                                        <div class="absolute top-[4%] right-[4%] w-[12%] h-[92%] grid grid-rows-3 gap-2">
+                                            <div class="flex flex-row gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-B4" class="rk-block"></div><div id="rk-B3" class="rk-block"></div><div id="rk-B2" class="rk-block"></div><div id="rk-B1" class="rk-block"></div></div>
+                                            <div class="flex flex-row gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-B8" class="rk-block"></div><div id="rk-B7" class="rk-block"></div><div id="rk-B6" class="rk-block"></div><div id="rk-B5" class="rk-block"></div></div>
+                                            <div class="flex flex-row gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-B12" class="rk-block"></div><div id="rk-B11" class="rk-block"></div><div id="rk-B10" class="rk-block"></div><div id="rk-B9" class="rk-block"></div></div>
+                                        </div>
+
+                                    </div>
+
+                                    <!-- Detalles Básicos -->
+                                    <div class="w-full flex gap-3">
+                                        <div class="bg-gray-50 px-2 py-4 rounded-xl border border-gray-200 flex-1 text-center shadow-sm">
+                                            <span class="block text-[10px] text-gray-400 uppercase font-black tracking-wider">Pasillo</span>
+                                            <span id="locPasillo" class="text-2xl sm:text-3xl font-black text-gray-800 leading-none mt-1 block">-</span>
+                                        </div>
+                                        <div class="bg-gray-50 px-2 py-4 rounded-xl border border-gray-200 flex-1 text-center shadow-sm">
+                                            <span class="block text-[10px] text-gray-400 uppercase font-black tracking-wider">Estantería</span>
+                                            <span id="locModulo" class="text-2xl sm:text-3xl font-black text-orange-500 leading-none mt-1 block">-</span>
                                         </div>
                                     </div>
+                                    <p id="locRaw" class="text-[9px] font-medium text-gray-400 mt-4 text-center tracking-widest uppercase"></p>
                                 </div>
                             </div>
+                            <!-- FIN MAPA BODEGA -->
                             
-                            <!-- Botón Reportar Merma Único -->
                             <div class="mt-4 w-full px-2">
                                 <button onclick="abrirModalMerma()" class="w-full bg-white text-red-600 border-2 border-red-500 hover:bg-red-50 px-4 py-4 rounded-xl font-bold text-base transition-colors shadow-sm flex items-center justify-center gap-2">
                                     <i class="fa-solid fa-triangle-exclamation text-lg"></i> Reportar Merma o Daño
@@ -504,47 +615,75 @@
                 </div>
             </div>
 
-            <!-- VISTA 4: INVENTARIO (AUDITORÍA PRO REDISEÑADA) -->
+            <!-- VISTA 4: INVENTARIO (AUDITORÍA PRO CON SESIÓN Y AGREGAR MANUAL) -->
             <div class="preview-panel view-section" id="view-inventario">
                 <div class="w-full max-w-2xl mx-auto px-2 h-full flex flex-col">
-                    <div class="text-center mb-4 shrink-0 relative w-full pt-2">
-                        <h2 class="text-3xl font-black text-gray-900 mb-1 tracking-tight">INVENTARIO</h2>
-                        <button onclick="finalizarInventario()" class="absolute top-0 right-0 text-gray-300 hover:text-red-500 bg-white p-2 sm:p-3 rounded-full shadow-sm border border-gray-100 transition-colors z-10" title="Borrar todo el progreso e iniciar nuevo mes">
-                            <i class="fa-solid fa-trash-can"></i>
-                        </button>
-                        <div class="w-full bg-gray-200 rounded-full h-2 mb-1 mt-2 overflow-hidden shadow-inner">
-                            <div id="invProgressBar" class="bg-orange-500 h-full transition-all duration-500" style="width: 0%"></div>
+                    
+                    <!-- ESTADO: INVENTARIO NO INICIADO -->
+                    <div id="invStartContainer" class="flex-1 flex flex-col items-center justify-center p-6 text-center h-full">
+                        <div class="w-24 h-24 bg-orange-100 text-orange-500 rounded-full flex items-center justify-center text-4xl mb-4 shadow-sm">
+                            <i class="fa-solid fa-clipboard-list"></i>
                         </div>
-                        <p class="text-gray-500 text-xs font-bold uppercase tracking-wider" id="invProgressText">0 de 0 contados</p>
+                        <h3 class="text-2xl font-black text-gray-900 mb-2">Auditoría Cerrada</h3>
+                        <p class="text-gray-500 text-sm mb-8">Inicia un nuevo proceso de inventario para registrar al responsable y habilitar el conteo de productos.</p>
+                        <button onclick="abrirModalInicioInventario()" class="w-full bg-orange-500 text-white hover:bg-orange-600 py-4 rounded-xl font-black text-lg transition-colors shadow-md flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-play"></i> Comenzar Nuevo Inventario
+                        </button>
                     </div>
 
-                    <div class="flex gap-2 mb-2 shrink-0">
-                        <div class="relative flex-1">
-                            <i class="fa-solid fa-search absolute left-4 top-3.5 text-gray-400"></i>
-                            <input type="text" id="invFilterInput" placeholder="Filtrar por nombre o código..." class="w-full py-3 pl-10 pr-4 rounded-xl border-2 border-gray-200 text-sm font-bold text-gray-900 outline-none focus:border-orange-500 shadow-sm transition-colors bg-white" autocomplete="off" oninput="toggleOcultarContados()">
+                    <!-- ESTADO: INVENTARIO ACTIVO -->
+                    <div id="invActiveContainer" class="hidden flex-col h-full w-full">
+                        <div class="text-center mb-2 shrink-0 relative w-full pt-2">
+                            <h2 class="text-3xl font-black text-gray-900 mb-1 tracking-tight">INVENTARIO</h2>
+                            
+                            <div class="w-full bg-gray-200 rounded-full h-2 mb-1 mt-2 overflow-hidden shadow-inner">
+                                <div id="invProgressBar" class="bg-orange-500 h-full transition-all duration-500" style="width: 0%"></div>
+                            </div>
+                            <p class="text-gray-500 text-xs font-bold uppercase tracking-wider" id="invProgressText">0 de 0 contados</p>
                         </div>
-                        <button onclick="openScanner('inventario')" class="bg-gray-900 text-white hover:bg-black rounded-xl px-5 flex items-center justify-center shadow-md active:scale-95 transition-all"><i class="fa-solid fa-qrcode text-xl"></i></button>
-                    </div>
 
-                    <div class="flex items-center justify-end mb-2 px-1 shrink-0">
-                        <label class="flex items-center gap-2 cursor-pointer bg-white px-3 py-1.5 rounded-xl border border-gray-200 shadow-sm hover:bg-gray-50 transition-colors">
-                            <input type="checkbox" id="checkOcultarContados" class="w-4 h-4 accent-orange-500" onchange="toggleOcultarContados()">
-                            <span class="text-[10px] font-bold text-gray-600 uppercase tracking-wider">Ocultar ya contados</span>
-                        </label>
-                    </div>
+                        <div class="bg-orange-50 border border-orange-100 rounded-xl p-3 mb-4 shrink-0 shadow-sm flex justify-between items-center">
+                            <div>
+                                <p class="text-[9px] font-bold text-orange-400 uppercase tracking-widest">Período</p>
+                                <p class="text-sm font-black text-orange-900 uppercase" id="lblInvPeriodo">...</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-[9px] font-bold text-orange-400 uppercase tracking-widest">Responsable</p>
+                                <p class="text-sm font-black text-orange-900 truncate max-w-[120px] sm:max-w-[200px]" id="lblInvResponsable">...</p>
+                            </div>
+                        </div>
 
-                    <!-- Contenedor del listado moderno -->
-                    <div class="flex-1 overflow-hidden flex flex-col mb-4">
-                        <div class="overflow-y-auto w-full h-full pb-10 hide-scroll" id="invFullListContainer"></div>
-                    </div>
+                        <div class="flex gap-2 mb-2 shrink-0">
+                            <div class="relative flex-1">
+                                <i class="fa-solid fa-search absolute left-4 top-3.5 text-gray-400"></i>
+                                <input type="text" id="invFilterInput" placeholder="Filtrar nombre o código..." class="w-full py-3 pl-10 pr-4 rounded-xl border-2 border-gray-200 text-sm font-bold text-gray-900 outline-none focus:border-orange-500 shadow-sm transition-colors bg-white" autocomplete="off" oninput="toggleOcultarContados()">
+                            </div>
+                            <button onclick="openScanner('inventario')" class="bg-gray-900 text-white hover:bg-black rounded-xl px-5 flex items-center justify-center shadow-md active:scale-95 transition-all"><i class="fa-solid fa-qrcode text-xl"></i></button>
+                        </div>
 
-                    <div class="flex gap-2 shrink-0 mb-4 w-full px-1">
-                        <button onclick="abrirModalLogs()" class="bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 py-3 rounded-xl font-bold text-xs transition-colors shadow-sm flex flex-col items-center justify-center shrink-0 w-20">
-                            <i class="fa-solid fa-clock-rotate-left mb-1 text-lg"></i> Logs
-                        </button>
-                        <button onclick="exportarInventarioExcel()" id="btnExcelInv" class="flex-1 bg-[#107c41] text-white hover:bg-[#0b5e31] py-3 rounded-xl font-black text-sm transition-colors shadow-md flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-file-excel text-xl"></i> Bajar Excel del Mes
-                        </button>
+                        <div class="flex items-center justify-between mb-2 px-1 shrink-0 mt-1">
+                            <button onclick="abrirModalNuevoProducto()" class="bg-white text-green-600 border border-green-200 hover:bg-green-50 px-3 py-1.5 rounded-xl font-bold text-[10px] shadow-sm flex items-center gap-1.5 transition-colors uppercase tracking-wider">
+                                <i class="fa-solid fa-plus"></i> Agregar Manual
+                            </button>
+
+                            <label class="flex items-center gap-2 cursor-pointer bg-white px-3 py-1.5 rounded-xl border border-gray-200 shadow-sm hover:bg-gray-50 transition-colors">
+                                <input type="checkbox" id="checkOcultarContados" class="w-4 h-4 accent-orange-500" onchange="toggleOcultarContados()">
+                                <span class="text-[10px] font-bold text-gray-600 uppercase tracking-wider">Ocultar ya contados</span>
+                            </label>
+                        </div>
+
+                        <div class="flex-1 overflow-hidden flex flex-col mb-4">
+                            <div class="overflow-y-auto w-full h-full pb-10 hide-scroll" id="invFullListContainer"></div>
+                        </div>
+
+                        <div class="flex gap-2 shrink-0 mb-4 w-full px-1">
+                            <button onclick="exportarInventarioExcelSolo()" id="btnExcelSolo" class="bg-white text-green-700 hover:bg-green-50 border border-green-200 py-3 rounded-xl font-bold text-[10px] sm:text-xs transition-colors shadow-sm flex flex-col items-center justify-center shrink-0 w-16" title="Bajar Excel Parcial">
+                                <i class="fa-solid fa-download mb-1 text-lg"></i> Bajar
+                            </button>
+                            <button onclick="finalizarInventario()" id="btnCerrarInv" class="flex-1 bg-red-600 text-white hover:bg-red-700 py-3 rounded-xl font-black text-sm transition-colors shadow-md flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-lock text-xl"></i> Cerrar Inventario y Exportar
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -566,9 +705,7 @@
                             <span class="bg-red-100 text-red-800 text-xs font-black px-3 py-1 rounded-full border border-red-200" id="totalMermasText">0 REPORTES</span>
                         </div>
                         
-                        <div class="flex-1 overflow-y-auto p-4 bg-white w-full" id="listaMermasContenedor">
-                            <!-- JS Fill -->
-                        </div>
+                        <div class="flex-1 overflow-y-auto p-4 bg-white w-full" id="listaMermasContenedor"></div>
                     </div>
 
                     <div class="flex gap-2 shrink-0 mb-4 w-full px-1">
@@ -603,6 +740,8 @@
         // --- SISTEMAS DE AUTO-GUARDADO ---
         const PIN_BODEGA = "1234"; 
         let inventarioDesbloqueado = false;
+        
+        let inventarioMetadata = JSON.parse(localStorage.getItem('deteco_inv_meta')) || null;
         let listaInventarioFisico = JSON.parse(localStorage.getItem('deteco_inventario')) || [];
         let inventarioLogs = JSON.parse(localStorage.getItem('deteco_inv_logs')) || [];
         let invCurrentProd = null;
@@ -612,6 +751,7 @@
         function saveInventarioState() {
             localStorage.setItem('deteco_inventario', JSON.stringify(listaInventarioFisico));
             localStorage.setItem('deteco_inv_logs', JSON.stringify(inventarioLogs));
+            localStorage.setItem('deteco_inv_meta', JSON.stringify(inventarioMetadata));
         }
 
         function saveMermasState() {
@@ -651,6 +791,7 @@
                 
                 renderLabels();
                 actualizarUIMermas();
+                actualizarUIEstadoInventario();
 
                 const splash = document.getElementById('splash-screen');
                 setTimeout(() => {
@@ -677,7 +818,7 @@
         window.addEventListener("pageshow", (e) => { if (e.persisted) intentarSincronizacion(); });
         setInterval(() => { if (document.visibilityState === 'visible') { ultimaSincronizacion = Date.now(); loadDB(false); } }, 180000);
 
-        // --- LECTURA BASE DE DATOS ---
+        // --- LECTURA BASE DE DATOS (SMART READER 6.34) ---
         async function loadDB(isManualRefresh = false) {
             const statusEl = document.getElementById('dbStatus');
             const syncIcon = document.getElementById('syncIcon');
@@ -706,31 +847,64 @@
                     
                     const targetSheetName = workbook.SheetNames.includes('STOCK') ? 'STOCK' : workbook.SheetNames[0];
                     const worksheet = workbook.Sheets[targetSheetName];
-                    const json = XLSX.utils.sheet_to_json(worksheet, { range: 4, defval: "" });
+                    
+                    // ESCÁNER INTELIGENTE PARA ENCONTRAR LA FILA DE ENCABEZADOS
+                    const rawData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" });
+                    let headerRowIndex = 0;
+                    for(let i = 0; i < Math.min(15, rawData.length); i++) {
+                        const rowStr = rawData[i].join('').toUpperCase();
+                        if(rowStr.includes('COD') && (rowStr.includes('DESCRIPCION') || rowStr.includes('NOMBRE'))) {
+                            headerRowIndex = i;
+                            break;
+                        }
+                    }
+
+                    const json = XLSX.utils.sheet_to_json(worksheet, { range: headerRowIndex, defval: "" });
                     
                     dbProducts = json.map(row => {
-                        let normalizedRow = {};
-                        for (let key in row) { normalizedRow[key.trim().toUpperCase()] = String(row[key]).trim(); }
+                        let nRow = {};
+                        for (let key in row) { 
+                            let cleanKey = String(key).trim().toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                            nRow[cleanKey] = String(row[key]).trim(); 
+                        }
                         return {
-                            CODIGO: normalizedRow['COD'] || '', NOMBRE: normalizedRow['DESCRIPCION'] || '',
-                            STOCK: normalizedRow['STOCK ACTUAL'] || '0', UNIDAD: normalizedRow['UDM'] || 'UND',
-                            CATEGORIA: normalizedRow['FAMILIA'] || '', FICHA: normalizedRow['FICHA'] || normalizedRow['FICHA TECNICA'] || '',
-                            ORGANIZADOR: normalizedRow['ORGANIZADOR'] || normalizedRow['UBICACION'] || normalizedRow['UBICACIÓN'] || normalizedRow['PASILLO'] || ''
+                            CODIGO: nRow['COD'] || nRow['CODIGO'] || '',
+                            NOMBRE: nRow['DESCRIPCION'] || nRow['NOMBRE'] || '',
+                            STOCK: nRow['STOCK ACTUAL'] || nRow['STOCK'] || '0', 
+                            UNIDAD: nRow['UDM'] || nRow['UNIDAD'] || 'UND',
+                            CATEGORIA: nRow['FAMILIA'] || nRow['CATEGORIA'] || '', 
+                            FICHA: nRow['FICHA'] || nRow['FICHA TECNICA'] || '',
+                            ORGANIZADOR: nRow['UBICACION'] || nRow['ORGANIZADOR'] || nRow['PASILLO'] || ''
                         };
                     }).filter(p => p.CODIGO);
+
                 } else {
                     const fetchUrl = isManualRefresh ? `${GOOGLE_CSV_URL}&t=${new Date().getTime()}` : GOOGLE_CSV_URL;
                     const res = await fetch(fetchUrl); const text = await res.text();
                     const rows = text.split('\n').map(r => r.split(','));
-                    const headers = rows[0].map(h => h.trim().toUpperCase().replace(/"/g,''));
-                    dbProducts = rows.slice(1).map(r => {
-                        let normalizedRow = {};
-                        r.forEach((val, i) => { if(headers[i]) normalizedRow[headers[i]] = val.replace(/"/g,'').trim(); });
+
+                    let headerRowIndex = 0;
+                    for(let i = 0; i < Math.min(15, rows.length); i++) {
+                        const rowStr = rows[i].join('').toUpperCase();
+                        if(rowStr.includes('COD') && (rowStr.includes('DESCRIPCION') || rowStr.includes('NOMBRE'))) {
+                            headerRowIndex = i;
+                            break;
+                        }
+                    }
+
+                    const headers = rows[headerRowIndex].map(h => h.trim().toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/"/g,''));
+                    
+                    dbProducts = rows.slice(headerRowIndex + 1).map(r => {
+                        let nRow = {};
+                        r.forEach((val, i) => { if(headers[i]) nRow[headers[i]] = val.replace(/"/g,'').trim(); });
                         return {
-                            CODIGO: normalizedRow['COD'] || normalizedRow['CODIGO'] || '', NOMBRE: normalizedRow['DESCRIPCION'] || normalizedRow['NOMBRE'] || '',
-                            STOCK: normalizedRow['STOCK ACTUAL'] || normalizedRow['STOCK'] || '0', UNIDAD: normalizedRow['UDM'] || normalizedRow['UNIDAD'] || 'UND',
-                            CATEGORIA: normalizedRow['FAMILIA'] || normalizedRow['CATEGORIA'] || '', FICHA: normalizedRow['FICHA'] || normalizedRow['FICHA TECNICA'] || '',
-                            ORGANIZADOR: normalizedRow['ORGANIZADOR'] || normalizedRow['UBICACION'] || normalizedRow['UBICACIÓN'] || normalizedRow['PASILLO'] || ''
+                            CODIGO: nRow['COD'] || nRow['CODIGO'] || '',
+                            NOMBRE: nRow['DESCRIPCION'] || nRow['NOMBRE'] || '',
+                            STOCK: nRow['STOCK ACTUAL'] || nRow['STOCK'] || '0', 
+                            UNIDAD: nRow['UDM'] || nRow['UNIDAD'] || 'UND',
+                            CATEGORIA: nRow['FAMILIA'] || nRow['CATEGORIA'] || '', 
+                            FICHA: nRow['FICHA'] || nRow['FICHA TECNICA'] || '',
+                            ORGANIZADOR: nRow['UBICACION'] || nRow['ORGANIZADOR'] || nRow['PASILLO'] || ''
                         };
                     }).filter(p => p.CODIGO);
                 }
@@ -743,7 +917,7 @@
                     setTimeout(() => { syncIcon.classList.remove('fa-spin'); }, 500);
                     const currentVisInput = document.getElementById('manualInput').value;
                     if(currentVisInput && document.getElementById('view-visor').classList.contains('active')) manualSearch(currentVisInput);
-                    if(document.getElementById('view-inventario').classList.contains('active')) renderFullInventoryList(document.getElementById('invFilterInput').value);
+                    if(document.getElementById('view-inventario').classList.contains('active')) actualizarUIEstadoInventario();
                 }
 
             } catch (e) {
@@ -782,7 +956,6 @@
             const noDataDiv = document.getElementById('noDataArea'); const stockEl = document.getElementById('resStock');
             document.getElementById('visorSearchResults').classList.add('hidden');
             
-            // Ocultar mapa por defecto en cada búsqueda
             document.getElementById('locationArea').classList.add('hidden');
             const btnShowLoc = document.getElementById('btnShowLocation');
 
@@ -801,50 +974,55 @@
 
                 document.getElementById('resUnidad').innerText = prod.UNIDAD || 'UND';
                 
-                if(prod.FICHA && prod.FICHA.length > 5) {
+                if (prod.FICHA && prod.FICHA.length > 5) {
                     datasDiv.classList.remove('hidden'); noDataDiv.classList.add('hidden'); btnData.href = prod.FICHA;
                 } else { datasDiv.classList.add('hidden'); noDataDiv.classList.remove('hidden'); }
 
-                // --- MAPEO DE BODEGA VISUAL ---
                 const org = prod.ORGANIZADOR || '';
                 
                 if (org && org.trim() !== '') {
                     btnShowLoc.classList.remove('hidden', 'bg-gray-100', 'text-gray-400', 'border-transparent', 'cursor-not-allowed');
-                    btnShowLoc.classList.add('flex', 'bg-indigo-50', 'text-indigo-600', 'border-indigo-200', 'hover:bg-indigo-100');
+                    btnShowLoc.classList.add('flex', 'bg-orange-50', 'text-orange-600', 'border-orange-200', 'hover:bg-orange-100');
                     btnShowLoc.innerHTML = '<i class="fa-solid fa-map-location-dot"></i> Ver Ubicación en Bodega';
                     btnShowLoc.disabled = false;
 
-                    ['a', 'b', 'cen', 'c'].forEach(id => {
-                        const el = document.getElementById(`map-pasillo-${id}`);
-                        if(el) {
-                            el.classList.remove('bg-orange-100', 'text-orange-700', 'border-orange-400');
-                            el.classList.add('text-gray-400', 'border-transparent');
-                        }
+                    // Limpiar marcas previas
+                    document.querySelectorAll('.rk-active').forEach(el => el.classList.remove('rk-active'));
+                    document.querySelectorAll('[id^="lbl-pasillo-"]').forEach(el => {
+                        el.classList.remove('text-white', 'bg-orange-500', 'scale-110', 'border-orange-500');
+                        el.classList.add('text-gray-400', 'bg-white/90', 'border-gray-100');
                     });
 
-                    const match = org.match(/^(A|B|C|CEN|CENTRAL)[\s\-]*(\d+)?/i);
+                    // Lógica del mapa rediseñado: Solo A, B, C
+                    const match = org.match(/^(A|B|C)[\s\-]*0*(\d+)?/i);
 
                     if (match) {
                         let pasillo = match[1].toUpperCase();
-                        let modulo = match[2] || '-';
-
-                        let mapId = pasillo.toLowerCase();
-                        if(mapId === 'central' || mapId === 'cen') { mapId = 'cen'; pasillo = 'CEN'; }
+                        let estanteria = match[2] || '';
 
                         document.getElementById('locPasillo').innerText = pasillo;
-                        document.getElementById('locModulo').innerText = modulo;
+                        document.getElementById('locModulo').innerText = estanteria ? `${pasillo}-${estanteria.padStart(2, '0')}` : '-';
+                        document.getElementById('locRaw').innerText = `CÓDIGO EXCEL: ${org}`;
+                        document.getElementById('locRaw').classList.remove('text-red-500', 'font-black');
 
-                        const activeMap = document.getElementById(`map-pasillo-${mapId}`);
-                        if(activeMap) {
-                            activeMap.classList.remove('text-gray-400', 'border-transparent');
-                            activeMap.classList.add('bg-orange-100', 'text-orange-700', 'border-orange-400');
+                        const lbl = document.getElementById(`lbl-pasillo-${pasillo.toLowerCase()}`);
+                        if(lbl) {
+                            lbl.classList.remove('text-gray-400', 'bg-white/90', 'border-gray-100');
+                            lbl.classList.add('text-white', 'bg-orange-500', 'scale-110', 'border-orange-500');
+                        }
+
+                        if (estanteria) {
+                            const rkId = `rk-${pasillo}${parseInt(estanteria)}`;
+                            const rkEl = document.getElementById(rkId);
+                            if(rkEl) { rkEl.classList.add('rk-active'); }
                         }
                     } else {
                         document.getElementById('locPasillo').innerText = org.substring(0,3);
                         document.getElementById('locModulo').innerText = '-';
+                        document.getElementById('locRaw').innerText = `CÓDIGO NO RECONOCIDO: ${org}`;
                     }
                 } else {
-                    btnShowLoc.classList.remove('hidden', 'bg-indigo-50', 'text-indigo-600', 'border-indigo-200', 'hover:bg-indigo-100');
+                    btnShowLoc.classList.remove('hidden', 'bg-orange-50', 'text-orange-600', 'border-orange-200', 'hover:bg-orange-100');
                     btnShowLoc.classList.add('flex', 'bg-gray-100', 'text-gray-400', 'border-transparent', 'cursor-not-allowed');
                     btnShowLoc.innerHTML = '<i class="fa-solid fa-location-dot"></i> Ubicación no registrada';
                     btnShowLoc.disabled = true;
@@ -1051,9 +1229,9 @@
             }
         }
 
-        // --- LÓGICA MÓDULO INVENTARIO PRO ---
+        // --- LÓGICA MÓDULO INVENTARIO PRO REDISEÑADO ---
         function intentarVerInventario() {
-            if(inventarioDesbloqueado) { setView('inventario'); renderFullInventoryList(''); } 
+            if(inventarioDesbloqueado) { setView('inventario'); actualizarUIEstadoInventario(); } 
             else {
                 document.getElementById('modalAuth').classList.remove('hidden'); document.getElementById('modalAuth').classList.add('flex');
                 document.getElementById('pinError').classList.add('hidden'); document.getElementById('inputPinBodega').value = '';
@@ -1067,8 +1245,66 @@
             const pinIngresado = document.getElementById('inputPinBodega').value;
             if(pinIngresado === PIN_BODEGA) {
                 inventarioDesbloqueado = true; addLog("Sesión de inventario iniciada."); cerrarModalAuth();
-                setView('inventario'); renderFullInventoryList('');
+                setView('inventario'); actualizarUIEstadoInventario();
             } else { document.getElementById('pinError').classList.remove('hidden'); document.getElementById('inputPinBodega').value = ''; }
+        }
+
+        // SESIONES DE INVENTARIO
+        function abrirModalInicioInventario() {
+            document.getElementById('invInputNombre').value = '';
+            document.getElementById('invInputRut').value = '';
+            document.getElementById('invInputPeriodo').value = '';
+            const modal = document.getElementById('modalInicioInventario');
+            modal.classList.remove('hidden'); modal.classList.add('flex');
+        }
+
+        function cerrarModalInicioInventario() {
+            const modal = document.getElementById('modalInicioInventario');
+            modal.classList.add('hidden'); modal.classList.remove('flex');
+        }
+
+        function confirmarInicioInventario() {
+            const nombre = document.getElementById('invInputNombre').value.trim();
+            const rut = document.getElementById('invInputRut').value.trim();
+            const periodo = document.getElementById('invInputPeriodo').value; 
+
+            if(!nombre || !rut || !periodo) {
+                alert("Por favor, completa todos los campos para iniciar la auditoría.");
+                return;
+            }
+
+            inventarioMetadata = {
+                nombre: nombre,
+                rut: rut,
+                periodo: periodo,
+                fechaInicio: new Date().toLocaleString(),
+                fechaTermino: null
+            };
+
+            saveInventarioState();
+            cerrarModalInicioInventario();
+            addLog(`Auditoría ${periodo} iniciada por ${nombre}`);
+            actualizarUIEstadoInventario();
+        }
+
+        function actualizarUIEstadoInventario() {
+            const containerInactivo = document.getElementById('invStartContainer');
+            const containerActivo = document.getElementById('invActiveContainer');
+
+            if(inventarioMetadata) {
+                containerInactivo.classList.add('hidden');
+                containerActivo.classList.remove('hidden');
+                containerActivo.classList.add('flex');
+
+                document.getElementById('lblInvPeriodo').innerText = inventarioMetadata.periodo;
+                document.getElementById('lblInvResponsable').innerText = inventarioMetadata.nombre;
+
+                renderFullInventoryList(document.getElementById('invFilterInput').value);
+            } else {
+                containerActivo.classList.add('hidden');
+                containerActivo.classList.remove('flex');
+                containerInactivo.classList.remove('hidden');
+            }
         }
 
         function toggleOcultarContados() { const filterText = document.getElementById('invFilterInput').value; renderFullInventoryList(filterText); }
@@ -1076,10 +1312,25 @@
         function renderFullInventoryList(filterText = '') {
             const container = document.getElementById('invFullListContainer'); if(!container) return;
             const val = filterText.toLowerCase().trim(); const hideCounted = document.getElementById('checkOcultarContados').checked;
-            const total = dbProducts.length; let contados = 0;
+            
+            let allProductsToRender = [...dbProducts];
+            listaInventarioFisico.forEach(item => {
+                if(item['ESTADO'] === 'AGREGADO MANUAL' && !allProductsToRender.find(p => p.CODIGO === item['CÓDIGO'])) {
+                    allProductsToRender.unshift({
+                        CODIGO: item['CÓDIGO'],
+                        NOMBRE: item['NOMBRE'],
+                        STOCK: '0',
+                        UNIDAD: item['UNIDAD'] || 'UND',
+                        MANUAL: true
+                    });
+                }
+            });
+
+            const total = allProductsToRender.length; 
+            let contados = 0;
 
             let html = '<ul class="flex flex-col gap-3 px-2 pb-4 pt-1">';
-            dbProducts.forEach(p => {
+            allProductsToRender.forEach(p => {
                 const isCounted = listaInventarioFisico.find(item => item['CÓDIGO'] === p.CODIGO);
                 if (isCounted) contados++;
                 if (val && !p.CODIGO.toLowerCase().includes(val) && !p.NOMBRE.toLowerCase().includes(val)) return; 
@@ -1087,23 +1338,25 @@
 
                 let statusBadge = ''; 
                 let cardClass = 'bg-white hover:border-orange-400 hover:shadow-md border-gray-200';
-                let iconBox = '<div class="w-10 h-10 rounded-xl bg-gray-50 border border-gray-200 flex items-center justify-center shrink-0 text-gray-400"><i class="fa-solid fa-box-open"></i></div>';
+                let iconBox = p.MANUAL ? '<div class="w-10 h-10 rounded-xl bg-green-50 border border-green-200 flex items-center justify-center shrink-0 text-green-500" title="Producto Manual"><i class="fa-solid fa-hand-sparkles"></i></div>' : '<div class="w-10 h-10 rounded-xl bg-gray-50 border border-gray-200 flex items-center justify-center shrink-0 text-gray-400"><i class="fa-solid fa-box-open"></i></div>';
 
                 if (isCounted) {
                     cardClass = 'bg-green-50 border-green-200 hover:bg-green-100'; 
                     iconBox = '<div class="w-10 h-10 rounded-xl bg-green-100 border border-green-200 flex items-center justify-center shrink-0 text-green-600"><i class="fa-solid fa-check-double"></i></div>';
+                    
+                    let estadoTag = p.MANUAL ? 'Agregado' : 'Contado';
                     statusBadge = `
                         <div class="flex flex-col items-end">
-                            <span class="bg-green-500 text-white text-[9px] font-black px-2 py-0.5 rounded shadow-sm uppercase flex items-center gap-1"><i class="fa-solid fa-check"></i> Contado</span>
+                            <span class="bg-green-500 text-white text-[9px] font-black px-2 py-0.5 rounded shadow-sm uppercase flex items-center gap-1"><i class="fa-solid fa-check"></i> ${estadoTag}</span>
                             <span class="text-xs font-black text-gray-700 mt-1">${isCounted['INVENTARIO FÍSICO']} ${p.UNIDAD}</span>
                         </div>`;
                 }
 
                 html += `
-                    <li class="p-3 flex items-center justify-between gap-3 cursor-pointer transition-all border rounded-2xl shadow-sm ${cardClass}" onclick="abrirConteoModal('${p.CODIGO}')">
+                    <li class="p-3 flex items-center justify-between gap-3 cursor-pointer transition-all border rounded-2xl shadow-sm ${cardClass}" onclick="abrirConteoModal('${p.CODIGO}', ${p.MANUAL ? true : false})">
                         ${iconBox}
                         <div class="flex-1 min-w-0">
-                            <p class="text-[10px] font-black text-orange-500 tracking-widest mb-0.5 uppercase">${p.CODIGO}</p>
+                            <p class="text-[10px] font-black ${p.MANUAL ? 'text-green-500' : 'text-orange-500'} tracking-widest mb-0.5 uppercase">${p.CODIGO}</p>
                             <p class="text-sm font-bold text-gray-800 leading-tight truncate">${p.NOMBRE}</p>
                         </div>
                         <div class="shrink-0 flex items-center justify-end min-w-[3.5rem]">
@@ -1113,7 +1366,7 @@
             });
             html += '</ul>';
             
-            if(dbProducts.length === 0) { html = `<div class="p-8 text-center text-gray-400 font-medium">Aún no hay base de datos cargada.</div>`; } 
+            if(total === 0) { html = `<div class="p-8 text-center text-gray-400 font-medium">Aún no hay base de datos cargada.</div>`; } 
             else if (html === '<ul class="flex flex-col gap-3 px-2 pb-4 pt-1"></ul>') { html = `<div class="p-8 text-center text-gray-400 font-medium text-sm"><i class="fa-solid fa-box-open text-3xl mb-3 block opacity-30"></i>¡Todo listo!<br>No hay productos pendientes que coincidan.</div>`; }
 
             container.innerHTML = html;
@@ -1121,15 +1374,79 @@
             document.getElementById('invProgressBar').style.width = pct + '%'; document.getElementById('invProgressText').innerText = `${contados} de ${total} productos contados (${pct}%)`;
         }
 
-        function abrirConteoModal(codigo) {
+        function abrirModalNuevoProducto() {
+            document.getElementById('nuevoProdCode').value = '';
+            document.getElementById('nuevoProdName').value = '';
+            document.getElementById('nuevoProdQty').value = '';
+            document.getElementById('nuevoProdUdm').value = 'UND';
+            const modal = document.getElementById('modalNuevoProducto');
+            modal.classList.remove('hidden'); modal.classList.add('flex');
+            setTimeout(() => document.getElementById('nuevoProdName').focus(), 100);
+        }
+
+        function cerrarModalNuevoProducto() {
+            const modal = document.getElementById('modalNuevoProducto');
+            modal.classList.add('hidden'); modal.classList.remove('flex');
+        }
+
+        function guardarNuevoProductoManual() {
+            const name = document.getElementById('nuevoProdName').value.trim().toUpperCase();
+            let code = document.getElementById('nuevoProdCode').value.trim().toUpperCase();
+            const qtyStr = document.getElementById('nuevoProdQty').value;
+            const udm = document.getElementById('nuevoProdUdm').value.trim().toUpperCase() || 'UND';
+
+            if(!name) { alert("Debes ingresar el nombre del material."); return; }
+            if(qtyStr === '') { alert("Debes ingresar una cantidad."); return; }
+            
+            if(!code) { code = 'MANUAL-' + Math.floor(Math.random() * 10000); }
+            
+            const qty = parseInt(qtyStr);
+
+            const dataConteo = {
+                'CÓDIGO': code,
+                'NOMBRE': name,
+                'STOCK SISTEMA': 0,
+                'INVENTARIO FÍSICO': qty,
+                'DIFERENCIA': qty,
+                'ESTADO': 'AGREGADO MANUAL',
+                'FECHA/HORA': new Date().toLocaleString(),
+                'UNIDAD': udm
+            };
+
+            const existenteIndex = listaInventarioFisico.findIndex(item => item['CÓDIGO'] === code);
+            if(existenteIndex >= 0) {
+                listaInventarioFisico[existenteIndex] = dataConteo;
+                addLog(`Modificado Manual: ${name} a ${qty} ${udm}.`);
+            } else {
+                listaInventarioFisico.push(dataConteo);
+                addLog(`Agregado Manual: ${name} (${qty} ${udm}).`);
+            }
+
+            saveInventarioState();
+            cerrarModalNuevoProducto();
+            renderFullInventoryList(document.getElementById('invFilterInput').value);
+        }
+
+        function abrirConteoModal(codigo, isManual = false) {
             let prod = dbProducts.find(p => p.CODIGO === codigo);
+            
+            if(!prod && isManual) {
+                const manualItem = listaInventarioFisico.find(item => item['CÓDIGO'] === codigo);
+                if(manualItem) {
+                    prod = { CODIGO: manualItem['CÓDIGO'], NOMBRE: manualItem['NOMBRE'], STOCK: 0 };
+                }
+            }
+
             if(!prod) { alert("Producto no encontrado."); return; }
+            
             invCurrentProd = prod;
             document.getElementById('modalConteoCode').innerText = prod.CODIGO;
             document.getElementById('modalConteoName').innerText = prod.NOMBRE;
+            
             const isCounted = listaInventarioFisico.find(item => item['CÓDIGO'] === prod.CODIGO);
             const inputFisico = document.getElementById('inputConteoFisico');
             inputFisico.value = isCounted ? isCounted['INVENTARIO FÍSICO'] : '';
+            
             const modal = document.getElementById('modalConteo');
             modal.classList.remove('hidden'); modal.classList.add('flex');
             setTimeout(() => inputFisico.focus(), 100);
@@ -1150,7 +1467,16 @@
             if(inputVal === '') { alert("Ingresa un número válido."); return; }
             
             const conteoFisico = parseInt(inputVal); const stockSistema = parseInt(invCurrentProd.STOCK) || 0; const diferencia = conteoFisico - stockSistema;
-            let estado = "CUADRADO"; if(diferencia > 0) estado = "SOBRANTE"; if(diferencia < 0) estado = "FALTANTE";
+            
+            let estado = "CUADRADO"; 
+            const isManualBefore = listaInventarioFisico.find(item => item['CÓDIGO'] === invCurrentProd.CODIGO && item['ESTADO'] === 'AGREGADO MANUAL');
+            
+            if(isManualBefore) {
+                estado = "AGREGADO MANUAL";
+            } else {
+                if(diferencia > 0) estado = "SOBRANTE"; 
+                if(diferencia < 0) estado = "FALTANTE";
+            }
 
             const existenteIndex = listaInventarioFisico.findIndex(item => item['CÓDIGO'] === invCurrentProd.CODIGO);
             const dataConteo = { 'CÓDIGO': invCurrentProd.CODIGO, 'NOMBRE': invCurrentProd.NOMBRE, 'STOCK SISTEMA': stockSistema, 'INVENTARIO FÍSICO': conteoFisico, 'DIFERENCIA': diferencia, 'ESTADO': estado, 'FECHA/HORA': new Date().toLocaleString() };
@@ -1170,18 +1496,25 @@
             container.innerHTML = inventarioLogs.map(l => `<div class="border-b border-gray-50 pb-1 mb-1">${l}</div>`).join('');
         }
 
-        function finalizarInventario() {
-            if(listaInventarioFisico.length === 0) { alert("No has iniciado ningún conteo aún."); return; }
-            if(confirm("⚠️ ¿ESTÁS SEGURO? Esto borrará TODO tu progreso actual para iniciar un mes nuevo. Asegúrate de haber descargado el Excel primero.")) {
-                listaInventarioFisico = []; inventarioLogs = []; addLog("Inventario finalizado y borrado del dispositivo."); saveInventarioState();
-                renderFullInventoryList(document.getElementById('invFilterInput').value); alert("Progreso borrado exitosamente.");
-            }
-        }
-
         // --- SISTEMA DE COMPARTIR EXCEL ---
-        async function procesarDescargaOCompartir(datosExcel, nombreArchivo, nombreHoja) {
+        async function procesarDescargaOCompartir(datosExcel, nombreArchivo, nombreHoja, meta = null) {
             if(datosExcel.length === 0) { alert("No hay datos para exportar."); return; }
             
+            const workbook = XLSX.utils.book_new();
+
+            if(meta) {
+                const resumenData = [
+                    { 'CAMPO': 'Responsable', 'VALOR': meta.nombre },
+                    { 'CAMPO': 'RUT', 'VALOR': meta.rut },
+                    { 'CAMPO': 'Periodo', 'VALOR': meta.periodo },
+                    { 'CAMPO': 'Fecha/Hora Inicio', 'VALOR': meta.fechaInicio },
+                    { 'CAMPO': 'Fecha/Hora Término', 'VALOR': meta.fechaTermino || 'En curso' },
+                    { 'CAMPO': 'Total Ítems Contados', 'VALOR': datosExcel.length }
+                ];
+                const wsResumen = XLSX.utils.json_to_sheet(resumenData);
+                XLSX.utils.book_append_sheet(workbook, wsResumen, "Resumen Sesión");
+            }
+
             const datosLimpios = datosExcel.map(item => {
                 let { FOTO, ...resto } = item;
                 if(FOTO) resto['EVIDENCIA'] = 'FOTO ADJUNTA EN LA APP';
@@ -1189,7 +1522,6 @@
             });
 
             const worksheet = XLSX.utils.json_to_sheet(datosLimpios); 
-            const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, nombreHoja);
 
             try {
@@ -1208,22 +1540,64 @@
                     XLSX.writeFile(workbook, nombreArchivo);
                     addLog(`Excel descargado (PC): ${nombreArchivo}`);
                 }
+                return true; 
             } catch (error) {
                 console.log("Compartir cancelado o falló:", error);
+                return false; 
             }
         }
 
-        function exportarInventarioExcel() {
-            const btn = document.getElementById('btnExcelInv');
+        function exportarInventarioExcelSolo() {
+            const btn = document.getElementById('btnExcelSolo');
             const iconOriginal = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-xl"></i> Procesando...';
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-lg"></i>';
             
             setTimeout(() => {
-                const fecha = new Date(); const nombreArchivo = `Inventario_Deteco_${fecha.getDate()}-${fecha.getMonth()+1}-${fecha.getFullYear()}.xlsx`;
-                procesarDescargaOCompartir(listaInventarioFisico, nombreArchivo, "Auditoría Física").finally(() => {
+                const nombreArchivo = `Inventario_Parcial_${inventarioMetadata.periodo}_Deteco.xlsx`;
+                procesarDescargaOCompartir(listaInventarioFisico, nombreArchivo, "Auditoría Física", inventarioMetadata).finally(() => {
                     btn.innerHTML = iconOriginal;
                 });
             }, 300);
+        }
+
+        async function finalizarInventario() {
+            if(!inventarioMetadata) return;
+            if(listaInventarioFisico.length === 0) {
+                if(confirm("No has contado nada aún. ¿Deseas cancelar esta sesión de todas formas?")) {
+                    listaInventarioFisico = []; inventarioLogs = []; inventarioMetadata = null; saveInventarioState(); actualizarUIEstadoInventario();
+                }
+                return;
+            }
+
+            if(confirm("⚠️ ¿Deseas dar por terminada esta sesión de inventario?\n\nSe registrará la hora de cierre y se te pedirá guardar el reporte final.")) {
+                const btn = document.getElementById('btnCerrarInv');
+                const originalHtml = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-xl"></i> Generando...';
+
+                inventarioMetadata.fechaTermino = new Date().toLocaleString();
+                saveInventarioState();
+
+                const nombreArchivo = `Inventario_FINAL_${inventarioMetadata.periodo}_Deteco.xlsx`;
+                
+                setTimeout(async () => {
+                    const exito = await procesarDescargaOCompartir(listaInventarioFisico, nombreArchivo, "Auditoría Física", inventarioMetadata);
+                    btn.innerHTML = originalHtml;
+                    
+                    if(exito) {
+                        if(confirm("✅ Reporte exportado exitosamente.\n\n¿Deseas borrar los datos del dispositivo ahora para dejarlo limpio para el próximo mes? (Recomendado)")) {
+                            listaInventarioFisico = []; 
+                            inventarioLogs = []; 
+                            inventarioMetadata = null; 
+                            saveInventarioState(); 
+                            actualizarUIEstadoInventario();
+                        }
+                    } else {
+                        inventarioMetadata.fechaTermino = null; 
+                        saveInventarioState();
+                        alert("Exportación cancelada. Tu inventario sigue guardado en el teléfono y abierto.");
+                    }
+                }, 300);
+            }
         }
 
         // --- ESCÁNER QR ---
@@ -1249,8 +1623,11 @@
             if(view !== 'inventario' && inventarioDesbloqueado) { inventarioDesbloqueado = false; document.getElementById('inputPinBodega').value = ''; }
 
             document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
-            document.getElementById(`view-${view}`).classList.add('active');
-            const btnToggle = document.getElementById('btn-settings-toggle'); const panel = document.getElementById('panel-settings');
+            const targetView = document.getElementById(`view-${view}`);
+            if(targetView) targetView.classList.add('active');
+            
+            const btnToggle = document.getElementById('btn-settings-toggle'); 
+            const panel = document.getElementById('panel-settings');
             
             if(view === 'generator') {
                 btnToggle.style.display = 'inline-flex'; panel.style.display = 'block';
@@ -1258,12 +1635,14 @@
                     hasSeenGeneratorMenuHint = true; panel.classList.remove('settings-collapsed'); btnToggle.classList.add('bg-orange-200');
                     hintTimeout = setTimeout(() => { panel.classList.add('settings-collapsed'); btnToggle.classList.remove('bg-orange-200'); }, 1200);
                 }
-            } else { btnToggle.style.display = 'none'; panel.style.display = 'none'; }
+            } else { 
+                btnToggle.style.display = 'none'; panel.style.display = 'none'; 
+            }
 
-            document.getElementById('btn-gen').className = view === 'generator' ? 'ios-btn btn-active-tab shrink-0' : 'ios-btn btn-ghost shrink-0';
-            document.getElementById('btn-vis').className = view === 'visor' ? 'ios-btn btn-active-tab shrink-0' : 'ios-btn btn-ghost shrink-0';
-            document.getElementById('btn-inv').className = view === 'inventario' ? 'ios-btn btn-active-tab shrink-0 text-gray-800 border-gray-200 bg-white shadow-sm' : 'ios-btn btn-ghost shrink-0 text-gray-500';
-            document.getElementById('btn-mermas').className = view === 'mermas' ? 'ios-btn btn-active-tab shrink-0 text-red-600 border-red-200 bg-red-50 relative' : 'ios-btn btn-ghost shrink-0 text-red-600 relative';
+            const btnGen = document.getElementById('btn-gen'); if(btnGen) btnGen.className = view === 'generator' ? 'ios-btn btn-active-tab shrink-0' : 'ios-btn btn-ghost shrink-0';
+            const btnVis = document.getElementById('btn-vis'); if(btnVis) btnVis.className = view === 'visor' ? 'ios-btn btn-active-tab shrink-0' : 'ios-btn btn-ghost shrink-0';
+            const btnInv = document.getElementById('btn-inv'); if(btnInv) btnInv.className = view === 'inventario' ? 'ios-btn btn-active-tab shrink-0 text-gray-800 border-gray-200 bg-white shadow-sm' : 'ios-btn btn-ghost shrink-0 text-gray-500';
+            const btnMer = document.getElementById('btn-mermas'); if(btnMer) btnMer.className = view === 'mermas' ? 'ios-btn btn-active-tab shrink-0 text-red-600 border-red-200 bg-red-50 relative' : 'ios-btn btn-ghost shrink-0 text-red-600 relative';
         }
 
         function toggleSettings() {
