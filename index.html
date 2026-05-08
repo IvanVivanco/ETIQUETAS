@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Deteco DTX 6.40</title>
+    <title>Deteco DTX 6.41</title>
 
     <!-- PWA / WEB APP NATIVA META TAGS -->
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -52,7 +52,7 @@
         .main-layout { display: flex; flex: 1 1 auto; flex-direction: column; overflow: hidden; width: 100%; }
 
         .settings-panel { background: #fff; border-bottom: 1px solid #e5e5e5; flex-shrink: 0; overflow-y: auto; overflow-x: hidden; transition: all 0.3s ease-in-out; }
-        .settings-inner { width: 100%; max-width: 400px; padding: 20px; margin: 0 auto; }
+        .settings-inner { width: 100%; max-width: 360px; padding: 20px; margin: 0 auto; }
 
         .right-content { flex: 1 1 auto; height: 100%; overflow-y: auto; overflow-x: hidden; background-color: var(--ios-bg); width: 100%; }
         .preview-panel { background-color: var(--ios-bg); padding: 20px 10px; display: flex; flex-direction: column; align-items: center; width: 100%; min-height: 100%; }
@@ -73,19 +73,13 @@
             .preview-panel { padding: 40px; }
         }
 
-        .control-group { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; width: 100%; }
-        .group-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #86868b; letter-spacing: 0.5px; border-bottom: 1px solid #f5f5f7; padding-bottom: 4px; }
-        .input-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; }
-        .ios-input { background: #f5f5f7; border: 1px solid transparent; border-radius: 8px; padding: 8px 12px; font-size: 0.9rem; width: 100%; transition: 0.2s; text-align: right; }
-        .ios-input:focus { background: #fff; border-color: var(--primary-color); outline: none; }
-        
         input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
         input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%; background: var(--primary-color); cursor: pointer; margin-top: -6px; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
         input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: #e5e5e5; border-radius: 2px; }
 
-        .page { background: white; width: var(--page-width); height: var(--page-height); padding: 10mm; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); display: grid; box-sizing: border-box; position: relative; transition: width 0.3s, height 0.3s; max-width: 100%; }
+        .page { background: white; width: var(--page-width); height: var(--page-height); padding: 5mm; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); display: grid; box-sizing: border-box; position: relative; transition: width 0.3s, height 0.3s; max-width: 100%; }
         
-        .label-card { background: white; display: flex; flex-direction: row; overflow: hidden; position: relative; width: 100%; height: 100%; box-sizing: border-box; }
+        .label-card { background: white; display: flex; flex-direction: column; overflow: hidden; position: relative; width: 100%; height: 100%; box-sizing: border-box; }
         
         .hidden { display: none !important; }
         @media print {
@@ -128,7 +122,7 @@
             <div class="app-title hidden sm:block mr-2 shrink-0">Deteco <span class="text-orange-600">DTX</span></div>
             
             <div class="flex bg-gray-200/60 p-1 rounded-lg overflow-x-auto hide-scroll gap-1">
-                <button onclick="setView('generator')" id="btn-gen" class="ios-btn btn-ghost shrink-0">Etiquetado 5S</button>
+                <button onclick="setView('generator')" id="btn-gen" class="ios-btn btn-ghost shrink-0">Etiquetas 5S</button>
                 <button onclick="setView('visor')" id="btn-vis" class="ios-btn btn-active-tab shrink-0">Visor</button>
                 <button onclick="intentarVerInventario()" id="btn-inv" class="ios-btn btn-ghost shrink-0 text-gray-600">
                     <i class="fa-solid fa-clipboard-check mr-1"></i> Inventario
@@ -144,16 +138,12 @@
         </div>
     </div>
 
-    <!-- MODALES GENERALES -->
-    
-    <!-- Modal Contraseña Bodega -->
+    <!-- MODALES GENERALES (Contraseña, Inventario, Merma, Ficha) -->
     <div id="modalAuth" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[4000] p-4 backdrop-blur-md">
         <div class="bg-white rounded-3xl p-8 w-full max-w-sm shadow-2xl flex flex-col items-center">
-            <div class="w-16 h-16 bg-orange-50 text-orange-500 border border-orange-100 rounded-full flex items-center justify-center text-3xl mb-4">
-                <i class="fa-solid fa-lock"></i>
-            </div>
+            <div class="w-16 h-16 bg-orange-50 text-orange-500 border border-orange-100 rounded-full flex items-center justify-center text-3xl mb-4"><i class="fa-solid fa-lock"></i></div>
             <h3 class="text-2xl font-black text-gray-900 mb-2">Acceso Restringido</h3>
-            <p class="text-sm text-gray-500 text-center mb-6">Módulo exclusivo de Auditoría de Bodega. Ingresa tu PIN de acceso.</p>
+            <p class="text-sm text-gray-500 text-center mb-6">Módulo exclusivo de Auditoría. Ingresa tu PIN.</p>
             <input type="password" id="inputPinBodega" placeholder="PIN de 4 dígitos" class="w-full text-center tracking-[0.5em] text-3xl font-black py-4 px-4 rounded-2xl border-2 border-gray-200 text-gray-800 outline-none focus:border-orange-500 shadow-sm transition-colors bg-gray-50 mb-4" autocomplete="off" onkeypress="if(event.key === 'Enter') validarPin()">
             <div id="pinError" class="hidden text-red-500 text-sm font-bold mb-4">PIN Incorrecto.</div>
             <div class="flex gap-3 w-full">
@@ -163,27 +153,16 @@
         </div>
     </div>
 
-    <!-- Modal Inicio Sesión de Inventario -->
     <div id="modalInicioInventario" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[4000] p-4 backdrop-blur-md">
         <div class="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl flex flex-col transform transition-all relative border border-gray-100">
             <div class="text-center mb-6">
                 <div class="w-16 h-16 bg-orange-100 text-orange-500 rounded-full flex items-center justify-center text-3xl mx-auto mb-3 shadow-sm border border-orange-200"><i class="fa-solid fa-clipboard-user"></i></div>
                 <h3 class="text-2xl font-black text-gray-900 mb-1">Nueva Auditoría</h3>
-                <p class="text-sm text-gray-500">Ingresa los datos para registrar el inicio del conteo.</p>
             </div>
             <div class="space-y-4 mb-8">
-                <div>
-                    <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Nombre del Responsable</label>
-                    <input type="text" id="invInputNombre" placeholder="Ej: Iván Vivanco" class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-3 font-bold text-gray-900 mt-1 focus:outline-none focus:border-orange-500 transition-colors">
-                </div>
-                <div>
-                    <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">RUT</label>
-                    <input type="text" id="invInputRut" placeholder="Ej: 17.555.444-2" class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-3 font-bold text-gray-900 mt-1 focus:outline-none focus:border-orange-500 transition-colors">
-                </div>
-                <div>
-                    <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Período (Mes y Año)</label>
-                    <input type="month" id="invInputPeriodo" class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-3 font-bold text-gray-900 mt-1 focus:outline-none focus:border-orange-500 transition-colors uppercase">
-                </div>
+                <div><input type="text" id="invInputNombre" placeholder="Nombre Responsable" class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-3 font-bold mt-1 focus:outline-none focus:border-orange-500"></div>
+                <div><input type="text" id="invInputRut" placeholder="RUT" class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-3 font-bold mt-1 focus:outline-none focus:border-orange-500"></div>
+                <div><input type="month" id="invInputPeriodo" class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-3 font-bold mt-1 focus:outline-none focus:border-orange-500 uppercase"></div>
             </div>
             <div class="flex gap-3 w-full mt-auto">
                 <button onclick="cerrarModalInicioInventario()" class="flex-1 bg-gray-100 text-gray-600 hover:bg-gray-200 py-4 rounded-xl font-bold transition-colors">Cancelar</button>
@@ -192,42 +171,24 @@
         </div>
     </div>
 
-    <!-- Modal Ingresar Nuevo Producto Manual -->
     <div id="modalNuevoProducto" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[4500] p-4 backdrop-blur-sm">
         <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl transform transition-all relative border border-gray-100">
             <button onclick="cerrarModalNuevoProducto()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500"><i class="fa-solid fa-xmark text-xl"></i></button>
             <div class="text-center mt-2 mb-4">
-                <div class="w-12 h-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-2xl mx-auto mb-2 shadow-sm border border-green-200"><i class="fa-solid fa-plus"></i></div>
                 <h3 class="text-xl font-black text-gray-900">Agregar Manual</h3>
-                <p class="text-xs text-gray-500">Material no registrado en sistema</p>
             </div>
             <div class="space-y-4 mb-6">
-                <div>
-                    <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Código (Opcional)</label>
-                    <input type="text" id="nuevoProdCode" placeholder="Ej: 9999 o M-01" class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-3 font-bold text-gray-900 mt-1 focus:outline-none focus:border-green-500 transition-colors">
-                </div>
-                <div>
-                    <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Nombre del Material <span class="text-red-500">*</span></label>
-                    <input type="text" id="nuevoProdName" placeholder="Ej: Cinta adhesiva doble faz" class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-3 font-bold text-gray-900 mt-1 focus:outline-none focus:border-green-500 transition-colors uppercase">
-                </div>
+                <input type="text" id="nuevoProdCode" placeholder="Código (Opcional)" class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-3 font-bold text-gray-900">
+                <input type="text" id="nuevoProdName" placeholder="Nombre Material" class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-3 font-bold text-gray-900 uppercase">
                 <div class="flex gap-3">
-                    <div class="flex-[2]">
-                        <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Cantidad <span class="text-red-500">*</span></label>
-                        <input type="number" id="nuevoProdQty" placeholder="0" class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-3 font-black text-green-600 text-2xl text-center mt-1 focus:outline-none focus:border-green-500 transition-colors hide-scroll">
-                    </div>
-                    <div class="flex-[1]">
-                        <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">UDM</label>
-                        <input type="text" id="nuevoProdUdm" value="UND" class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-2 py-3 font-bold text-gray-700 text-center mt-1 focus:outline-none focus:border-green-500 transition-colors uppercase">
-                    </div>
+                    <input type="number" id="nuevoProdQty" placeholder="Cantidad" class="flex-[2] bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-3 font-black text-green-600 text-2xl text-center">
+                    <input type="text" id="nuevoProdUdm" value="UND" class="flex-[1] bg-gray-50 border-2 border-gray-200 rounded-xl px-2 py-3 font-bold text-gray-700 text-center uppercase">
                 </div>
             </div>
-            <button onclick="guardarNuevoProductoManual()" class="w-full bg-green-600 text-white hover:bg-green-700 py-4 rounded-xl font-black text-lg transition-colors shadow-md flex items-center justify-center gap-2">
-                <i class="fa-solid fa-floppy-disk"></i> Guardar Material
-            </button>
+            <button onclick="guardarNuevoProductoManual()" class="w-full bg-green-600 text-white hover:bg-green-700 py-4 rounded-xl font-black text-lg transition-colors shadow-md">Guardar Material</button>
         </div>
     </div>
 
-    <!-- Modal Ingreso Conteo Físico -->
     <div id="modalConteo" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[3500] p-4 backdrop-blur-sm">
         <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl transform transition-all relative border border-gray-100">
             <button onclick="cerrarConteoModal()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500"><i class="fa-solid fa-xmark text-xl"></i></button>
@@ -236,224 +197,175 @@
                 <div id="modalConteoName" class="text-xl text-gray-900 font-black px-2 leading-tight uppercase w-full break-words">...</div>
             </div>
             <div class="flex flex-col justify-center items-center gap-2 mb-6 bg-orange-50/50 p-6 rounded-2xl w-full border border-orange-100">
-                <div class="text-[10px] sm:text-xs text-orange-600 font-bold uppercase tracking-widest mb-2 text-center w-full">Ingresa el Conteo Físico Real</div>
-                <input type="number" id="inputConteoFisico" class="w-full text-center text-5xl font-black text-gray-900 border-b-4 border-orange-200 focus:border-orange-500 focus:outline-none bg-transparent hide-scroll" placeholder="0" onkeypress="if(event.key === 'Enter') guardarConteoFisico()">
+                <div class="text-[10px] text-orange-600 font-bold uppercase tracking-widest mb-2 text-center w-full">Ingresa el Conteo Físico Real</div>
+                <input type="number" id="inputConteoFisico" class="w-full text-center text-5xl font-black text-gray-900 border-b-4 border-orange-200 focus:outline-none bg-transparent" placeholder="0" onkeypress="if(event.key === 'Enter') guardarConteoFisico()">
             </div>
             <div class="flex gap-2 w-full">
-                <button onclick="guardarConteoFisico()" class="flex-[3] bg-orange-500 text-white hover:bg-orange-600 py-4 rounded-xl font-black text-lg transition-colors shadow-md flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-floppy-disk"></i> Guardar Conteo
-                </button>
-                <button onclick="abrirMermaDesdeInventario()" class="flex-[1] bg-white text-red-600 border-2 border-red-200 hover:bg-red-50 py-2 rounded-xl font-bold transition-colors shadow-sm flex flex-col items-center justify-center" title="Reportar Merma hallada en el conteo">
-                    <i class="fa-solid fa-triangle-exclamation text-xl mb-1"></i><span class="text-[9px] uppercase tracking-wider mt-1">Merma</span>
-                </button>
+                <button onclick="guardarConteoFisico()" class="flex-[3] bg-orange-500 text-white py-4 rounded-xl font-black text-lg shadow-md"><i class="fa-solid fa-floppy-disk"></i> Guardar Conteo</button>
+                <button onclick="abrirMermaDesdeInventario()" class="flex-[1] bg-white text-red-600 border-2 border-red-200 py-2 rounded-xl font-bold shadow-sm flex flex-col items-center justify-center"><i class="fa-solid fa-triangle-exclamation text-xl mb-1"></i><span class="text-[9px] uppercase tracking-wider mt-1">Merma</span></button>
             </div>
         </div>
     </div>
 
-    <!-- Modal Reporte de MERMAS -->
     <div id="modalMerma" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[3500] p-4 backdrop-blur-sm">
-        <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl transform transition-all relative max-h-[90vh] flex flex-col">
+        <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl transform transition-all relative flex flex-col">
             <button onclick="cerrarModalMerma()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 z-10"><i class="fa-solid fa-xmark text-xl"></i></button>
-            <div class="flex justify-between items-start mb-2 mt-2 shrink-0">
-                <h3 class="text-xl font-black text-red-600"><i class="fa-solid fa-triangle-exclamation mr-2"></i> Reportar Merma / Daño</h3>
+            <h3 class="text-xl font-black text-red-600 mb-2 mt-2"><i class="fa-solid fa-triangle-exclamation mr-2"></i> Reportar Merma</h3>
+            <div class="bg-red-50 p-3 rounded-xl border border-red-100 mb-4 text-center mt-2">
+                <span id="modalMermaCode" class="text-xs font-bold text-red-500 block mb-1">...</span>
+                <p id="modalMermaName" class="text-sm font-bold text-gray-700 leading-tight">...</p>
             </div>
-            <div class="overflow-y-auto w-full hide-scroll pb-4 flex-1">
-                <div class="bg-red-50 p-3 rounded-xl border border-red-100 mb-4 text-center mt-2">
-                    <span id="modalMermaCode" class="text-xs font-bold text-red-500 block mb-1">...</span>
-                    <p id="modalMermaName" class="text-sm font-bold text-gray-700 leading-tight">...</p>
-                </div>
-                <div class="mb-4 flex items-center justify-center gap-4">
-                    <button onclick="cambiarCantMerma(-1)" class="w-12 h-12 rounded-full bg-gray-100 text-gray-600 font-black text-xl hover:bg-gray-200 transition-colors">-</button>
-                    <input type="number" id="inputModalMermaQty" value="1" min="1" class="w-24 border-0 bg-transparent text-4xl font-black text-center text-gray-900 focus:outline-none p-0 hide-scroll">
-                    <button onclick="cambiarCantMerma(1)" class="w-12 h-12 rounded-full bg-red-100 text-red-600 font-black text-xl hover:bg-red-200 transition-colors">+</button>
-                </div>
-                <div class="w-full mb-3">
-                    <label class="text-xs font-bold text-gray-500 uppercase tracking-wide ml-1">Motivo principal</label>
-                    <select id="inputMotivoMerma" class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-3 font-bold text-gray-700 mt-1 focus:outline-none focus:border-red-400 appearance-none">
-                        <option value="Daño Físico / Roto">Daño Físico / Roto</option>
-                        <option value="Material Defectuoso">Material Defectuoso</option>
-                        <option value="Extraviado / Perdido">Extraviado / Perdido</option>
-                        <option value="Vencido">Vencido</option>
-                        <option value="Otro">Otro...</option>
-                    </select>
-                </div>
-                <div class="w-full mb-4">
-                    <label class="text-xs font-bold text-gray-500 uppercase tracking-wide ml-1">Evidencia (Opcional)</label>
-                    <button onclick="document.getElementById('inputMermaFoto').click()" class="w-full bg-gray-100 text-gray-700 mt-1 py-3 rounded-xl font-bold border border-gray-200 hover:bg-gray-200 transition-colors flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-camera"></i> Tomar Foto
-                    </button>
-                    <input type="file" id="inputMermaFoto" accept="image/*" capture="environment" class="hidden" onchange="procesarFotoMerma(event)">
-                    <div id="previewMermaFotoContainer" class="hidden mt-2 relative w-full h-32 bg-gray-100 rounded-xl overflow-hidden border border-gray-200">
-                        <img id="previewMermaFoto" src="" class="w-full h-full object-cover">
-                        <button onclick="removerFotoMerma()" class="absolute top-2 right-2 bg-red-500 text-white w-8 h-8 rounded-full shadow-md flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
-                    </div>
-                </div>
-                <div class="w-full mb-2">
-                    <label class="text-xs font-bold text-gray-500 uppercase tracking-wide ml-1">Observación (Opcional)</label>
-                    <input type="text" id="inputObsMerma" placeholder="Ej: Se cayó de la grúa..." class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-3 font-medium text-sm text-gray-900 mt-1 focus:outline-none focus:border-red-400">
-                </div>
+            <div class="mb-4 flex items-center justify-center gap-4">
+                <button onclick="cambiarCantMerma(-1)" class="w-12 h-12 rounded-full bg-gray-100 text-gray-600 font-black text-xl hover:bg-gray-200 transition-colors">-</button>
+                <input type="number" id="inputModalMermaQty" value="1" min="1" class="w-24 border-0 bg-transparent text-4xl font-black text-center text-gray-900 focus:outline-none p-0 hide-scroll">
+                <button onclick="cambiarCantMerma(1)" class="w-12 h-12 rounded-full bg-red-100 text-red-600 font-black text-xl hover:bg-red-200 transition-colors">+</button>
             </div>
-            <button onclick="confirmarMerma()" class="w-full shrink-0 mt-2 bg-red-600 text-white hover:bg-red-700 py-4 rounded-xl font-black text-lg transition-colors flex items-center justify-center gap-2 shadow-md">
-                <i class="fa-solid fa-plus"></i> Registrar Merma
-            </button>
+            <select id="inputMotivoMerma" class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-3 font-bold text-gray-700 mb-3"><option value="Daño Físico / Roto">Daño Físico / Roto</option><option value="Material Defectuoso">Material Defectuoso</option><option value="Extraviado / Perdido">Extraviado / Perdido</option><option value="Vencido">Vencido</option><option value="Otro">Otro...</option></select>
+            <button onclick="document.getElementById('inputMermaFoto').click()" class="w-full bg-gray-100 text-gray-700 py-3 rounded-xl font-bold border border-gray-200 mb-3"><i class="fa-solid fa-camera"></i> Tomar Foto Evidencia</button>
+            <input type="file" id="inputMermaFoto" accept="image/*" capture="environment" class="hidden" onchange="procesarFotoMerma(event)">
+            <div id="previewMermaFotoContainer" class="hidden mb-3 relative w-full h-32 bg-gray-100 rounded-xl overflow-hidden border border-gray-200"><img id="previewMermaFoto" src="" class="w-full h-full object-cover"><button onclick="removerFotoMerma()" class="absolute top-2 right-2 bg-red-500 text-white w-8 h-8 rounded-full shadow-md flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button></div>
+            <input type="text" id="inputObsMerma" placeholder="Observación (Ej: Cayó de grúa)" class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 mb-2">
+            <button onclick="confirmarMerma()" class="w-full bg-red-600 text-white py-4 rounded-xl font-black text-lg shadow-md mt-2">Registrar Merma</button>
         </div>
     </div>
 
-    <!-- Modal para ver foto ampliada -->
-    <div id="modalVerFoto" class="fixed inset-0 bg-black/95 hidden items-center justify-center z-[5000] p-4 flex-col backdrop-blur-sm">
-        <div class="w-full flex justify-end mb-4 max-w-lg">
-            <button onclick="cerrarModalVerFoto()" class="bg-gray-800 text-white hover:text-red-500 rounded-full w-10 h-10 flex items-center justify-center"><i class="fa-solid fa-xmark text-xl"></i></button>
-        </div>
-        <img id="verFotoGrande" src="" class="max-w-full max-h-[75vh] object-contain rounded-xl border-2 border-gray-800 shadow-2xl">
-        <p id="verFotoTitulo" class="text-white mt-4 font-bold text-center text-sm uppercase tracking-wider"></p>
-    </div>
-
-    <!-- Modal Ficha Técnica PDF -->
     <div id="modalFichaTecnica" class="fixed inset-0 bg-black/90 hidden items-center justify-center z-[5000] p-4 flex-col backdrop-blur-sm transition-opacity">
         <div class="w-full max-w-4xl h-[85vh] bg-white rounded-3xl overflow-hidden flex flex-col shadow-2xl relative">
             <div class="flex justify-between items-center p-4 border-b border-gray-200 bg-gray-50 shrink-0">
                 <h3 class="text-lg font-black text-gray-800 truncate pr-4" id="modalFichaTitle">Ficha Técnica</h3>
-                <button onclick="cerrarModalFicha()" class="text-gray-400 hover:text-red-500 w-8 h-8 flex items-center justify-center rounded-full bg-white shadow-sm border border-gray-200 transition-colors"><i class="fa-solid fa-xmark text-xl"></i></button>
+                <button onclick="cerrarModalFicha()" class="text-gray-400 hover:text-red-500 w-8 h-8 flex items-center justify-center rounded-full bg-white shadow-sm border border-gray-200"><i class="fa-solid fa-xmark text-xl"></i></button>
             </div>
             <div class="flex-1 w-full bg-gray-200 relative overflow-hidden">
-                <div class="absolute inset-0 flex items-center justify-center -z-10 text-gray-400 text-sm flex-col gap-2">
-                    <i class="fa-solid fa-spinner fa-spin text-3xl"></i>
-                    <span class="font-bold uppercase tracking-widest text-[10px]">Cargando documento...</span>
-                </div>
+                <div class="absolute inset-0 flex items-center justify-center -z-10 text-gray-400 text-sm flex-col gap-2"><i class="fa-solid fa-spinner fa-spin text-3xl"></i><span class="font-bold uppercase tracking-widest text-[10px]">Cargando documento...</span></div>
                 <iframe id="iframeFicha" src="" class="w-full h-full border-0 z-10 relative" title="Ficha Técnica"></iframe>
             </div>
             <div class="p-4 bg-white border-t border-gray-200 shrink-0 flex gap-3">
-                <a id="btnDescargarFicha" href="#" target="_blank" download class="flex-1 bg-orange-500 text-white hover:bg-orange-600 py-4 rounded-xl font-black text-center transition-colors shadow-md flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-download"></i> Descargar Archivo Original
-                </a>
+                <a id="btnDescargarFicha" href="#" target="_blank" download class="flex-1 bg-orange-500 text-white py-4 rounded-xl font-black text-center shadow-md"><i class="fa-solid fa-download"></i> Descargar Archivo</a>
             </div>
         </div>
     </div>
 
-    <!-- Modal Logs de Inventario -->
-    <div id="modalLogs" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[3500] p-4 backdrop-blur-sm">
-        <div class="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl flex flex-col max-h-[80vh]">
-            <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-100">
-                <h3 class="text-lg font-black text-gray-900"><i class="fa-solid fa-clock-rotate-left text-orange-500 mr-2"></i> Registro de Actividad</h3>
-                <button onclick="cerrarModalLogs()" class="text-gray-400 hover:text-red-500"><i class="fa-solid fa-xmark text-xl"></i></button>
-            </div>
-            <div id="logsContainer" class="flex-1 overflow-y-auto w-full text-sm text-gray-600 space-y-2 pr-2"></div>
-            <button onclick="cerrarModalLogs()" class="w-full mt-4 bg-gray-100 text-gray-700 hover:bg-gray-200 py-3 rounded-xl font-bold transition-colors">Cerrar</button>
-        </div>
-    </div>
-
-    <!-- Modal Scanner -->
-    <div id="modalScanner" class="fixed inset-0 bg-black/95 hidden items-center justify-center z-[3000] p-4 flex-col backdrop-blur-md">
-        <div class="bg-white rounded-3xl p-6 w-full max-w-sm flex flex-col items-center shadow-2xl">
-            <div class="flex justify-between items-center w-full mb-4 border-b border-gray-100 pb-2">
-                <h3 class="text-lg font-black text-gray-900"><i class="fa-solid fa-qrcode mr-2 text-orange-500"></i> Escanear Etiqueta</h3>
-                <button onclick="closeScanner()" class="text-gray-400 hover:text-red-500 transition-colors"><i class="fa-solid fa-xmark text-2xl"></i></button>
-            </div>
-            <div id="reader" class="w-full rounded-2xl overflow-hidden bg-gray-900 border-2 border-dashed border-gray-300 min-h-[250px] flex items-center justify-center shadow-inner"></div>
-            <p class="text-sm font-medium text-gray-500 mt-6 text-center leading-tight">Apunta la cámara al código.<br>La lectura será automática.</p>
-        </div>
-    </div>
-
+    <!-- PANEL PRINCIPAL -->
     <div class="main-layout">
-        <!-- PANEL IZQUIERDO (GENERADOR Y AJUSTES) -->
+        <!-- BARRA LATERAL IZQUIERDA (CONFIGURACIÓN DE ETIQUETAS) -->
         <div class="settings-panel no-print settings-collapsed" id="panel-settings" style="display: none;">
             <div class="settings-inner">
+                
                 <!-- Buscador BD -->
                 <div class="control-group">
-                    <div class="group-label">Buscador Base de Datos</div>
                     <div class="relative w-full">
-                        <i class="fa-solid fa-search absolute left-3 top-2.5 text-gray-400 text-xs"></i>
-                        <input type="text" id="dbSearch" placeholder="Buscar producto..." class="ios-input pl-8 text-left bg-white border-gray-200">
+                        <i class="fa-solid fa-search absolute left-3 top-3 text-gray-400 text-xs"></i>
+                        <input type="text" id="dbSearch" placeholder="Buscar en BD para autocompletar..." class="w-full bg-white border-2 border-gray-200 rounded-xl pl-8 pr-3 py-2 text-sm font-bold text-gray-900 outline-none focus:border-orange-500">
                         <div id="searchResults" class="hidden absolute top-full left-0 w-full bg-white shadow-xl border border-gray-100 rounded-lg mt-1 z-50 max-h-48 overflow-y-auto"></div>
                     </div>
-                    <div id="dbStatus" class="text-[10px] text-gray-400 text-right mt-1">Conectando...</div>
+                    <div id="dbStatus" class="text-[9px] text-gray-400 text-right mt-1 font-bold">CONECTANDO...</div>
                 </div>
 
-                <!-- NUEVO: DATOS KANBAN 5S -->
-                <div class="control-group bg-orange-50/50 p-3 rounded-lg border border-orange-100 mt-2">
-                    <div class="group-label text-orange-600 mb-2 border-none pb-0"><i class="fa-solid fa-layer-group mr-1"></i> Datos Control 5S</div>
-                    <div class="input-row mb-2">
-                        <span class="text-xs font-bold w-24 text-gray-700">Cons. Semanal</span>
-                        <input type="text" id="consumoInput" value="24" class="ios-input text-center font-bold text-orange-600 bg-white">
-                    </div>
-                    <div class="flex gap-2 w-full">
-                        <div class="flex-1 flex items-center justify-between gap-2">
-                            <span class="text-xs font-bold text-gray-600">MIN</span>
-                            <input type="text" id="minInput" value="48" class="ios-input text-center w-full bg-white">
-                        </div>
-                        <div class="flex-1 flex items-center justify-between gap-2">
-                            <span class="text-xs font-bold text-gray-600">MAX</span>
-                            <input type="text" id="maxInput" value="108" class="ios-input text-center w-full bg-white">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Diseño de Etiqueta -->
-                <div class="control-group bg-gray-50 p-3 rounded-lg border border-gray-100">
-                    <div class="group-label text-gray-700 mb-2 border-none pb-0">Diseño Visual</div>
-                    <select id="styleInput" class="ios-input bg-white w-full font-bold text-sm cursor-pointer shadow-sm">
-                        <option value="5s">Clásico 5S (Croquis Cuadrícula)</option>
-                        <option value="modern">Moderno Corporativo</option>
-                        <option value="highvis">Alta Visibilidad (Números Gigantes)</option>
-                    </select>
-                </div>
-
-                <!-- Datos de Etiqueta -->
-                <div class="control-group">
-                    <div class="group-label">Contenido Base</div>
-                    <div class="input-row"><span class="text-xs font-medium w-24">Nombre</span><input type="text" id="nameInput" value="GUANTES CABRITILLA" class="ios-input font-medium"></div>
-                    <div class="input-row"><span class="text-xs font-medium w-24">Cód. Prod.</span><input type="text" id="productCodeInput" value="551" class="ios-input text-gray-600"></div>
-                    <div class="input-row"><span class="text-xs font-bold w-24 text-orange-600">Ubicación</span><input type="text" id="orgInput" value="C-02-15" class="ios-input font-black text-lg border-2 border-orange-200"></div>
-                    <div class="input-row"><span class="text-xs font-medium w-24">Familia</span><input type="text" id="familyInput" value="EPP" class="ios-input"></div>
-                </div>
-
-                <!-- Ajustes Tamaños -->
-                <div class="control-group bg-gray-50 p-3 rounded-lg border border-gray-100">
-                    <div class="group-label text-gray-500 mb-2 border-none pb-0">Ajuste de Textos</div>
+                <!-- GRUPO 1: DATOS DEL PRODUCTO -->
+                <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm mb-4">
+                    <div class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-1 border-b border-gray-100 pb-2"><i class="fa-solid fa-box text-orange-500"></i> Información Base</div>
                     <div class="flex flex-col gap-3">
-                        <div><div class="flex justify-between text-[10px] mb-1"><span>Nombre Producto</span> <span id="valSizeName" class="font-bold">24px</span></div><input type="range" id="sizeName" min="10" max="60" value="24" step="1"></div>
-                        <div><div class="flex justify-between text-[10px] mb-1"><span>Ubicación / Cajón</span> <span id="valSizeOrg" class="font-bold">20px</span></div><input type="range" id="sizeOrg" min="10" max="150" value="20" step="1"></div>
+                        <div>
+                            <label class="text-[9px] font-bold text-gray-500 uppercase ml-1">Código / SKU</label>
+                            <input type="text" id="productCodeInput" placeholder="Ej: 551" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm font-bold text-gray-900 outline-none focus:border-orange-500">
+                        </div>
+                        <div>
+                            <label class="text-[9px] font-bold text-gray-500 uppercase ml-1">Nombre Material</label>
+                            <input type="text" id="nameInput" placeholder="Ej: Guantes Cabritilla" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm font-bold text-gray-900 outline-none focus:border-orange-500">
+                        </div>
+                        <div>
+                            <label class="text-[9px] font-bold text-gray-500 uppercase ml-1">Familia (Opcional)</label>
+                            <input type="text" id="familyInput" placeholder="Ej: EPP" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm font-bold text-gray-900 outline-none focus:border-orange-500">
+                        </div>
                     </div>
                 </div>
 
-                <div class="control-group">
-                    <button id="btnAgregarHoja" onclick="agregarALaHoja()" class="w-full bg-orange-500 text-white font-bold py-3 rounded-xl mt-1 hover:bg-orange-600 transition-colors shadow-sm flex justify-center items-center gap-2">
-                        <i class="fa-solid fa-plus"></i> Añadir a la Hoja
-                    </button>
+                <!-- GRUPO 2: UBICACIÓN Y 5S -->
+                <div class="bg-orange-50/50 p-4 rounded-2xl border border-orange-100 shadow-sm mb-4">
+                    <div class="text-[10px] font-black text-orange-600 uppercase tracking-widest mb-3 flex items-center gap-1 border-b border-orange-200/50 pb-2"><i class="fa-solid fa-layer-group"></i> Ubicación y Kanban 5S</div>
+                    <div class="flex flex-col gap-3">
+                        <div>
+                            <label class="text-[9px] font-bold text-orange-600 uppercase ml-1">Nº de Cajón / Estante</label>
+                            <input type="text" id="orgInput" placeholder="Ej: C-02" class="w-full bg-white border-2 border-orange-200 rounded-lg px-3 py-2 text-base font-black text-orange-600 text-center outline-none focus:border-orange-500 uppercase">
+                        </div>
+                        <div class="grid grid-cols-3 gap-2">
+                            <div>
+                                <label class="text-[8px] font-black text-gray-500 uppercase text-center block w-full mb-1">Consumo Semanal</label>
+                                <input type="number" id="consumoInput" value="24" class="w-full bg-white border border-gray-200 rounded-lg px-1 py-2 text-sm font-black text-gray-800 text-center outline-none focus:border-orange-500">
+                            </div>
+                            <div>
+                                <label class="text-[8px] font-black text-gray-500 uppercase text-center block w-full mb-1">Stock MIN</label>
+                                <input type="number" id="minInput" value="48" class="w-full bg-white border border-gray-200 rounded-lg px-1 py-2 text-sm font-black text-gray-800 text-center outline-none focus:border-orange-500">
+                            </div>
+                            <div>
+                                <label class="text-[8px] font-black text-gray-500 uppercase text-center block w-full mb-1">Stock MAX</label>
+                                <input type="number" id="maxInput" value="108" class="w-full bg-white border border-gray-200 rounded-lg px-1 py-2 text-sm font-black text-gray-800 text-center outline-none focus:border-orange-500">
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Diseño Hoja -->
-                <div class="control-group border-t border-gray-100 pt-4">
-                    <div class="group-label flex justify-between items-center">
-                        <span>Diseño de Hoja de Impresión</span>
-                        <button onclick="limpiarHoja()" class="text-red-500 hover:text-red-700 text-[10px] font-bold bg-red-50 px-2 py-1 rounded transition-colors"><i class="fa-solid fa-trash-can"></i> Vaciar Hoja</button>
-                    </div>
-                    <div class="input-row justify-end mb-2 mt-2">
-                        <label class="flex items-center gap-2 cursor-pointer bg-orange-50 px-3 py-2 rounded-lg border border-orange-100 w-full justify-center">
-                            <input type="checkbox" id="checkNumbering" class="w-4 h-4 accent-orange-500">
-                            <span class="text-[10px] font-bold text-orange-800 uppercase tracking-wider">Auto-numerar Cajón al añadir</span>
-                        </label>
-                    </div>
-                    <div class="input-row mb-2 mt-4"><span class="text-xs font-medium w-24">Orientación</span>
-                        <select id="orientationInput" class="ios-input bg-white cursor-pointer text-xs">
-                            <option value="portrait">Vertical</option>
-                            <option value="landscape" selected>Horizontal</option>
+                <!-- GRUPO 3: DISEÑO E IMPRESIÓN -->
+                <div class="bg-gray-50 p-4 rounded-2xl border border-gray-200 shadow-sm mb-4">
+                    <div class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3 border-b border-gray-200 pb-2"><i class="fa-solid fa-palette mr-1"></i> Diseño Visual</div>
+                    
+                    <div class="mb-4">
+                        <select id="styleInput" class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-xs font-bold text-gray-800 outline-none focus:border-orange-500 cursor-pointer shadow-sm">
+                            <option value="5s_orange" selected>Diseño 1: Croquis Naranja (Clásico)</option>
+                            <option value="5s_solid">Diseño 2: Encabezados Sólidos Naranjas</option>
+                            <option value="5s_dark">Diseño 3: Industrial Dark (Letras Naranjas)</option>
                         </select>
                     </div>
-                    <div class="grid grid-cols-2 gap-3 mt-2">
-                        <div class="flex flex-col text-center">
-                            <span class="text-[10px] text-gray-500 font-bold mb-1 uppercase tracking-wider">Filas / Hoja</span>
-                            <input type="number" id="rowsInput" value="3" class="ios-input text-center font-bold">
+
+                    <div class="flex flex-col gap-3">
+                        <div>
+                            <div class="flex justify-between text-[9px] font-bold text-gray-500 mb-1 uppercase tracking-widest"><span>Tamaño Letra Nombre</span> <span id="valSizeName" class="text-gray-800">22px</span></div>
+                            <input type="range" id="sizeName" min="10" max="50" value="22" step="1">
                         </div>
-                        <div class="flex flex-col text-center">
-                            <span class="text-[10px] text-gray-500 font-bold mb-1 uppercase tracking-wider">Cols / Hoja</span>
-                            <input type="number" id="colsInput" value="2" class="ios-input text-center font-bold">
+                        <div>
+                            <div class="flex justify-between text-[9px] font-bold text-gray-500 mb-1 uppercase tracking-widest"><span>Tamaño Letra Cajón</span> <span id="valSizeOrg" class="text-gray-800">28px</span></div>
+                            <input type="range" id="sizeOrg" min="10" max="60" value="28" step="1">
+                        </div>
+                    </div>
+                </div>
+
+                <button id="btnAgregarHoja" onclick="agregarALaHoja()" class="w-full bg-orange-500 text-white font-black py-4 rounded-xl shadow-md hover:bg-orange-600 transition-colors flex justify-center items-center gap-2 text-lg">
+                    <i class="fa-solid fa-plus"></i> Añadir a la Hoja
+                </button>
+
+                <!-- Diseño Hoja -->
+                <div class="mt-6 pt-4 border-t border-gray-200">
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Ajustes de Página</span>
+                        <button onclick="limpiarHoja()" class="text-red-500 hover:text-red-700 text-[9px] font-black bg-red-50 px-2 py-1 rounded transition-colors uppercase"><i class="fa-solid fa-trash-can"></i> Vaciar Hoja</button>
+                    </div>
+                    
+                    <label class="flex items-center gap-2 cursor-pointer bg-orange-50 px-3 py-2 rounded-lg border border-orange-100 w-full justify-center mb-3">
+                        <input type="checkbox" id="checkNumbering" class="w-4 h-4 accent-orange-500">
+                        <span class="text-[10px] font-bold text-orange-800 uppercase tracking-wider">Auto-sumar +1 a Cajón</span>
+                    </label>
+
+                    <div class="grid grid-cols-3 gap-2">
+                        <div>
+                            <label class="text-[8px] font-black text-gray-500 uppercase text-center block w-full mb-1">Filas</label>
+                            <input type="number" id="rowsInput" value="3" class="w-full bg-white border border-gray-200 rounded-lg px-1 py-2 text-sm font-black text-gray-800 text-center">
+                        </div>
+                        <div>
+                            <label class="text-[8px] font-black text-gray-500 uppercase text-center block w-full mb-1">Columnas</label>
+                            <input type="number" id="colsInput" value="2" class="w-full bg-white border border-gray-200 rounded-lg px-1 py-2 text-sm font-black text-gray-800 text-center">
+                        </div>
+                        <div>
+                            <label class="text-[8px] font-black text-gray-500 uppercase text-center block w-full mb-1">Formato</label>
+                            <select id="orientationInput" class="w-full bg-white border border-gray-200 rounded-lg px-1 py-2 text-xs font-black text-gray-800 text-center">
+                                <option value="landscape">Horiz</option>
+                                <option value="portrait">Vert</option>
+                            </select>
                         </div>
                     </div>
                 </div>
                 
-                <div class="mt-4 pt-6 border-t border-gray-100 text-center pb-10">
-                     <button onclick="location.reload()" class="text-[10px] font-bold text-red-500 hover:text-red-700 bg-red-50 px-4 py-2 rounded-lg transition-colors">Reiniciar App Completa</button>
+                <div class="mt-6 text-center pb-6">
+                     <button onclick="location.reload()" class="text-[10px] font-bold text-gray-400 hover:text-gray-600 underline">Reiniciar App Completa</button>
                 </div>
             </div>
         </div>
@@ -463,10 +375,11 @@
             
             <!-- VISTA 1: GENERADOR -->
             <div class="preview-panel view-section active" id="view-generator">
-                <div class="w-full text-center mb-4 opacity-50 no-print">
-                    <p class="text-xs font-bold uppercase tracking-widest"><i class="fa-solid fa-print"></i> Previsualización de Impresión</p>
+                <div class="w-full text-center mb-4 opacity-50 no-print flex flex-col items-center justify-center">
+                    <p class="text-xs font-bold uppercase tracking-widest"><i class="fa-solid fa-print"></i> Previsualización A4</p>
+                    <p class="text-[10px] max-w-sm mt-1">Modifica los datos en el panel izquierdo y presiona "Añadir a la Hoja". El diseño es puro blanco para evitar efecto "parche" al imprimir.</p>
                 </div>
-                <div id="pages-wrapper" class="w-full flex flex-col items-center"></div>
+                <div id="pages-wrapper" class="w-full flex flex-col items-center bg-gray-100 py-4"></div>
             </div>
 
             <!-- VISTA 2: VISOR -->
@@ -487,7 +400,7 @@
                             <button onclick="openScanner('visor')" class="col-span-1 bg-gray-800 text-white hover:bg-black rounded-2xl py-4 flex items-center justify-center shadow-md active:scale-95 transition-all">
                                 <i class="fa-solid fa-camera text-2xl"></i>
                             </button>
-                            <button onclick="loadDB(true)" class="col-span-1 bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-2xl py-4 flex items-center justify-center shadow-sm active:scale-95 transition-all" title="Actualizar base de datos">
+                            <button onclick="loadDB(true)" class="col-span-1 bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-2xl py-4 flex items-center justify-center shadow-sm active:scale-95 transition-all">
                                 <i class="fa-solid fa-arrows-rotate text-2xl" id="syncIcon"></i>
                             </button>
                             <button onclick="manualSearch()" class="col-span-2 bg-orange-500 text-white hover:bg-orange-600 rounded-2xl py-4 flex items-center justify-center shadow-md active:scale-95 transition-all gap-2">
@@ -499,16 +412,11 @@
 
                     <div id="scanResult" class="hidden bg-white w-full px-4 py-8 sm:p-8 rounded-3xl border border-gray-100 shadow-xl text-center relative mx-2">
                         <img src="logo.png" class="absolute top-4 left-4 w-12 sm:w-16 h-auto object-contain opacity-100" onerror="this.style.display='none'">
-
                         <div class="flex flex-col items-center justify-center mt-8 sm:mt-4 mb-2 w-full">
-                            <div class="text-xs sm:text-sm font-bold text-gray-400 uppercase tracking-wider mb-1">
-                                Cód. Producto: <span id="resCode" class="text-base sm:text-lg font-bold text-gray-600 ml-1">CODE</span>
-                            </div>
+                            <div class="text-xs sm:text-sm font-bold text-gray-400 uppercase tracking-wider mb-1">Cód. Producto: <span id="resCode" class="text-base sm:text-lg font-bold text-gray-600 ml-1">CODE</span></div>
                             <div id="resName" class="text-2xl sm:text-3xl text-gray-900 font-black px-2 leading-tight uppercase w-full break-words">Nombre del producto</div>
                         </div>
-
                         <div class="w-full h-1.5 bg-[#F26522] rounded-full my-4 sm:my-6 opacity-90"></div>
-                        
                         <div class="flex flex-col items-center justify-center border-b border-gray-100 pb-8 mb-6 gap-2 w-full">
                             <div class="text-center w-full">
                                 <div class="text-sm text-gray-400 uppercase font-black tracking-widest mb-0">Stock Actual</div>
@@ -517,7 +425,6 @@
                                     <div id="resUnidad" class="text-2xl sm:text-4xl font-bold text-gray-400 uppercase">UND</div>
                                 </div>
                             </div>
-
                             <button id="btnShowLocation" onclick="toggleLocationArea()" class="mt-4 bg-orange-50 text-orange-600 border border-orange-200 hover:bg-orange-100 px-6 py-3 rounded-xl font-bold text-sm transition-colors shadow-sm hidden mx-auto items-center justify-center gap-2">
                                 <i class="fa-solid fa-map-location-dot"></i> Ver Ubicación Física
                             </button>
@@ -528,8 +435,8 @@
                                     <div class="flex items-center justify-center mb-2">
                                         <h4 class="text-[10px] font-black text-gray-400 uppercase tracking-widest"><i class="fa-solid fa-map-location-dot mr-1"></i> Layout de Bodega</h4>
                                     </div>
-                                    
                                     <div class="relative w-full max-w-[340px] aspect-[4/5] mx-auto map-grid-bg rounded-2xl border border-gray-200 shadow-inner overflow-hidden mt-2 mb-6">
+                                        <!-- MAP CONTENT EXACTAMENTE IGUAL A 6.36 -->
                                         <div id="lbl-pasillo-a" class="absolute left-[20%] top-[20%] bg-white/90 backdrop-blur px-3 py-1 rounded-full font-black text-[12px] text-gray-400 border border-gray-100 shadow-sm transition-all duration-300 z-10">PASILLO A</div>
                                         <div id="lbl-pasillo-b" class="absolute right-[14%] top-[50%] -translate-y-1/2 rotate-90 bg-white/90 backdrop-blur px-3 py-1 rounded-full font-black text-[12px] text-gray-400 border border-gray-100 shadow-sm transition-all duration-300 z-10 origin-center">PASILLO B</div>
                                         <div id="lbl-pasillo-c" class="absolute left-[20%] bottom-[20%] bg-white/90 backdrop-blur px-3 py-1 rounded-full font-black text-[12px] text-gray-400 border border-gray-100 shadow-sm transition-all duration-300 z-10">PASILLO C</div>
@@ -599,15 +506,13 @@
                 </div>
             </div>
 
-            <!-- VISTA 3: INVENTARIO -->
+            <!-- VISTA 3: INVENTARIO (AUDITORÍA PRO) -->
             <div class="preview-panel view-section" id="view-inventario">
                 <div class="w-full max-w-2xl mx-auto px-2 h-full flex flex-col">
                     <div id="invStartContainer" class="flex-1 flex flex-col items-center justify-center p-6 text-center h-full">
-                        <div class="w-24 h-24 bg-orange-100 text-orange-500 rounded-full flex items-center justify-center text-4xl mb-4 shadow-sm">
-                            <i class="fa-solid fa-clipboard-list"></i>
-                        </div>
+                        <div class="w-24 h-24 bg-orange-100 text-orange-500 rounded-full flex items-center justify-center text-4xl mb-4 shadow-sm"><i class="fa-solid fa-clipboard-list"></i></div>
                         <h3 class="text-2xl font-black text-gray-900 mb-2">Auditoría Cerrada</h3>
-                        <p class="text-gray-500 text-sm mb-8">Inicia un nuevo proceso de inventario para registrar al responsable y habilitar el conteo de productos.</p>
+                        <p class="text-gray-500 text-sm mb-8">Inicia un nuevo proceso de inventario para registrar al responsable y habilitar el conteo.</p>
                         <button onclick="abrirModalInicioInventario()" class="w-full bg-orange-500 text-white hover:bg-orange-600 py-4 rounded-xl font-black text-lg transition-colors shadow-md flex items-center justify-center gap-2">
                             <i class="fa-solid fa-play"></i> Comenzar Nuevo Inventario
                         </button>
@@ -616,7 +521,6 @@
                     <div id="invActiveContainer" class="hidden flex-col h-full w-full">
                         <div class="text-center mb-2 shrink-0 relative w-full pt-2">
                             <h2 class="text-3xl font-black text-gray-900 mb-1 tracking-tight">INVENTARIO</h2>
-                            
                             <div class="w-full bg-gray-200 rounded-full h-2 mb-1 mt-2 overflow-hidden shadow-inner">
                                 <div id="invProgressBar" class="bg-orange-500 h-full transition-all duration-500" style="width: 0%"></div>
                             </div>
@@ -637,7 +541,7 @@
                         <div class="flex gap-2 mb-2 shrink-0">
                             <div class="relative flex-1">
                                 <i class="fa-solid fa-search absolute left-4 top-3.5 text-gray-400"></i>
-                                <input type="text" id="invFilterInput" placeholder="Filtrar nombre o código..." class="w-full py-3 pl-10 pr-4 rounded-xl border-2 border-gray-200 text-sm font-bold text-gray-900 outline-none focus:border-orange-500 shadow-sm transition-colors bg-white" autocomplete="off" oninput="toggleOcultarContados()">
+                                <input type="text" id="invFilterInput" placeholder="Filtrar nombre o código..." class="w-full py-3 pl-10 pr-4 rounded-xl border-2 border-gray-200 text-sm font-bold text-gray-900 outline-none focus:border-orange-500 shadow-sm bg-white" autocomplete="off" oninput="toggleOcultarContados()">
                             </div>
                             <button onclick="openScanner('inventario')" class="bg-gray-900 text-white hover:bg-black rounded-xl px-5 flex items-center justify-center shadow-md active:scale-95 transition-all"><i class="fa-solid fa-qrcode text-xl"></i></button>
                         </div>
@@ -646,10 +550,9 @@
                             <button onclick="abrirModalNuevoProducto()" class="bg-white text-green-600 border border-green-200 hover:bg-green-50 px-3 py-1.5 rounded-xl font-bold text-[10px] shadow-sm flex items-center gap-1.5 transition-colors uppercase tracking-wider">
                                 <i class="fa-solid fa-plus"></i> Agregar Manual
                             </button>
-
                             <label class="flex items-center gap-2 cursor-pointer bg-white px-3 py-1.5 rounded-xl border border-gray-200 shadow-sm hover:bg-gray-50 transition-colors">
                                 <input type="checkbox" id="checkOcultarContados" class="w-4 h-4 accent-orange-500" onchange="toggleOcultarContados()">
-                                <span class="text-[10px] font-bold text-gray-600 uppercase tracking-wider">Ocultar ya contados</span>
+                                <span class="text-[10px] font-bold text-gray-600 uppercase tracking-wider">Ocultar contados</span>
                             </label>
                         </div>
 
@@ -685,7 +588,6 @@
                             <span class="font-bold text-gray-700 uppercase tracking-wider text-sm"><i class="fa-solid fa-triangle-exclamation mr-2 text-red-500"></i> Resumen de Mermas</span>
                             <span class="bg-red-100 text-red-800 text-xs font-black px-3 py-1 rounded-full border border-red-200" id="totalMermasText">0 REPORTES</span>
                         </div>
-                        
                         <div class="flex-1 overflow-y-auto p-4 bg-white w-full" id="listaMermasContenedor"></div>
                     </div>
 
@@ -725,7 +627,6 @@
         let listaInventarioFisico = JSON.parse(localStorage.getItem('deteco_inventario')) || [];
         let inventarioLogs = JSON.parse(localStorage.getItem('deteco_inv_logs')) || [];
         let invCurrentProd = null;
-
         let listaMermas = JSON.parse(localStorage.getItem('deteco_mermas')) || [];
 
         function saveInventarioState() {
@@ -746,21 +647,28 @@
             renderLogs();
         }
 
+        // --- MAPEO DIRECTO CON EL HTML ---
+        // Usamos una función para obtener elementos en tiempo real y evitar errores si el DOM no cargó.
         const els = {
-            wrapper: document.getElementById('pages-wrapper'),
-            rows: document.getElementById('rowsInput'), cols: document.getElementById('colsInput'),
-            name: document.getElementById('nameInput'), productCode: document.getElementById('productCodeInput'), 
-            orgInput: document.getElementById('orgInput'), family: document.getElementById('familyInput'), checkNum: document.getElementById('checkNumbering'),
-            orientation: document.getElementById('orientationInput'), dbSearch: document.getElementById('dbSearch'), searchResults: document.getElementById('searchResults'),
-            sizeName: document.getElementById('sizeName'), 
-            // Eliminamos sizeSku y sizeFamily para evitar errores si no están en el HTML
-            sizeOrg: document.getElementById('sizeOrg'), 
-            valSizeName: document.getElementById('valSizeName'), 
-            valSizeOrg: document.getElementById('valSizeOrg'),
-            consumo: document.getElementById('consumoInput'),
-            min: document.getElementById('minInput'),
-            max: document.getElementById('maxInput'),
-            style: document.getElementById('styleInput')
+            get wrapper() { return document.getElementById('pages-wrapper'); },
+            get rows() { return document.getElementById('rowsInput'); },
+            get cols() { return document.getElementById('colsInput'); },
+            get name() { return document.getElementById('nameInput'); },
+            get productCode() { return document.getElementById('productCodeInput'); },
+            get orgInput() { return document.getElementById('orgInput'); },
+            get family() { return document.getElementById('familyInput'); },
+            get checkNum() { return document.getElementById('checkNumbering'); },
+            get orientation() { return document.getElementById('orientationInput'); },
+            get dbSearch() { return document.getElementById('dbSearch'); },
+            get searchResults() { return document.getElementById('searchResults'); },
+            get sizeName() { return document.getElementById('sizeName'); },
+            get sizeOrg() { return document.getElementById('sizeOrg'); },
+            get valSizeName() { return document.getElementById('valSizeName'); },
+            get valSizeOrg() { return document.getElementById('valSizeOrg'); },
+            get consumo() { return document.getElementById('consumoInput'); },
+            get min() { return document.getElementById('minInput'); },
+            get max() { return document.getElementById('maxInput'); },
+            get style() { return document.getElementById('styleInput'); }
         };
 
         window.addEventListener('load', async () => {
@@ -780,6 +688,11 @@
                 renderLabels();
                 actualizarUIMermas();
                 actualizarUIEstadoInventario();
+
+                // Listeners de los Sliders (Se ligan despues de cargar)
+                [els.rows, els.cols, els.orientation, els.sizeName, els.sizeOrg, els.style].forEach(el => { 
+                    if (el) { el.addEventListener('input', () => { clearTimeout(timeout); timeout = setTimeout(renderLabels, 150); }); }
+                });
 
                 const splash = document.getElementById('splash-screen');
                 setTimeout(() => {
@@ -1050,22 +963,24 @@
         const manualInputEl = document.getElementById('manualInput');
         const visorResultsEl = document.getElementById('visorSearchResults');
 
-        manualInputEl.addEventListener('input', (e) => {
-            const val = e.target.value.toLowerCase().trim();
-            if(val.length < 2) { visorResultsEl.classList.add('hidden'); return; }
-            const matches = dbProducts.filter(p => (p.CODIGO && p.CODIGO.toLowerCase().includes(val)) || (p.NOMBRE && p.NOMBRE.toLowerCase().includes(val))).slice(0, 6);
-            visorResultsEl.innerHTML = '';
-            if(matches.length) {
-                visorResultsEl.classList.remove('hidden');
-                matches.forEach(p => {
-                    const div = document.createElement('div');
-                    div.className = "p-4 hover:bg-orange-50 cursor-pointer border-b border-gray-100 flex items-center justify-between transition-colors";
-                    div.innerHTML = `<div class="flex flex-col overflow-hidden"><span class="text-xs font-bold text-orange-500 mb-0.5">${p.CODIGO}</span><span class="text-sm font-bold text-gray-800 truncate leading-tight">${p.NOMBRE}</span></div><span class="text-[10px] font-black bg-gray-100 text-gray-500 px-2 py-1 rounded-md ml-2 whitespace-nowrap">${p.STOCK} ${p.UNIDAD}</span>`;
-                    div.onclick = () => { manualInputEl.value = p.CODIGO; visorResultsEl.classList.add('hidden'); manualSearch(p.CODIGO); };
-                    visorResultsEl.appendChild(div);
-                });
-            } else { visorResultsEl.classList.add('hidden'); }
-        });
+        if(manualInputEl) {
+            manualInputEl.addEventListener('input', (e) => {
+                const val = e.target.value.toLowerCase().trim();
+                if(val.length < 2) { visorResultsEl.classList.add('hidden'); return; }
+                const matches = dbProducts.filter(p => (p.CODIGO && p.CODIGO.toLowerCase().includes(val)) || (p.NOMBRE && p.NOMBRE.toLowerCase().includes(val))).slice(0, 6);
+                visorResultsEl.innerHTML = '';
+                if(matches.length) {
+                    visorResultsEl.classList.remove('hidden');
+                    matches.forEach(p => {
+                        const div = document.createElement('div');
+                        div.className = "p-4 hover:bg-orange-50 cursor-pointer border-b border-gray-100 flex items-center justify-between transition-colors";
+                        div.innerHTML = `<div class="flex flex-col overflow-hidden"><span class="text-xs font-bold text-orange-500 mb-0.5">${p.CODIGO}</span><span class="text-sm font-bold text-gray-800 truncate leading-tight">${p.NOMBRE}</span></div><span class="text-[10px] font-black bg-gray-100 text-gray-500 px-2 py-1 rounded-md ml-2 whitespace-nowrap">${p.STOCK} ${p.UNIDAD}</span>`;
+                        div.onclick = () => { manualInputEl.value = p.CODIGO; visorResultsEl.classList.add('hidden'); manualSearch(p.CODIGO); };
+                        visorResultsEl.appendChild(div);
+                    });
+                } else { visorResultsEl.classList.add('hidden'); }
+            });
+        }
 
         document.addEventListener('click', (e) => {
             if (manualInputEl && visorResultsEl && !manualInputEl.contains(e.target) && !visorResultsEl.contains(e.target)) {
@@ -1073,6 +988,7 @@
             }
         });
 
+        // --- SISTEMA DE COMPRESIÓN DE FOTOS ---
         function procesarFotoMerma(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -1121,6 +1037,7 @@
             document.getElementById('modalVerFoto').classList.remove('flex');
         }
 
+        // --- LÓGICA MÓDULO MERMAS ---
         function abrirModalMerma() {
             if(!window.currentProd) return;
             document.getElementById('modalMermaCode').innerText = window.currentProd.CODIGO;
@@ -1239,6 +1156,7 @@
             }
         }
 
+        // --- LÓGICA MÓDULO INVENTARIO ---
         function intentarVerInventario() {
             if(inventarioDesbloqueado) { setView('inventario'); actualizarUIEstadoInventario(); } 
             else {
@@ -1253,7 +1171,7 @@
         function validarPin() {
             const pinIngresado = document.getElementById('inputPinBodega').value;
             if(pinIngresado === PIN_BODEGA) {
-                inventarioDesbloqueado = true; addLog("Sesión de inventario iniciada."); cerrarModalAuth();
+                inventarioDesbloqueado = true; addLog("Sesión iniciada."); cerrarModalAuth();
                 setView('inventario'); actualizarUIEstadoInventario();
             } else { document.getElementById('pinError').classList.remove('hidden'); document.getElementById('inputPinBodega').value = ''; }
         }
@@ -1277,22 +1195,11 @@
             const periodo = document.getElementById('invInputPeriodo').value; 
 
             if(!nombre || !rut || !periodo) {
-                alert("Por favor, completa todos los campos para iniciar la auditoría.");
-                return;
+                alert("Por favor, completa todos los campos."); return;
             }
 
-            inventarioMetadata = {
-                nombre: nombre,
-                rut: rut,
-                periodo: periodo,
-                fechaInicio: new Date().toLocaleString(),
-                fechaTermino: null
-            };
-
-            saveInventarioState();
-            cerrarModalInicioInventario();
-            addLog(`Auditoría ${periodo} iniciada por ${nombre}`);
-            actualizarUIEstadoInventario();
+            inventarioMetadata = { nombre: nombre, rut: rut, periodo: periodo, fechaInicio: new Date().toLocaleString(), fechaTermino: null };
+            saveInventarioState(); cerrarModalInicioInventario(); addLog(`Auditoría ${periodo} iniciada por ${nombre}`); actualizarUIEstadoInventario();
         }
 
         function actualizarUIEstadoInventario() {
@@ -1301,16 +1208,12 @@
 
             if(inventarioMetadata) {
                 containerInactivo.classList.add('hidden');
-                containerActivo.classList.remove('hidden');
-                containerActivo.classList.add('flex');
-
+                containerActivo.classList.remove('hidden'); containerActivo.classList.add('flex');
                 document.getElementById('lblInvPeriodo').innerText = inventarioMetadata.periodo;
                 document.getElementById('lblInvResponsable').innerText = inventarioMetadata.nombre;
-
                 renderFullInventoryList(document.getElementById('invFilterInput').value);
             } else {
-                containerActivo.classList.add('hidden');
-                containerActivo.classList.remove('flex');
+                containerActivo.classList.add('hidden'); containerActivo.classList.remove('flex');
                 containerInactivo.classList.remove('hidden');
             }
         }
@@ -1324,13 +1227,7 @@
             let allProductsToRender = [...dbProducts];
             listaInventarioFisico.forEach(item => {
                 if(item['ESTADO'] === 'AGREGADO MANUAL' && !allProductsToRender.find(p => p.CODIGO === item['CÓDIGO'])) {
-                    allProductsToRender.unshift({
-                        CODIGO: item['CÓDIGO'],
-                        NOMBRE: item['NOMBRE'],
-                        STOCK: '0',
-                        UNIDAD: item['UNIDAD'] || 'UND',
-                        MANUAL: true
-                    });
+                    allProductsToRender.unshift({ CODIGO: item['CÓDIGO'], NOMBRE: item['NOMBRE'], STOCK: '0', UNIDAD: item['UNIDAD'] || 'UND', MANUAL: true });
                 }
             });
 
@@ -1346,7 +1243,7 @@
 
                 let statusBadge = ''; 
                 let cardClass = 'bg-white hover:border-orange-400 hover:shadow-md border-gray-200';
-                let iconBox = p.MANUAL ? '<div class="w-10 h-10 rounded-xl bg-green-50 border border-green-200 flex items-center justify-center shrink-0 text-green-500" title="Producto Manual"><i class="fa-solid fa-hand-sparkles"></i></div>' : '<div class="w-10 h-10 rounded-xl bg-gray-50 border border-gray-200 flex items-center justify-center shrink-0 text-gray-400"><i class="fa-solid fa-box-open"></i></div>';
+                let iconBox = p.MANUAL ? '<div class="w-10 h-10 rounded-xl bg-green-50 border border-green-200 flex items-center justify-center shrink-0 text-green-500"><i class="fa-solid fa-hand-sparkles"></i></div>' : '<div class="w-10 h-10 rounded-xl bg-gray-50 border border-gray-200 flex items-center justify-center shrink-0 text-gray-400"><i class="fa-solid fa-box-open"></i></div>';
 
                 if (isCounted) {
                     cardClass = 'bg-green-50 border-green-200 hover:bg-green-100'; 
@@ -1367,15 +1264,13 @@
                             <p class="text-[10px] font-black ${p.MANUAL ? 'text-green-500' : 'text-orange-500'} tracking-widest mb-0.5 uppercase">${p.CODIGO}</p>
                             <p class="text-sm font-bold text-gray-800 leading-tight truncate">${p.NOMBRE}</p>
                         </div>
-                        <div class="shrink-0 flex items-center justify-end min-w-[3.5rem]">
-                            ${statusBadge || '<div class="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center border border-gray-200"><i class="fa-solid fa-chevron-right text-gray-400 text-xs"></i></div>'}
-                        </div>
+                        <div class="shrink-0 flex items-center justify-end min-w-[3.5rem]">${statusBadge || '<div class="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center border border-gray-200"><i class="fa-solid fa-chevron-right text-gray-400 text-xs"></i></div>'}</div>
                     </li>`;
             });
             html += '</ul>';
             
-            if(total === 0) { html = `<div class="p-8 text-center text-gray-400 font-medium">Aún no hay base de datos cargada.</div>`; } 
-            else if (html === '<ul class="flex flex-col gap-3 px-2 pb-4 pt-1"></ul>') { html = `<div class="p-8 text-center text-gray-400 font-medium text-sm"><i class="fa-solid fa-box-open text-3xl mb-3 block opacity-30"></i>¡Todo listo!<br>No hay productos pendientes que coincidan.</div>`; }
+            if(total === 0) { html = `<div class="p-8 text-center text-gray-400 font-medium">Base de datos vacía.</div>`; } 
+            else if (html === '<ul class="flex flex-col gap-3 px-2 pb-4 pt-1"></ul>') { html = `<div class="p-8 text-center text-gray-400 font-medium text-sm"><i class="fa-solid fa-box-open text-3xl mb-3 block opacity-30"></i>¡Todo listo!<br>No hay productos pendientes.</div>`; }
 
             container.innerHTML = html;
             const pct = total === 0 ? 0 : Math.round((contados / total) * 100);
@@ -1411,40 +1306,23 @@
             const qty = parseInt(qtyStr);
 
             const dataConteo = {
-                'CÓDIGO': code,
-                'NOMBRE': name,
-                'STOCK SISTEMA': 0,
-                'INVENTARIO FÍSICO': qty,
-                'DIFERENCIA': qty,
-                'ESTADO': 'AGREGADO MANUAL',
-                'FECHA/HORA': new Date().toLocaleString(),
-                'UNIDAD': udm
+                'CÓDIGO': code, 'NOMBRE': name, 'STOCK SISTEMA': 0, 'INVENTARIO FÍSICO': qty, 'DIFERENCIA': qty,
+                'ESTADO': 'AGREGADO MANUAL', 'FECHA/HORA': new Date().toLocaleString(), 'UNIDAD': udm
             };
 
             const existenteIndex = listaInventarioFisico.findIndex(item => item['CÓDIGO'] === code);
-            if(existenteIndex >= 0) {
-                listaInventarioFisico[existenteIndex] = dataConteo;
-                addLog(`Modificado Manual: ${name} a ${qty} ${udm}.`);
-            } else {
-                listaInventarioFisico.push(dataConteo);
-                addLog(`Agregado Manual: ${name} (${qty} ${udm}).`);
-            }
+            if(existenteIndex >= 0) { listaInventarioFisico[existenteIndex] = dataConteo; addLog(`Mod. Manual: ${name}`); } 
+            else { listaInventarioFisico.push(dataConteo); addLog(`Agregado Manual: ${name}`); }
 
-            saveInventarioState();
-            cerrarModalNuevoProducto();
-            renderFullInventoryList(document.getElementById('invFilterInput').value);
+            saveInventarioState(); cerrarModalNuevoProducto(); renderFullInventoryList(document.getElementById('invFilterInput').value);
         }
 
         function abrirConteoModal(codigo, isManual = false) {
             let prod = dbProducts.find(p => p.CODIGO === codigo);
-            
             if(!prod && isManual) {
                 const manualItem = listaInventarioFisico.find(item => item['CÓDIGO'] === codigo);
-                if(manualItem) {
-                    prod = { CODIGO: manualItem['CÓDIGO'], NOMBRE: manualItem['NOMBRE'], STOCK: 0 };
-                }
+                if(manualItem) prod = { CODIGO: manualItem['CÓDIGO'], NOMBRE: manualItem['NOMBRE'], STOCK: 0 };
             }
-
             if(!prod) { alert("Producto no encontrado."); return; }
             
             invCurrentProd = prod;
@@ -1463,10 +1341,7 @@
         function cerrarConteoModal() { document.getElementById('modalConteo').classList.add('hidden'); document.getElementById('modalConteo').classList.remove('flex'); invCurrentProd = null; }
 
         function abrirMermaDesdeInventario() {
-            if(!invCurrentProd) return;
-            window.currentProd = invCurrentProd; 
-            cerrarConteoModal(); 
-            abrirModalMerma(); 
+            if(!invCurrentProd) return; window.currentProd = invCurrentProd; cerrarConteoModal(); abrirModalMerma(); 
         }
 
         function guardarConteoFisico() {
@@ -1478,58 +1353,34 @@
             
             let estado = "CUADRADO"; 
             const isManualBefore = listaInventarioFisico.find(item => item['CÓDIGO'] === invCurrentProd.CODIGO && item['ESTADO'] === 'AGREGADO MANUAL');
-            
-            if(isManualBefore) {
-                estado = "AGREGADO MANUAL";
-            } else {
-                if(diferencia > 0) estado = "SOBRANTE"; 
-                if(diferencia < 0) estado = "FALTANTE";
-            }
+            if(isManualBefore) { estado = "AGREGADO MANUAL"; } else { if(diferencia > 0) estado = "SOBRANTE"; if(diferencia < 0) estado = "FALTANTE"; }
 
             const existenteIndex = listaInventarioFisico.findIndex(item => item['CÓDIGO'] === invCurrentProd.CODIGO);
             const dataConteo = { 'CÓDIGO': invCurrentProd.CODIGO, 'NOMBRE': invCurrentProd.NOMBRE, 'STOCK SISTEMA': stockSistema, 'INVENTARIO FÍSICO': conteoFisico, 'DIFERENCIA': diferencia, 'ESTADO': estado, 'FECHA/HORA': new Date().toLocaleString() };
 
-            if(existenteIndex >= 0) { listaInventarioFisico[existenteIndex] = dataConteo; addLog(`Modificado: ${invCurrentProd.NOMBRE} a ${conteoFisico} und.`); } 
-            else { listaInventarioFisico.push(dataConteo); addLog(`Contado: ${invCurrentProd.NOMBRE} (${conteoFisico} und).`); }
-
+            if(existenteIndex >= 0) { listaInventarioFisico[existenteIndex] = dataConteo; } else { listaInventarioFisico.push(dataConteo); }
             saveInventarioState(); cerrarConteoModal(); renderFullInventoryList(document.getElementById('invFilterInput').value);
         }
 
         function abrirModalLogs() { renderLogs(); document.getElementById('modalLogs').classList.remove('hidden'); document.getElementById('modalLogs').classList.add('flex'); }
         function cerrarModalLogs() { document.getElementById('modalLogs').classList.add('hidden'); document.getElementById('modalLogs').classList.remove('flex'); }
+        function renderLogs() { const container = document.getElementById('logsContainer'); if(inventarioLogs.length === 0) { container.innerHTML = '<p class="text-gray-400 text-center py-4">No hay actividad.</p>'; return; } container.innerHTML = inventarioLogs.map(l => `<div class="border-b border-gray-50 pb-1 mb-1">${l}</div>`).join(''); }
 
-        function renderLogs() {
-            const container = document.getElementById('logsContainer');
-            if(inventarioLogs.length === 0) { container.innerHTML = '<p class="text-gray-400 text-center py-4">No hay actividad reciente.</p>'; return; }
-            container.innerHTML = inventarioLogs.map(l => `<div class="border-b border-gray-50 pb-1 mb-1">${l}</div>`).join('');
-        }
-
+        // --- SISTEMA DE COMPARTIR EXCEL ---
         async function procesarDescargaOCompartir(datosExcel, nombreArchivo, nombreHoja, meta = null) {
             if(datosExcel.length === 0) { alert("No hay datos para exportar."); return; }
-            
             const workbook = XLSX.utils.book_new();
 
             if(meta) {
                 const resumenData = [
-                    { 'CAMPO': 'Responsable', 'VALOR': meta.nombre },
-                    { 'CAMPO': 'RUT', 'VALOR': meta.rut },
-                    { 'CAMPO': 'Periodo', 'VALOR': meta.periodo },
-                    { 'CAMPO': 'Fecha/Hora Inicio', 'VALOR': meta.fechaInicio },
-                    { 'CAMPO': 'Fecha/Hora Término', 'VALOR': meta.fechaTermino || 'En curso' },
-                    { 'CAMPO': 'Total Ítems Contados', 'VALOR': datosExcel.length }
+                    { 'CAMPO': 'Responsable', 'VALOR': meta.nombre }, { 'CAMPO': 'RUT', 'VALOR': meta.rut }, { 'CAMPO': 'Periodo', 'VALOR': meta.periodo },
+                    { 'CAMPO': 'Fecha/Hora Inicio', 'VALOR': meta.fechaInicio }, { 'CAMPO': 'Fecha/Hora Término', 'VALOR': meta.fechaTermino || 'En curso' }, { 'CAMPO': 'Total Ítems Contados', 'VALOR': datosExcel.length }
                 ];
-                const wsResumen = XLSX.utils.json_to_sheet(resumenData);
-                XLSX.utils.book_append_sheet(workbook, wsResumen, "Resumen Sesión");
+                XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(resumenData), "Resumen Sesión");
             }
 
-            const datosLimpios = datosExcel.map(item => {
-                let { FOTO, ...resto } = item;
-                if(FOTO) resto['EVIDENCIA'] = 'FOTO ADJUNTA EN LA APP';
-                return resto;
-            });
-
-            const worksheet = XLSX.utils.json_to_sheet(datosLimpios); 
-            XLSX.utils.book_append_sheet(workbook, worksheet, nombreHoja);
+            const datosLimpios = datosExcel.map(item => { let { FOTO, ...resto } = item; if(FOTO) resto['EVIDENCIA'] = 'FOTO ADJUNTA EN LA APP'; return resto; });
+            XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(datosLimpios), nombreHoja);
 
             try {
                 const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
@@ -1537,89 +1388,46 @@
                 const file = new File([blob], nombreArchivo, { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
 
                 if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                    await navigator.share({
-                        files: [file],
-                        title: 'Reporte Deteco',
-                        text: `Adjunto reporte generado el ${new Date().toLocaleString()}`
-                    });
-                    addLog(`Archivo compartido: ${nombreArchivo}`);
+                    await navigator.share({ files: [file], title: 'Reporte Deteco', text: `Adjunto reporte` });
                 } else {
                     XLSX.writeFile(workbook, nombreArchivo);
-                    addLog(`Excel descargado (PC): ${nombreArchivo}`);
                 }
                 return true; 
-            } catch (error) {
-                console.log("Compartir cancelado o falló:", error);
-                return false; 
-            }
+            } catch (error) { return false; }
         }
 
         function exportarInventarioExcelSolo() {
-            const btn = document.getElementById('btnExcelSolo');
-            const iconOriginal = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-lg"></i>';
-            
-            setTimeout(() => {
-                const nombreArchivo = `Inventario_Parcial_${inventarioMetadata.periodo}_Deteco.xlsx`;
-                procesarDescargaOCompartir(listaInventarioFisico, nombreArchivo, "Auditoría Física", inventarioMetadata).finally(() => {
-                    btn.innerHTML = iconOriginal;
-                });
-            }, 300);
+            const btn = document.getElementById('btnExcelSolo'); const iconOriginal = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-lg"></i>';
+            setTimeout(() => { procesarDescargaOCompartir(listaInventarioFisico, `Inventario_Parcial_${inventarioMetadata.periodo}_Deteco.xlsx`, "Auditoría Física", inventarioMetadata).finally(() => { btn.innerHTML = iconOriginal; }); }, 300);
         }
 
         async function finalizarInventario() {
             if(!inventarioMetadata) return;
-            if(listaInventarioFisico.length === 0) {
-                if(confirm("No has contado nada aún. ¿Deseas cancelar esta sesión de todas formas?")) {
-                    listaInventarioFisico = []; inventarioLogs = []; inventarioMetadata = null; saveInventarioState(); actualizarUIEstadoInventario();
-                }
-                return;
-            }
+            if(listaInventarioFisico.length === 0) { if(confirm("¿Deseas cancelar esta sesión de todas formas?")) { listaInventarioFisico = []; inventarioLogs = []; inventarioMetadata = null; saveInventarioState(); actualizarUIEstadoInventario(); } return; }
 
-            if(confirm("⚠️ ¿Deseas dar por terminada esta sesión de inventario?\n\nSe registrará la hora de cierre y se te pedirá guardar el reporte final.")) {
-                const btn = document.getElementById('btnCerrarInv');
-                const originalHtml = btn.innerHTML;
-                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-xl"></i> Generando...';
-
-                inventarioMetadata.fechaTermino = new Date().toLocaleString();
-                saveInventarioState();
-
-                const nombreArchivo = `Inventario_FINAL_${inventarioMetadata.periodo}_Deteco.xlsx`;
+            if(confirm("⚠️ ¿Deseas dar por terminada esta sesión de inventario?")) {
+                const btn = document.getElementById('btnCerrarInv'); const originalHtml = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-xl"></i> Generando...';
+                inventarioMetadata.fechaTermino = new Date().toLocaleString(); saveInventarioState();
                 
                 setTimeout(async () => {
-                    const exito = await procesarDescargaOCompartir(listaInventarioFisico, nombreArchivo, "Auditoría Física", inventarioMetadata);
+                    const exito = await procesarDescargaOCompartir(listaInventarioFisico, `Inventario_FINAL_${inventarioMetadata.periodo}_Deteco.xlsx`, "Auditoría Física", inventarioMetadata);
                     btn.innerHTML = originalHtml;
-                    
-                    if(exito) {
-                        if(confirm("✅ Reporte exportado exitosamente.\n\n¿Deseas borrar los datos del dispositivo ahora para dejarlo limpio para el próximo mes? (Recomendado)")) {
-                            listaInventarioFisico = []; 
-                            inventarioLogs = []; 
-                            inventarioMetadata = null; 
-                            saveInventarioState(); 
-                            actualizarUIEstadoInventario();
-                        }
-                    } else {
-                        inventarioMetadata.fechaTermino = null; 
-                        saveInventarioState();
-                        alert("Exportación cancelada. Tu inventario sigue guardado en el teléfono y abierto.");
-                    }
+                    if(exito) { if(confirm("✅ Reporte exportado exitosamente.\n\n¿Deseas borrar los datos para el próximo mes?")) { listaInventarioFisico = []; inventarioLogs = []; inventarioMetadata = null; saveInventarioState(); actualizarUIEstadoInventario(); } } 
+                    else { inventarioMetadata.fechaTermino = null; saveInventarioState(); alert("Exportación cancelada."); }
                 }, 300);
             }
         }
 
         function openScanner(target) {
             scannerTargetView = target; 
-            const modal = document.getElementById('modalScanner');
-            modal.classList.remove('hidden'); modal.classList.add('flex');
+            const modal = document.getElementById('modalScanner'); modal.classList.remove('hidden'); modal.classList.add('flex');
             if (!html5QrcodeScanner) { html5QrcodeScanner = new Html5Qrcode("reader"); }
-            const config = { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 };
-            
-            html5QrcodeScanner.start({ facingMode: "environment" }, config, (decodedText) => {
+            html5QrcodeScanner.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 }, (decodedText) => {
                 let scannedId = decodedText; try { const url = new URL(decodedText); if (url.searchParams.has('id')) { scannedId = url.searchParams.get('id'); } } catch(e) {}
                 closeScanner(); 
                 if(scannerTargetView === 'visor') { document.getElementById('manualInput').value = scannedId; manualSearch(scannedId); } 
                 else if (scannerTargetView === 'inventario') { abrirConteoModal(scannedId); }
-            }).catch((err) => { console.warn("Fallo cámara:", err); alert("Por favor, permite el acceso a la cámara en tu navegador."); closeScanner(); });
+            }).catch((err) => { alert("Por favor, permite el acceso a la cámara."); closeScanner(); });
         }
         function closeScanner() { const modal = document.getElementById('modalScanner'); modal.classList.add('hidden'); modal.classList.remove('flex'); if (html5QrcodeScanner) { html5QrcodeScanner.stop().catch(err => console.warn(err)); } }
 
@@ -1631,18 +1439,12 @@
             const targetView = document.getElementById(`view-${view}`);
             if(targetView) targetView.classList.add('active');
             
-            const btnToggle = document.getElementById('btn-settings-toggle'); 
-            const panel = document.getElementById('panel-settings');
+            const btnToggle = document.getElementById('btn-settings-toggle'); const panel = document.getElementById('panel-settings');
             
             if(view === 'generator') {
                 btnToggle.style.display = 'inline-flex'; panel.style.display = 'block';
-                if(!hasSeenGeneratorMenuHint) {
-                    hasSeenGeneratorMenuHint = true; panel.classList.remove('settings-collapsed'); btnToggle.classList.add('bg-orange-200');
-                    hintTimeout = setTimeout(() => { panel.classList.add('settings-collapsed'); btnToggle.classList.remove('bg-orange-200'); }, 1200);
-                }
-            } else { 
-                btnToggle.style.display = 'none'; panel.style.display = 'none'; 
-            }
+                if(!hasSeenGeneratorMenuHint) { hasSeenGeneratorMenuHint = true; panel.classList.remove('settings-collapsed'); btnToggle.classList.add('bg-orange-200'); hintTimeout = setTimeout(() => { panel.classList.add('settings-collapsed'); btnToggle.classList.remove('bg-orange-200'); }, 1200); }
+            } else { btnToggle.style.display = 'none'; panel.style.display = 'none'; }
 
             const btnGen = document.getElementById('btn-gen'); if(btnGen) btnGen.className = view === 'generator' ? 'ios-btn btn-active-tab shrink-0' : 'ios-btn btn-ghost shrink-0';
             const btnVis = document.getElementById('btn-vis'); if(btnVis) btnVis.className = view === 'visor' ? 'ios-btn btn-active-tab shrink-0' : 'ios-btn btn-ghost shrink-0';
@@ -1657,65 +1459,77 @@
             else { panel.classList.add('settings-collapsed'); btn.classList.remove('bg-orange-200'); }
         }
 
-        els.dbSearch.addEventListener('input', (e) => {
-            const val = e.target.value.toLowerCase();
-            if(val.length < 2) { els.searchResults.classList.add('hidden'); return; }
-            const matches = dbProducts.filter(p => (p.CODIGO && p.CODIGO.toLowerCase().includes(val)) || (p.NOMBRE && p.NOMBRE.toLowerCase().includes(val))).slice(0, 5);
-            els.searchResults.innerHTML = '';
-            if(matches.length) {
-                els.searchResults.classList.remove('hidden');
-                matches.forEach(p => {
-                    const div = document.createElement('div'); div.className = "p-3 hover:bg-orange-50 cursor-pointer border-b text-sm flex justify-between";
-                    div.innerHTML = `<span><strong>${p.CODIGO}</strong></span> <span class="text-gray-500 truncate ml-2 text-xs">${p.NOMBRE}</span>`;
-                    div.onclick = () => {
-                        els.productCode.value = p.CODIGO || ''; els.name.value = p.NOMBRE || ''; els.family.value = p.CATEGORIA || '';
-                        
-                        els.consumo.value = '0'; 
-                        els.min.value = Math.floor(parseInt(p.STOCK || '0') * 0.2);
-                        els.max.value = p.STOCK || '0';
-                        
-                        els.searchResults.classList.add('hidden'); els.dbSearch.value = '';
-                    };
-                    els.searchResults.appendChild(div);
-                });
-            } else { els.searchResults.classList.add('hidden'); }
-        });
+        // --- GENERADOR DE ETIQUETAS ---
+        if(els.dbSearch) {
+            els.dbSearch.addEventListener('input', (e) => {
+                const val = e.target.value.toLowerCase();
+                if(val.length < 2) { els.searchResults.classList.add('hidden'); return; }
+                const matches = dbProducts.filter(p => (p.CODIGO && p.CODIGO.toLowerCase().includes(val)) || (p.NOMBRE && p.NOMBRE.toLowerCase().includes(val))).slice(0, 5);
+                els.searchResults.innerHTML = '';
+                if(matches.length) {
+                    els.searchResults.classList.remove('hidden');
+                    matches.forEach(p => {
+                        const div = document.createElement('div'); div.className = "p-3 hover:bg-orange-50 cursor-pointer border-b text-sm flex justify-between";
+                        div.innerHTML = `<span><strong>${p.CODIGO}</strong></span> <span class="text-gray-500 truncate ml-2 text-xs">${p.NOMBRE}</span>`;
+                        div.onclick = () => {
+                            if(els.productCode) els.productCode.value = p.CODIGO || ''; 
+                            if(els.name) els.name.value = p.NOMBRE || ''; 
+                            if(els.family) els.family.value = p.CATEGORIA || '';
+                            if(els.orgInput) els.orgInput.value = p.ORGANIZADOR || '';
+                            
+                            if(els.consumo) els.consumo.value = '0'; 
+                            if(els.min) els.min.value = Math.floor(parseInt(p.STOCK || '0') * 0.2);
+                            if(els.max) els.max.value = p.STOCK || '0';
+                            
+                            els.searchResults.classList.add('hidden'); els.dbSearch.value = '';
+                        };
+                        els.searchResults.appendChild(div);
+                    });
+                } else { els.searchResults.classList.add('hidden'); }
+            });
+        }
 
         function incrementarAlfanumerico(str) { return str.replace(/\d+$/, function(n) { return String(parseInt(n, 10) + 1).padStart(n.length, '0'); }); }
 
         function agregarALaHoja() {
             colaImpresion.push({ 
-                nombre: els.name.value || 'SIN NOMBRE', 
-                sku: els.productCode.value || '-', 
-                org: els.orgInput.value || '-', 
-                familia: els.family.value || '-',
-                consumo: els.consumo.value || '-',
-                min: els.min.value || '-',
-                max: els.max.value || '-',
-                estilo: els.style.value || '5s'
+                nombre: els.name ? els.name.value : 'SIN NOMBRE', 
+                sku: els.productCode ? els.productCode.value : '-', 
+                org: els.orgInput ? els.orgInput.value : '-', 
+                familia: els.family ? els.family.value : '-',
+                consumo: els.consumo ? els.consumo.value : '-',
+                min: els.min ? els.min.value : '-',
+                max: els.max ? els.max.value : '-',
+                estilo: els.style ? els.style.value : '5s_orange'
             });
-            if (els.checkNum.checked) { let actualOrg = els.orgInput.value.trim(); if (actualOrg !== '') { els.orgInput.value = incrementarAlfanumerico(actualOrg); } }
+            if (els.checkNum && els.checkNum.checked && els.orgInput) { 
+                let actualOrg = els.orgInput.value.trim(); 
+                if (actualOrg !== '') { els.orgInput.value = incrementarAlfanumerico(actualOrg); } 
+            }
             renderLabels();
-            const btn = document.getElementById('btnAgregarHoja'); const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-check"></i> ¡Añadida!'; btn.classList.replace('bg-orange-500', 'bg-green-500'); btn.classList.replace('hover:bg-orange-600', 'hover:bg-green-600');
-            setTimeout(() => { btn.innerHTML = originalText; btn.classList.replace('bg-green-500', 'bg-orange-500'); btn.classList.replace('hover:bg-green-600', 'hover:bg-orange-600'); }, 1000);
+            const btn = document.getElementById('btnAgregarHoja'); 
+            if(btn) {
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> ¡Añadida!'; btn.classList.replace('bg-orange-500', 'bg-green-500'); btn.classList.replace('hover:bg-orange-600', 'hover:bg-green-600');
+                setTimeout(() => { btn.innerHTML = originalText; btn.classList.replace('bg-green-500', 'bg-orange-500'); btn.classList.replace('hover:bg-green-600', 'hover:bg-orange-600'); }, 1000);
+            }
         }
 
         function limpiarHoja() { if(confirm('¿Vaciar todas las etiquetas?')) { colaImpresion = []; renderLabels(); } }
         function eliminarEtiqueta(index) { colaImpresion.splice(index, 1); renderLabels(); }
 
         function renderLabels() {
+            if(!els.wrapper) return;
             els.wrapper.innerHTML = '';
-            const rows = parseInt(els.rows.value) || 3; const cols = parseInt(els.cols.value) || 2; const orientation = els.orientation.value;
-            const sName = els.sizeName ? els.sizeName.value + 'px' : '24px';
-            const sSku = els.sizeSku ? els.sizeSku.value + 'px' : '12px'; 
-            const sOrg = els.sizeOrg ? els.sizeOrg.value + 'px' : '20px'; 
-            const sFamily = els.sizeFamily ? els.sizeFamily.value + 'px' : '10px';
+            const rows = parseInt(els.rows ? els.rows.value : 3) || 3; 
+            const cols = parseInt(els.cols ? els.cols.value : 2) || 2; 
+            const orientation = els.orientation ? els.orientation.value : 'landscape';
+            
+            const sName = (els.sizeName ? els.sizeName.value : '22') + 'px';
+            const sOrg = (els.sizeOrg ? els.sizeOrg.value : '28') + 'px';
             
             if(els.valSizeName) els.valSizeName.innerText = sName;
-            if(els.valSizeSku) els.valSizeSku.innerText = sSku;
             if(els.valSizeOrg) els.valSizeOrg.innerText = sOrg;
-            if(els.valSizeFamily) els.valSizeFamily.innerText = sFamily;
 
             if(orientation === 'landscape') { document.documentElement.style.setProperty('--page-width', '297mm'); document.documentElement.style.setProperty('--page-height', '210mm'); } 
             else { document.documentElement.style.setProperty('--page-width', '210mm'); document.documentElement.style.setProperty('--page-height', '297mm'); }
@@ -1735,99 +1549,119 @@
                         
                         let cardContent = '';
                         
-                        // --- DISEÑO 1: 5S CLÁSICO ---
-                        if (item.estilo === '5s') {
+                        // --- DISEÑO 1: CROQUIS NARANJA ---
+                        if (item.estilo === '5s_orange') {
                             cardContent = `
-                                <div class="w-full h-full border-[3px] border-black flex flex-col bg-white box-border">
-                                    <div class="flex-1 grid grid-cols-4 grid-rows-2 border-b-[3px] border-black">
-                                        <div class="col-span-1 row-span-2 border-r-[3px] border-black flex flex-col">
-                                            <div class="text-[10px] font-black text-center border-b-[3px] border-black p-1 leading-tight uppercase">Consumo<br>Semanal</div>
-                                            <div class="flex-1 flex items-center justify-center font-black text-4xl">${item.consumo}</div>
+                                <div class="w-full h-full border-[3px] border-[#F26522] flex flex-col bg-white box-border relative">
+                                    <div class="flex h-[60%] border-b-[3px] border-[#F26522]">
+                                        <div class="w-[25%] border-r-[3px] border-[#F26522] flex flex-col">
+                                            <div class="text-[8px] sm:text-[10px] font-black text-center border-b-[3px] border-[#F26522] p-1 uppercase text-[#F26522] leading-none bg-orange-50">Consumo<br>Semanal</div>
+                                            <div class="flex-1 flex items-center justify-center font-black text-4xl text-gray-900">${item.consumo}</div>
                                         </div>
-                                        <div class="col-span-2 row-span-1 border-b-[3px] border-r-[3px] border-black flex flex-col items-center justify-center px-2 py-1 text-center overflow-hidden">
-                                            <div class="text-[9px] font-black text-gray-500 uppercase tracking-widest w-full border-b border-gray-300 mb-1 pb-[1px]">${item.sku}</div>
-                                            <div class="font-black leading-tight flex-1 flex items-center" style="font-size: ${sName}">${item.nombre}</div>
+                                        <div class="w-[50%] border-r-[3px] border-[#F26522] flex flex-col items-center justify-center p-2 relative">
+                                            <div class="absolute top-1 text-[10px] font-black text-gray-500 tracking-widest border-b border-gray-200 w-[80%] text-center uppercase">${item.sku}</div>
+                                            <div class="font-black text-center text-gray-900 leading-tight w-full mt-3 uppercase" style="font-size:${sName}">${item.nombre}</div>
                                         </div>
-                                        <div class="col-span-1 row-span-1 flex flex-col items-center justify-center p-1 bg-gray-100 border-b-[3px] border-black">
-                                            <div class="text-[9px] font-black text-center uppercase tracking-widest border-b border-gray-300 w-full mb-1 pb-[1px]">Nº CAJÓN</div>
-                                            <div class="font-black text-center text-orange-600 flex-1 flex items-center" style="font-size: ${sOrg}">${item.org}</div>
-                                        </div>
-                                        <div class="col-span-2 row-span-1 border-r-[3px] border-black flex">
-                                            <div class="flex-1 border-r-[3px] border-black flex flex-col">
-                                                <div class="text-[10px] font-black text-center border-b border-black bg-gray-100">MIN</div>
-                                                <div class="flex-1 flex items-center justify-center font-black text-2xl">${item.min}</div>
-                                            </div>
-                                            <div class="flex-1 flex flex-col">
-                                                <div class="text-[10px] font-black text-center border-b border-black bg-gray-100">MAX</div>
-                                                <div class="flex-1 flex items-center justify-center font-black text-2xl">${item.max}</div>
-                                            </div>
-                                        </div>
-                                        <div class="col-span-1 row-span-2 flex items-center justify-center p-1 relative top-[-50%] h-[200%] bg-white border-l-[3px] border-black box-border">
-                                            <div id="${qrId}" class="w-[85%] aspect-square flex items-center justify-center"></div>
+                                        <div class="w-[25%] flex flex-col">
+                                            <div class="text-[8px] sm:text-[10px] font-black text-center border-b-[3px] border-[#F26522] p-1 uppercase text-[#F26522] leading-none bg-orange-50">Nº Cajón</div>
+                                            <div class="flex-1 flex items-center justify-center font-black text-[#F26522] text-center leading-none" style="font-size:${sOrg}">${item.org}</div>
                                         </div>
                                     </div>
-                                    <div class="h-10 flex shrink-0">
-                                        <div class="w-1/4 border-r-[3px] border-black flex items-center justify-center p-1">
-                                            <img src="logo.png" class="max-h-full object-contain grayscale" onerror="this.style.display='none'">
+                                    <div class="flex h-[40%]">
+                                        <div class="w-[25%] border-r-[3px] border-[#F26522] flex items-center justify-center p-2 relative">
+                                            <img src="logo.png" class="max-h-full max-w-full object-contain grayscale" onerror="this.style.display='none'">
                                         </div>
-                                        <div class="flex-1 flex items-center justify-center bg-gray-100">
-                                             <span class="text-[10px] text-gray-500 font-black uppercase tracking-widest">${item.familia}</span>
+                                        <div class="w-[50%] border-r-[3px] border-[#F26522] flex">
+                                            <div class="w-1/2 border-r-[3px] border-[#F26522] flex flex-col">
+                                                <div class="text-[10px] font-black text-center border-b-[3px] border-[#F26522] text-[#F26522] bg-orange-50">MIN</div>
+                                                <div class="flex-1 flex items-center justify-center font-black text-3xl text-gray-900">${item.min}</div>
+                                            </div>
+                                            <div class="w-1/2 flex flex-col">
+                                                <div class="text-[10px] font-black text-center border-b-[3px] border-[#F26522] text-[#F26522] bg-orange-50">MAX</div>
+                                                <div class="flex-1 flex items-center justify-center font-black text-3xl text-gray-900">${item.max}</div>
+                                            </div>
+                                        </div>
+                                        <div class="w-[25%] flex items-center justify-center p-1 relative">
+                                            <div id="${qrId}" class="w-[90%] aspect-square flex items-center justify-center mix-blend-multiply"></div>
                                         </div>
                                     </div>
                                 </div>
                             `;
                         } 
-                        // --- DISEÑO 2: MODERNO DETECO ---
-                        else if (item.estilo === 'modern') {
+                        // --- DISEÑO 2: ENCABEZADOS SOLIDOS ---
+                        else if (item.estilo === '5s_solid') {
                             cardContent = `
-                                <div class="w-full h-full border-2 border-orange-500 rounded-xl flex flex-col bg-white overflow-hidden shadow-sm relative box-border">
-                                    <div class="bg-orange-500 text-white flex justify-between items-center px-4 py-1.5 shrink-0">
-                                        <span class="font-black text-[10px] tracking-widest uppercase">DETECO IC SA</span>
-                                        <span class="font-black text-lg">${item.org}</span>
+                                <div class="w-full h-full border-[3px] border-[#F26522] flex flex-col bg-white box-border relative">
+                                    <div class="flex h-[60%] border-b-[3px] border-[#F26522]">
+                                        <div class="w-[25%] border-r-[3px] border-[#F26522] flex flex-col">
+                                            <div class="text-[8px] sm:text-[10px] font-black text-center border-b-[3px] border-[#F26522] p-1 uppercase text-white bg-[#F26522] leading-none">Consumo<br>Semanal</div>
+                                            <div class="flex-1 flex items-center justify-center font-black text-4xl text-gray-900">${item.consumo}</div>
+                                        </div>
+                                        <div class="w-[50%] border-r-[3px] border-[#F26522] flex flex-col items-center justify-center p-2 relative">
+                                            <div class="absolute top-1 text-[10px] font-black text-gray-500 tracking-widest border-b border-gray-200 w-[80%] text-center uppercase">${item.sku}</div>
+                                            <div class="font-black text-center text-gray-900 leading-tight w-full mt-3 uppercase" style="font-size:${sName}">${item.nombre}</div>
+                                        </div>
+                                        <div class="w-[25%] flex flex-col bg-[#FFF7ED]">
+                                            <div class="text-[8px] sm:text-[10px] font-black text-center border-b-[3px] border-[#F26522] p-1 uppercase text-white bg-[#F26522] leading-none">Nº Cajón</div>
+                                            <div class="flex-1 flex items-center justify-center font-black text-[#F26522] text-center leading-none" style="font-size:${sOrg}">${item.org}</div>
+                                        </div>
                                     </div>
-                                    <div class="flex-1 flex p-3 gap-3">
-                                        <div class="flex-[3] flex flex-col justify-center">
-                                            <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">CÓDIGO: ${item.sku}</span>
-                                            <span class="font-black leading-tight text-gray-900 mt-1 line-clamp-2" style="font-size: ${sName}">${item.nombre}</span>
-                                            <div class="flex gap-2 mt-auto pt-2">
-                                                <div class="bg-gray-100 rounded-lg px-2 py-1.5 flex-1 flex items-center justify-between border border-gray-200"><span class="text-[9px] text-gray-500 font-black uppercase">MIN</span><span class="font-black text-xl text-gray-800">${item.min}</span></div>
-                                                <div class="bg-gray-100 rounded-lg px-2 py-1.5 flex-1 flex items-center justify-between border border-gray-200"><span class="text-[9px] text-gray-500 font-black uppercase">MAX</span><span class="font-black text-xl text-gray-800">${item.max}</span></div>
-                                                <div class="bg-orange-50 rounded-lg px-2 py-1.5 flex-1 flex items-center justify-between border border-orange-100"><span class="text-[9px] text-orange-600 font-black uppercase">CNS</span><span class="font-black text-xl text-orange-600">${item.consumo}</span></div>
+                                    <div class="flex h-[40%]">
+                                        <div class="w-[25%] border-r-[3px] border-[#F26522] flex items-center justify-center p-2 relative">
+                                            <img src="logo.png" class="max-h-full max-w-full object-contain grayscale opacity-50" onerror="this.style.display='none'">
+                                        </div>
+                                        <div class="w-[50%] border-r-[3px] border-[#F26522] flex">
+                                            <div class="w-1/2 border-r-[3px] border-[#F26522] flex flex-col">
+                                                <div class="text-[10px] font-black text-center border-b-[3px] border-[#F26522] text-white bg-[#F26522]">MIN</div>
+                                                <div class="flex-1 flex items-center justify-center font-black text-3xl text-gray-900">${item.min}</div>
+                                            </div>
+                                            <div class="w-1/2 flex flex-col">
+                                                <div class="text-[10px] font-black text-center border-b-[3px] border-[#F26522] text-white bg-[#F26522]">MAX</div>
+                                                <div class="flex-1 flex items-center justify-center font-black text-3xl text-gray-900">${item.max}</div>
                                             </div>
                                         </div>
-                                        <div class="flex-[1] flex flex-col items-center justify-center border-l-2 border-gray-100 pl-3">
-                                            <div id="${qrId}" class="w-full aspect-square flex items-center justify-center"></div>
+                                        <div class="w-[25%] flex items-center justify-center p-1 relative">
+                                            <div id="${qrId}" class="w-[90%] aspect-square flex items-center justify-center mix-blend-multiply"></div>
                                         </div>
                                     </div>
                                 </div>
                             `;
                         }
-                        // --- DISEÑO 3: ALTA VISIBILIDAD ---
-                        else if (item.estilo === 'highvis') {
+                        // --- DISEÑO 3: INDUSTRIAL DARK ---
+                        else if (item.estilo === '5s_dark') {
                             cardContent = `
-                                <div class="w-full h-full border-4 border-gray-900 flex flex-col bg-white box-border">
-                                    <div class="flex h-3/5 border-b-4 border-gray-900">
-                                        <div class="flex-[3] p-3 flex flex-col justify-center border-r-4 border-gray-900">
-                                            <span class="font-black text-sm bg-gray-900 text-white px-2 py-0.5 self-start mb-2 inline-block tracking-widest">${item.sku}</span>
-                                            <span class="font-black leading-none text-black line-clamp-3" style="font-size: ${sName}">${item.nombre}</span>
+                                <div class="w-full h-full border-[4px] border-gray-900 flex flex-col bg-white box-border relative">
+                                    <div class="flex h-[60%] border-b-[4px] border-gray-900">
+                                        <div class="w-[25%] border-r-[4px] border-gray-900 flex flex-col">
+                                            <div class="text-[8px] sm:text-[10px] font-black text-center border-b-[4px] border-gray-900 p-1 uppercase text-white bg-gray-900 leading-none">Consumo<br>Semanal</div>
+                                            <div class="flex-1 flex items-center justify-center font-black text-4xl text-gray-900">${item.consumo}</div>
                                         </div>
-                                        <div class="flex-[1] bg-[#F26522] flex flex-col items-center justify-center p-2 text-white">
-                                            <span class="text-[9px] font-black uppercase tracking-widest border-b-2 border-white/30 pb-1 mb-1 w-full text-center">UBICACIÓN</span>
-                                            <span class="font-black text-center leading-none" style="font-size: ${sOrg}">${item.org}</span>
+                                        <div class="w-[50%] border-r-[4px] border-gray-900 flex flex-col items-center justify-center p-2 relative">
+                                            <div class="absolute top-1 text-[10px] font-black text-gray-500 tracking-widest border-b border-gray-300 w-[80%] text-center uppercase">${item.sku}</div>
+                                            <div class="font-black text-center text-gray-900 leading-tight w-full mt-3 uppercase" style="font-size:${sName}">${item.nombre}</div>
+                                        </div>
+                                        <div class="w-[25%] flex flex-col">
+                                            <div class="text-[8px] sm:text-[10px] font-black text-center border-b-[4px] border-gray-900 p-1 uppercase text-[#F26522] bg-gray-100 leading-none">Nº Cajón</div>
+                                            <div class="flex-1 flex items-center justify-center font-black text-[#F26522] text-center leading-none" style="font-size:${sOrg}">${item.org}</div>
                                         </div>
                                     </div>
-                                    <div class="flex h-2/5">
-                                         <div class="flex-1 flex flex-col items-center justify-center border-r-4 border-gray-400 p-1 bg-gray-100">
-                                             <span class="text-[12px] font-black text-gray-500 tracking-widest">MIN</span>
-                                             <span class="font-black text-5xl text-gray-900 leading-none">${item.min}</span>
-                                         </div>
-                                         <div class="flex-1 flex flex-col items-center justify-center border-r-4 border-gray-900 p-1 bg-gray-200">
-                                             <span class="text-[12px] font-black text-gray-600 tracking-widest">MAX</span>
-                                             <span class="font-black text-5xl text-gray-900 leading-none">${item.max}</span>
-                                         </div>
-                                         <div class="flex-1 flex items-center justify-center p-2 bg-white">
-                                             <div id="${qrId}" class="h-[90%] aspect-square flex items-center justify-center mix-blend-multiply"></div>
-                                         </div>
+                                    <div class="flex h-[40%]">
+                                        <div class="w-[25%] border-r-[4px] border-gray-900 flex flex-col">
+                                            <div class="flex-1 flex items-center justify-center p-2 relative"><img src="logo.png" class="max-h-full max-w-full object-contain grayscale" onerror="this.style.display='none'"></div>
+                                        </div>
+                                        <div class="w-[50%] border-r-[4px] border-gray-900 flex">
+                                            <div class="w-1/2 border-r-[4px] border-gray-900 flex flex-col">
+                                                <div class="text-[10px] font-black text-center border-b-[4px] border-gray-900 text-white bg-gray-900">MIN</div>
+                                                <div class="flex-1 flex items-center justify-center font-black text-3xl text-gray-900 bg-gray-50">${item.min}</div>
+                                            </div>
+                                            <div class="w-1/2 flex flex-col">
+                                                <div class="text-[10px] font-black text-center border-b-[4px] border-gray-900 text-white bg-gray-900">MAX</div>
+                                                <div class="flex-1 flex items-center justify-center font-black text-3xl text-gray-900 bg-gray-100">${item.max}</div>
+                                            </div>
+                                        </div>
+                                        <div class="w-[25%] flex items-center justify-center p-1 relative">
+                                            <div id="${qrId}" class="w-[90%] aspect-square flex items-center justify-center mix-blend-multiply"></div>
+                                        </div>
                                     </div>
                                 </div>
                             `;
@@ -1849,7 +1683,7 @@
         }
 
         function downloadPDF() {
-            if (!document.getElementById('view-generator').classList.contains('active')) { alert("Debes estar en 'Etiquetado 5S' para descargar el PDF."); return; }
+            if (!document.getElementById('view-generator').classList.contains('active')) { alert("Debes estar en 'Etiquetas 5S' para descargar el PDF."); return; }
             if (colaImpresion.length === 0) { alert("No hay etiquetas en la hoja para descargar."); return; }
 
             const element = document.getElementById('pages-wrapper'); const rightContent = document.querySelector('.right-content'); const previewPanel = document.getElementById('view-generator');
@@ -1886,13 +1720,6 @@
                 html2pdf().set(opt).from(element).save().then(() => { restoreAll(); }).catch(err => { console.error(err); alert("Error al generar PDF."); restoreAll(); });
             }, 300);
         }
-
-        let timeout;
-        [els.rows, els.cols, els.orientation, els.sizeName, els.sizeSku, els.sizeOrg, els.sizeFamily].forEach(el => { 
-            if (el) {
-                el.addEventListener('input', () => { clearTimeout(timeout); timeout = setTimeout(renderLabels, 150); }); 
-            }
-        });
     </script>
 </body>
 </html>
