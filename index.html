@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Deteco DTX 6.36</title>
+    <title>Deteco DTX 6.40</title>
 
     <!-- PWA / WEB APP NATIVA META TAGS -->
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -85,26 +85,8 @@
 
         .page { background: white; width: var(--page-width); height: var(--page-height); padding: 10mm; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); display: grid; box-sizing: border-box; position: relative; transition: width 0.3s, height 0.3s; max-width: 100%; }
         
-        .label-card { border: 1px solid #d1d5db; border-radius: 6px; background: white; display: flex; flex-direction: row; overflow: hidden; position: relative; }
-        .strip-orange { width: 14px; background-color: var(--primary-color); height: 100%; flex-shrink: 0; }
-        .left-col { flex: 1 1 50%; padding: 4%; display: flex; flex-direction: column; overflow: hidden; justify-content: center; }
-        .header-block { display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px; }
-        .product-name { font-weight: 900; color: #111827; text-transform: uppercase; line-height: 1.1; width: 100%; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
-        .product-sku-row { display: flex; align-items: baseline; gap: 6px; }
-        .sku-label { font-size: 0.65rem; color: #6b7280; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
-        .sku-value { font-weight: 800; color: #374151; }
-        .organizer-block { flex: 1; display: flex; align-items: center; justify-content: flex-start; padding: 4px 0; min-height: 0; }
-        .organizer-number { font-weight: 900; color: #000; line-height: 1; letter-spacing: -1px; word-break: break-word; }
-        .product-family { font-weight: 700; color: #4b5563; text-transform: uppercase; padding-top: 8px; border-top: 1px solid transparent; }
+        .label-card { background: white; display: flex; flex-direction: row; overflow: hidden; position: relative; width: 100%; height: 100%; box-sizing: border-box; }
         
-        .right-col { flex: 0 0 auto; max-width: 50%; min-width: 25%; border-left: 1px solid #f3f4f6; display: flex; flex-direction: column; padding: 3%; align-items: center; justify-content: center; }
-        .qr-wrapper { width: 100%; height: auto; max-height: 85%; aspect-ratio: 1 / 1; display: flex; align-items: center; justify-content: center; }
-        .qr-container { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-        .qr-container img, .qr-container canvas { width: 100% !important; height: 100% !important; object-fit: contain; }
-        
-        .logo-container { height: 15%; min-height: 16px; max-height: 35px; width: 100%; display: flex; align-items: flex-end; justify-content: center; margin-top: 6px; }
-        .logo-container img { max-width: 90%; max-height: 100%; object-fit: contain; }
-
         .hidden { display: none !important; }
         @media print {
             html, body { overflow: visible; height: auto; background: white; }
@@ -118,26 +100,9 @@
         }
 
         /* CLASES MAPA BODEGA MODERNO */
-        .map-grid-bg {
-            background-color: #f8fafc;
-            background-image: radial-gradient(#cbd5e1 1.5px, transparent 1.5px);
-            background-size: 16px 16px;
-        }
-        .rk-block {
-            background-color: #e2e8f0; 
-            border-radius: 4px;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            width: 100%;
-            height: 100%;
-        }
-        .rk-active {
-            background-color: #F26522 !important;
-            transform: scale(1.15);
-            box-shadow: 0 0 0 4px rgba(242,101,34,0.2), 0 4px 10px rgba(0,0,0,0.15);
-            z-index: 20;
-            position: relative;
-            border: 1px solid #c2410c;
-        }
+        .map-grid-bg { background-color: #f8fafc; background-image: radial-gradient(#cbd5e1 1.5px, transparent 1.5px); background-size: 16px 16px; }
+        .rk-block { background-color: #e2e8f0; border-radius: 4px; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); width: 100%; height: 100%; }
+        .rk-active { background-color: #F26522 !important; transform: scale(1.15); box-shadow: 0 0 0 4px rgba(242,101,34,0.2), 0 4px 10px rgba(0,0,0,0.15); z-index: 20; position: relative; border: 1px solid #c2410c; }
     </style>
 </head>
 <body>
@@ -163,7 +128,7 @@
             <div class="app-title hidden sm:block mr-2 shrink-0">Deteco <span class="text-orange-600">DTX</span></div>
             
             <div class="flex bg-gray-200/60 p-1 rounded-lg overflow-x-auto hide-scroll gap-1">
-                <button onclick="setView('generator')" id="btn-gen" class="ios-btn btn-ghost shrink-0">Generador</button>
+                <button onclick="setView('generator')" id="btn-gen" class="ios-btn btn-ghost shrink-0">Etiquetado 5S</button>
                 <button onclick="setView('visor')" id="btn-vis" class="ios-btn btn-active-tab shrink-0">Visor</button>
                 <button onclick="intentarVerInventario()" id="btn-inv" class="ios-btn btn-ghost shrink-0 text-gray-600">
                     <i class="fa-solid fa-clipboard-check mr-1"></i> Inventario
@@ -189,11 +154,8 @@
             </div>
             <h3 class="text-2xl font-black text-gray-900 mb-2">Acceso Restringido</h3>
             <p class="text-sm text-gray-500 text-center mb-6">Módulo exclusivo de Auditoría de Bodega. Ingresa tu PIN de acceso.</p>
-            
             <input type="password" id="inputPinBodega" placeholder="PIN de 4 dígitos" class="w-full text-center tracking-[0.5em] text-3xl font-black py-4 px-4 rounded-2xl border-2 border-gray-200 text-gray-800 outline-none focus:border-orange-500 shadow-sm transition-colors bg-gray-50 mb-4" autocomplete="off" onkeypress="if(event.key === 'Enter') validarPin()">
-            
             <div id="pinError" class="hidden text-red-500 text-sm font-bold mb-4">PIN Incorrecto.</div>
-
             <div class="flex gap-3 w-full">
                 <button onclick="cerrarModalAuth()" class="flex-1 bg-gray-100 text-gray-600 hover:bg-gray-200 py-4 rounded-xl font-bold transition-colors">Cancelar</button>
                 <button onclick="validarPin()" class="flex-1 bg-gray-900 text-white hover:bg-black py-4 rounded-xl font-bold transition-colors shadow-md">Desbloquear</button>
@@ -205,13 +167,10 @@
     <div id="modalInicioInventario" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[4000] p-4 backdrop-blur-md">
         <div class="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl flex flex-col transform transition-all relative border border-gray-100">
             <div class="text-center mb-6">
-                <div class="w-16 h-16 bg-orange-100 text-orange-500 rounded-full flex items-center justify-center text-3xl mx-auto mb-3 shadow-sm border border-orange-200">
-                    <i class="fa-solid fa-clipboard-user"></i>
-                </div>
+                <div class="w-16 h-16 bg-orange-100 text-orange-500 rounded-full flex items-center justify-center text-3xl mx-auto mb-3 shadow-sm border border-orange-200"><i class="fa-solid fa-clipboard-user"></i></div>
                 <h3 class="text-2xl font-black text-gray-900 mb-1">Nueva Auditoría</h3>
                 <p class="text-sm text-gray-500">Ingresa los datos para registrar el inicio del conteo.</p>
             </div>
-            
             <div class="space-y-4 mb-8">
                 <div>
                     <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Nombre del Responsable</label>
@@ -226,7 +185,6 @@
                     <input type="month" id="invInputPeriodo" class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-3 font-bold text-gray-900 mt-1 focus:outline-none focus:border-orange-500 transition-colors uppercase">
                 </div>
             </div>
-
             <div class="flex gap-3 w-full mt-auto">
                 <button onclick="cerrarModalInicioInventario()" class="flex-1 bg-gray-100 text-gray-600 hover:bg-gray-200 py-4 rounded-xl font-bold transition-colors">Cancelar</button>
                 <button onclick="confirmarInicioInventario()" class="flex-1 bg-orange-500 text-white hover:bg-orange-600 py-4 rounded-xl font-black transition-colors shadow-md">Comenzar</button>
@@ -239,13 +197,10 @@
         <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl transform transition-all relative border border-gray-100">
             <button onclick="cerrarModalNuevoProducto()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500"><i class="fa-solid fa-xmark text-xl"></i></button>
             <div class="text-center mt-2 mb-4">
-                <div class="w-12 h-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-2xl mx-auto mb-2 shadow-sm border border-green-200">
-                    <i class="fa-solid fa-plus"></i>
-                </div>
+                <div class="w-12 h-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-2xl mx-auto mb-2 shadow-sm border border-green-200"><i class="fa-solid fa-plus"></i></div>
                 <h3 class="text-xl font-black text-gray-900">Agregar Manual</h3>
                 <p class="text-xs text-gray-500">Material no registrado en sistema</p>
             </div>
-            
             <div class="space-y-4 mb-6">
                 <div>
                     <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Código (Opcional)</label>
@@ -266,63 +221,52 @@
                     </div>
                 </div>
             </div>
-
             <button onclick="guardarNuevoProductoManual()" class="w-full bg-green-600 text-white hover:bg-green-700 py-4 rounded-xl font-black text-lg transition-colors shadow-md flex items-center justify-center gap-2">
                 <i class="fa-solid fa-floppy-disk"></i> Guardar Material
             </button>
         </div>
     </div>
 
-    <!-- Modal Ingreso Conteo Físico (CONTEO CIEGO) -->
+    <!-- Modal Ingreso Conteo Físico -->
     <div id="modalConteo" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[3500] p-4 backdrop-blur-sm">
         <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl transform transition-all relative border border-gray-100">
             <button onclick="cerrarConteoModal()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500"><i class="fa-solid fa-xmark text-xl"></i></button>
-            
             <div class="text-center mt-2 mb-4">
-                <div class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">
-                    Cód: <span id="modalConteoCode" class="font-bold text-orange-500 ml-1">...</span>
-                </div>
+                <div class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Cód: <span id="modalConteoCode" class="font-bold text-orange-500 ml-1">...</span></div>
                 <div id="modalConteoName" class="text-xl text-gray-900 font-black px-2 leading-tight uppercase w-full break-words">...</div>
             </div>
-            
             <div class="flex flex-col justify-center items-center gap-2 mb-6 bg-orange-50/50 p-6 rounded-2xl w-full border border-orange-100">
                 <div class="text-[10px] sm:text-xs text-orange-600 font-bold uppercase tracking-widest mb-2 text-center w-full">Ingresa el Conteo Físico Real</div>
                 <input type="number" id="inputConteoFisico" class="w-full text-center text-5xl font-black text-gray-900 border-b-4 border-orange-200 focus:border-orange-500 focus:outline-none bg-transparent hide-scroll" placeholder="0" onkeypress="if(event.key === 'Enter') guardarConteoFisico()">
             </div>
-
             <div class="flex gap-2 w-full">
                 <button onclick="guardarConteoFisico()" class="flex-[3] bg-orange-500 text-white hover:bg-orange-600 py-4 rounded-xl font-black text-lg transition-colors shadow-md flex items-center justify-center gap-2">
                     <i class="fa-solid fa-floppy-disk"></i> Guardar Conteo
                 </button>
                 <button onclick="abrirMermaDesdeInventario()" class="flex-[1] bg-white text-red-600 border-2 border-red-200 hover:bg-red-50 py-2 rounded-xl font-bold transition-colors shadow-sm flex flex-col items-center justify-center" title="Reportar Merma hallada en el conteo">
-                    <i class="fa-solid fa-triangle-exclamation text-xl mb-1"></i>
-                    <span class="text-[9px] uppercase tracking-wider mt-1">Merma</span>
+                    <i class="fa-solid fa-triangle-exclamation text-xl mb-1"></i><span class="text-[9px] uppercase tracking-wider mt-1">Merma</span>
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Modal Reporte de MERMAS (CON FOTO) -->
+    <!-- Modal Reporte de MERMAS -->
     <div id="modalMerma" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[3500] p-4 backdrop-blur-sm">
         <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl transform transition-all relative max-h-[90vh] flex flex-col">
             <button onclick="cerrarModalMerma()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 z-10"><i class="fa-solid fa-xmark text-xl"></i></button>
-            
             <div class="flex justify-between items-start mb-2 mt-2 shrink-0">
                 <h3 class="text-xl font-black text-red-600"><i class="fa-solid fa-triangle-exclamation mr-2"></i> Reportar Merma / Daño</h3>
             </div>
-            
             <div class="overflow-y-auto w-full hide-scroll pb-4 flex-1">
                 <div class="bg-red-50 p-3 rounded-xl border border-red-100 mb-4 text-center mt-2">
                     <span id="modalMermaCode" class="text-xs font-bold text-red-500 block mb-1">...</span>
                     <p id="modalMermaName" class="text-sm font-bold text-gray-700 leading-tight">...</p>
                 </div>
-                
                 <div class="mb-4 flex items-center justify-center gap-4">
                     <button onclick="cambiarCantMerma(-1)" class="w-12 h-12 rounded-full bg-gray-100 text-gray-600 font-black text-xl hover:bg-gray-200 transition-colors">-</button>
                     <input type="number" id="inputModalMermaQty" value="1" min="1" class="w-24 border-0 bg-transparent text-4xl font-black text-center text-gray-900 focus:outline-none p-0 hide-scroll">
                     <button onclick="cambiarCantMerma(1)" class="w-12 h-12 rounded-full bg-red-100 text-red-600 font-black text-xl hover:bg-red-200 transition-colors">+</button>
                 </div>
-
                 <div class="w-full mb-3">
                     <label class="text-xs font-bold text-gray-500 uppercase tracking-wide ml-1">Motivo principal</label>
                     <select id="inputMotivoMerma" class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-3 font-bold text-gray-700 mt-1 focus:outline-none focus:border-red-400 appearance-none">
@@ -333,26 +277,22 @@
                         <option value="Otro">Otro...</option>
                     </select>
                 </div>
-
                 <div class="w-full mb-4">
                     <label class="text-xs font-bold text-gray-500 uppercase tracking-wide ml-1">Evidencia (Opcional)</label>
                     <button onclick="document.getElementById('inputMermaFoto').click()" class="w-full bg-gray-100 text-gray-700 mt-1 py-3 rounded-xl font-bold border border-gray-200 hover:bg-gray-200 transition-colors flex items-center justify-center gap-2">
                         <i class="fa-solid fa-camera"></i> Tomar Foto
                     </button>
                     <input type="file" id="inputMermaFoto" accept="image/*" capture="environment" class="hidden" onchange="procesarFotoMerma(event)">
-                    
                     <div id="previewMermaFotoContainer" class="hidden mt-2 relative w-full h-32 bg-gray-100 rounded-xl overflow-hidden border border-gray-200">
                         <img id="previewMermaFoto" src="" class="w-full h-full object-cover">
                         <button onclick="removerFotoMerma()" class="absolute top-2 right-2 bg-red-500 text-white w-8 h-8 rounded-full shadow-md flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
                     </div>
                 </div>
-
                 <div class="w-full mb-2">
                     <label class="text-xs font-bold text-gray-500 uppercase tracking-wide ml-1">Observación (Opcional)</label>
                     <input type="text" id="inputObsMerma" placeholder="Ej: Se cayó de la grúa..." class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-3 font-medium text-sm text-gray-900 mt-1 focus:outline-none focus:border-red-400">
                 </div>
             </div>
-
             <button onclick="confirmarMerma()" class="w-full shrink-0 mt-2 bg-red-600 text-white hover:bg-red-700 py-4 rounded-xl font-black text-lg transition-colors flex items-center justify-center gap-2 shadow-md">
                 <i class="fa-solid fa-plus"></i> Registrar Merma
             </button>
@@ -368,6 +308,28 @@
         <p id="verFotoTitulo" class="text-white mt-4 font-bold text-center text-sm uppercase tracking-wider"></p>
     </div>
 
+    <!-- Modal Ficha Técnica PDF -->
+    <div id="modalFichaTecnica" class="fixed inset-0 bg-black/90 hidden items-center justify-center z-[5000] p-4 flex-col backdrop-blur-sm transition-opacity">
+        <div class="w-full max-w-4xl h-[85vh] bg-white rounded-3xl overflow-hidden flex flex-col shadow-2xl relative">
+            <div class="flex justify-between items-center p-4 border-b border-gray-200 bg-gray-50 shrink-0">
+                <h3 class="text-lg font-black text-gray-800 truncate pr-4" id="modalFichaTitle">Ficha Técnica</h3>
+                <button onclick="cerrarModalFicha()" class="text-gray-400 hover:text-red-500 w-8 h-8 flex items-center justify-center rounded-full bg-white shadow-sm border border-gray-200 transition-colors"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div class="flex-1 w-full bg-gray-200 relative overflow-hidden">
+                <div class="absolute inset-0 flex items-center justify-center -z-10 text-gray-400 text-sm flex-col gap-2">
+                    <i class="fa-solid fa-spinner fa-spin text-3xl"></i>
+                    <span class="font-bold uppercase tracking-widest text-[10px]">Cargando documento...</span>
+                </div>
+                <iframe id="iframeFicha" src="" class="w-full h-full border-0 z-10 relative" title="Ficha Técnica"></iframe>
+            </div>
+            <div class="p-4 bg-white border-t border-gray-200 shrink-0 flex gap-3">
+                <a id="btnDescargarFicha" href="#" target="_blank" download class="flex-1 bg-orange-500 text-white hover:bg-orange-600 py-4 rounded-xl font-black text-center transition-colors shadow-md flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-download"></i> Descargar Archivo Original
+                </a>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal Logs de Inventario -->
     <div id="modalLogs" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[3500] p-4 backdrop-blur-sm">
         <div class="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl flex flex-col max-h-[80vh]">
@@ -380,6 +342,7 @@
         </div>
     </div>
 
+    <!-- Modal Scanner -->
     <div id="modalScanner" class="fixed inset-0 bg-black/95 hidden items-center justify-center z-[3000] p-4 flex-col backdrop-blur-md">
         <div class="bg-white rounded-3xl p-6 w-full max-w-sm flex flex-col items-center shadow-2xl">
             <div class="flex justify-between items-center w-full mb-4 border-b border-gray-100 pb-2">
@@ -387,16 +350,15 @@
                 <button onclick="closeScanner()" class="text-gray-400 hover:text-red-500 transition-colors"><i class="fa-solid fa-xmark text-2xl"></i></button>
             </div>
             <div id="reader" class="w-full rounded-2xl overflow-hidden bg-gray-900 border-2 border-dashed border-gray-300 min-h-[250px] flex items-center justify-center shadow-inner"></div>
-            <p class="text-sm font-medium text-gray-500 mt-6 text-center leading-tight">
-                Apunta la cámara al código de la caja.<br>La lectura será automática.
-            </p>
+            <p class="text-sm font-medium text-gray-500 mt-6 text-center leading-tight">Apunta la cámara al código.<br>La lectura será automática.</p>
         </div>
     </div>
 
     <div class="main-layout">
-        <!-- PANEL IZQUIERDO -->
+        <!-- PANEL IZQUIERDO (GENERADOR Y AJUSTES) -->
         <div class="settings-panel no-print settings-collapsed" id="panel-settings" style="display: none;">
             <div class="settings-inner">
+                <!-- Buscador BD -->
                 <div class="control-group">
                     <div class="group-label">Buscador Base de Datos</div>
                     <div class="relative w-full">
@@ -407,71 +369,108 @@
                     <div id="dbStatus" class="text-[10px] text-gray-400 text-right mt-1">Conectando...</div>
                 </div>
 
+                <!-- NUEVO: DATOS KANBAN 5S -->
+                <div class="control-group bg-orange-50/50 p-3 rounded-lg border border-orange-100 mt-2">
+                    <div class="group-label text-orange-600 mb-2 border-none pb-0"><i class="fa-solid fa-layer-group mr-1"></i> Datos Control 5S</div>
+                    <div class="input-row mb-2">
+                        <span class="text-xs font-bold w-24 text-gray-700">Cons. Semanal</span>
+                        <input type="text" id="consumoInput" value="24" class="ios-input text-center font-bold text-orange-600 bg-white">
+                    </div>
+                    <div class="flex gap-2 w-full">
+                        <div class="flex-1 flex items-center justify-between gap-2">
+                            <span class="text-xs font-bold text-gray-600">MIN</span>
+                            <input type="text" id="minInput" value="48" class="ios-input text-center w-full bg-white">
+                        </div>
+                        <div class="flex-1 flex items-center justify-between gap-2">
+                            <span class="text-xs font-bold text-gray-600">MAX</span>
+                            <input type="text" id="maxInput" value="108" class="ios-input text-center w-full bg-white">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Diseño de Etiqueta -->
                 <div class="control-group bg-gray-50 p-3 rounded-lg border border-gray-100">
-                    <div class="group-label text-orange-600 mb-2 border-none pb-0">Ajuste de Tamaños</div>
+                    <div class="group-label text-gray-700 mb-2 border-none pb-0">Diseño Visual</div>
+                    <select id="styleInput" class="ios-input bg-white w-full font-bold text-sm cursor-pointer shadow-sm">
+                        <option value="5s">Clásico 5S (Croquis Cuadrícula)</option>
+                        <option value="modern">Moderno Corporativo</option>
+                        <option value="highvis">Alta Visibilidad (Números Gigantes)</option>
+                    </select>
+                </div>
+
+                <!-- Datos de Etiqueta -->
+                <div class="control-group">
+                    <div class="group-label">Contenido Base</div>
+                    <div class="input-row"><span class="text-xs font-medium w-24">Nombre</span><input type="text" id="nameInput" value="GUANTES CABRITILLA" class="ios-input font-medium"></div>
+                    <div class="input-row"><span class="text-xs font-medium w-24">Cód. Prod.</span><input type="text" id="productCodeInput" value="551" class="ios-input text-gray-600"></div>
+                    <div class="input-row"><span class="text-xs font-bold w-24 text-orange-600">Ubicación</span><input type="text" id="orgInput" value="C-02-15" class="ios-input font-black text-lg border-2 border-orange-200"></div>
+                    <div class="input-row"><span class="text-xs font-medium w-24">Familia</span><input type="text" id="familyInput" value="EPP" class="ios-input"></div>
+                </div>
+
+                <!-- Ajustes Tamaños -->
+                <div class="control-group bg-gray-50 p-3 rounded-lg border border-gray-100">
+                    <div class="group-label text-gray-500 mb-2 border-none pb-0">Ajuste de Textos</div>
                     <div class="flex flex-col gap-3">
-                        <div><div class="flex justify-between text-xs mb-1"><span>Nombre Producto</span> <span id="valSizeName" class="font-bold">40px</span></div><input type="range" id="sizeName" min="10" max="60" value="40" step="1"></div>
-                        <div><div class="flex justify-between text-xs mb-1"><span>Cód. Prod. (Peq)</span> <span id="valSizeSku" class="font-bold">12px</span></div><input type="range" id="sizeSku" min="8" max="24" value="12" step="1"></div>
-                        <div><div class="flex justify-between text-xs mb-1"><span>N° Org. (Gde)</span> <span id="valSizeOrg" class="font-bold">120px</span></div><input type="range" id="sizeOrg" min="20" max="150" value="120" step="1"></div>
-                        <div><div class="flex justify-between text-xs mb-1"><span>Familia</span> <span id="valSizeFamily" class="font-bold">25px</span></div><input type="range" id="sizeFamily" min="8" max="30" value="25" step="1"></div>
+                        <div><div class="flex justify-between text-[10px] mb-1"><span>Nombre Producto</span> <span id="valSizeName" class="font-bold">24px</span></div><input type="range" id="sizeName" min="10" max="60" value="24" step="1"></div>
+                        <div><div class="flex justify-between text-[10px] mb-1"><span>Ubicación / Cajón</span> <span id="valSizeOrg" class="font-bold">20px</span></div><input type="range" id="sizeOrg" min="10" max="150" value="20" step="1"></div>
                     </div>
                 </div>
 
                 <div class="control-group">
-                    <div class="group-label">Contenido de la Etiqueta</div>
-                    <div class="input-row"><span class="text-xs font-medium w-24">Nombre</span><input type="text" id="nameInput" value="GUANTES CABRITILLA" class="ios-input font-medium"></div>
-                    <div class="input-row"><span class="text-xs font-medium w-24">Cód. Prod.</span><input type="text" id="productCodeInput" value="551" class="ios-input text-gray-600"></div>
-                    <div class="input-row"><span class="text-xs font-bold w-24 text-orange-600">N° Org.</span><input type="text" id="orgInput" value="C-02-15" class="ios-input font-black text-lg border-2 border-orange-200"></div>
-                    <div class="input-row"><span class="text-xs font-medium w-24">Familia</span><input type="text" id="familyInput" value="EPP" class="ios-input"></div>
-                    <button id="btnAgregarHoja" onclick="agregarALaHoja()" class="w-full bg-orange-500 text-white font-bold py-3 rounded-xl mt-3 hover:bg-orange-600 transition-colors shadow-sm flex justify-center items-center gap-2">
+                    <button id="btnAgregarHoja" onclick="agregarALaHoja()" class="w-full bg-orange-500 text-white font-bold py-3 rounded-xl mt-1 hover:bg-orange-600 transition-colors shadow-sm flex justify-center items-center gap-2">
                         <i class="fa-solid fa-plus"></i> Añadir a la Hoja
                     </button>
                 </div>
 
-                <div class="control-group">
+                <!-- Diseño Hoja -->
+                <div class="control-group border-t border-gray-100 pt-4">
                     <div class="group-label flex justify-between items-center">
-                        <span>Diseño de Hoja</span>
-                        <button onclick="limpiarHoja()" class="text-red-500 hover:text-red-700 text-xs font-bold bg-red-50 px-2 py-1 rounded transition-colors"><i class="fa-solid fa-trash-can"></i> Vaciar Hoja</button>
+                        <span>Diseño de Hoja de Impresión</span>
+                        <button onclick="limpiarHoja()" class="text-red-500 hover:text-red-700 text-[10px] font-bold bg-red-50 px-2 py-1 rounded transition-colors"><i class="fa-solid fa-trash-can"></i> Vaciar Hoja</button>
                     </div>
                     <div class="input-row justify-end mb-2 mt-2">
                         <label class="flex items-center gap-2 cursor-pointer bg-orange-50 px-3 py-2 rounded-lg border border-orange-100 w-full justify-center">
                             <input type="checkbox" id="checkNumbering" class="w-4 h-4 accent-orange-500">
-                            <span class="text-xs font-medium text-orange-800">Auto-numerar Org. (+1) al añadir</span>
+                            <span class="text-[10px] font-bold text-orange-800 uppercase tracking-wider">Auto-numerar Cajón al añadir</span>
                         </label>
                     </div>
                     <div class="input-row mb-2 mt-4"><span class="text-xs font-medium w-24">Orientación</span>
-                        <select id="orientationInput" class="ios-input bg-white cursor-pointer">
+                        <select id="orientationInput" class="ios-input bg-white cursor-pointer text-xs">
                             <option value="portrait">Vertical</option>
                             <option value="landscape" selected>Horizontal</option>
                         </select>
                     </div>
                     <div class="grid grid-cols-2 gap-3 mt-2">
                         <div class="flex flex-col text-center">
-                            <span class="text-[10px] text-gray-500 font-bold mb-1 uppercase tracking-wider">Filas por Hoja</span>
-                            <input type="number" id="rowsInput" value="2" class="ios-input text-center">
+                            <span class="text-[10px] text-gray-500 font-bold mb-1 uppercase tracking-wider">Filas / Hoja</span>
+                            <input type="number" id="rowsInput" value="3" class="ios-input text-center font-bold">
                         </div>
                         <div class="flex flex-col text-center">
-                            <span class="text-[10px] text-gray-500 font-bold mb-1 uppercase tracking-wider">Columnas por Hoja</span>
-                            <input type="number" id="colsInput" value="1" class="ios-input text-center">
+                            <span class="text-[10px] text-gray-500 font-bold mb-1 uppercase tracking-wider">Cols / Hoja</span>
+                            <input type="number" id="colsInput" value="2" class="ios-input text-center font-bold">
                         </div>
                     </div>
                 </div>
                 
                 <div class="mt-4 pt-6 border-t border-gray-100 text-center pb-10">
-                     <button onclick="location.reload()" class="text-xs font-bold text-red-500 hover:text-red-700 bg-red-50 px-4 py-2 rounded-lg transition-colors">Reiniciar App</button>
+                     <button onclick="location.reload()" class="text-[10px] font-bold text-red-500 hover:text-red-700 bg-red-50 px-4 py-2 rounded-lg transition-colors">Reiniciar App Completa</button>
                 </div>
             </div>
         </div>
 
         <!-- CONTENEDOR DERECHO -->
         <div class="right-content">
+            
             <!-- VISTA 1: GENERADOR -->
-            <div class="preview-panel view-section" id="view-generator">
+            <div class="preview-panel view-section active" id="view-generator">
+                <div class="w-full text-center mb-4 opacity-50 no-print">
+                    <p class="text-xs font-bold uppercase tracking-widest"><i class="fa-solid fa-print"></i> Previsualización de Impresión</p>
+                </div>
                 <div id="pages-wrapper" class="w-full flex flex-col items-center"></div>
             </div>
 
             <!-- VISTA 2: VISOR -->
-            <div class="preview-panel view-section active" id="view-visor">
+            <div class="preview-panel view-section" id="view-visor">
                 <div class="w-full max-w-xl mx-auto flex flex-col items-center">
                     <div class="text-center mb-6 px-2 w-full">
                         <h2 class="text-3xl font-black text-gray-900 mb-2">Visor de Inventario</h2>
@@ -523,67 +522,56 @@
                                 <i class="fa-solid fa-map-location-dot"></i> Ver Ubicación Física
                             </button>
 
-                            <!-- MAPA BODEGA 2D DISEÑO MODERNO (ESTILO CROQUIS EXACTO) -->
+                            <!-- MAPA BODEGA 2D DISEÑO MODERNO -->
                             <div id="locationArea" class="hidden w-full mt-4 mb-4 transition-all duration-300">
                                 <div class="bg-white rounded-3xl p-4 sm:p-6 w-full border border-gray-200 shadow-sm">
                                     <div class="flex items-center justify-center mb-2">
                                         <h4 class="text-[10px] font-black text-gray-400 uppercase tracking-widest"><i class="fa-solid fa-map-location-dot mr-1"></i> Layout de Bodega</h4>
                                     </div>
                                     
-                                    <!-- Contenedor del Mapa con Grilla Técnica -->
                                     <div class="relative w-full max-w-[340px] aspect-[4/5] mx-auto map-grid-bg rounded-2xl border border-gray-200 shadow-inner overflow-hidden mt-2 mb-6">
-                                        
-                                        <!-- Píldoras de Nombres de Pasillos -->
                                         <div id="lbl-pasillo-a" class="absolute left-[20%] top-[20%] bg-white/90 backdrop-blur px-3 py-1 rounded-full font-black text-[12px] text-gray-400 border border-gray-100 shadow-sm transition-all duration-300 z-10">PASILLO A</div>
                                         <div id="lbl-pasillo-b" class="absolute right-[14%] top-[50%] -translate-y-1/2 rotate-90 bg-white/90 backdrop-blur px-3 py-1 rounded-full font-black text-[12px] text-gray-400 border border-gray-100 shadow-sm transition-all duration-300 z-10 origin-center">PASILLO B</div>
                                         <div id="lbl-pasillo-c" class="absolute left-[20%] bottom-[20%] bg-white/90 backdrop-blur px-3 py-1 rounded-full font-black text-[12px] text-gray-400 border border-gray-100 shadow-sm transition-all duration-300 z-10">PASILLO C</div>
 
-                                        <!-- Top Arm: A9-A20 -->
                                         <div class="absolute top-[4%] left-[4%] w-[80%] h-[12%] grid grid-cols-3 gap-2">
                                             <div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-A9" class="rk-block"></div><div id="rk-A10" class="rk-block"></div><div id="rk-A11" class="rk-block"></div><div id="rk-A12" class="rk-block"></div></div>
                                             <div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-A13" class="rk-block"></div><div id="rk-A14" class="rk-block"></div><div id="rk-A15" class="rk-block"></div><div id="rk-A16" class="rk-block"></div></div>
                                             <div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-A17" class="rk-block"></div><div id="rk-A18" class="rk-block"></div><div id="rk-A19" class="rk-block"></div><div id="rk-A20" class="rk-block"></div></div>
                                         </div>
 
-                                        <!-- Upper Peninsula: A1-A8 -->
                                         <div class="absolute top-[32%] left-[4%] w-[58%] h-[12%] grid grid-cols-2 gap-2">
                                             <div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-A1" class="rk-block"></div><div id="rk-A2" class="rk-block"></div><div id="rk-A3" class="rk-block"></div><div id="rk-A4" class="rk-block"></div></div>
                                             <div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-A5" class="rk-block"></div><div id="rk-A6" class="rk-block"></div><div id="rk-A7" class="rk-block"></div><div id="rk-A8" class="rk-block"></div></div>
                                         </div>
 
-                                        <!-- Lower Peninsula: C13-C20 -->
                                         <div class="absolute bottom-[32%] left-[4%] w-[58%] h-[12%] grid grid-cols-2 gap-2">
                                             <div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-C13" class="rk-block"></div><div id="rk-C14" class="rk-block"></div><div id="rk-C15" class="rk-block"></div><div id="rk-C16" class="rk-block"></div></div>
                                             <div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-C17" class="rk-block"></div><div id="rk-C18" class="rk-block"></div><div id="rk-C19" class="rk-block"></div><div id="rk-C20" class="rk-block"></div></div>
                                         </div>
 
-                                        <!-- Bottom Arm: C1-C12 -->
                                         <div class="absolute bottom-[4%] left-[4%] w-[80%] h-[12%] grid grid-cols-3 gap-2">
                                             <div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-C1" class="rk-block"></div><div id="rk-C2" class="rk-block"></div><div id="rk-C3" class="rk-block"></div><div id="rk-C4" class="rk-block"></div></div>
                                             <div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-C5" class="rk-block"></div><div id="rk-C6" class="rk-block"></div><div id="rk-C7" class="rk-block"></div><div id="rk-C8" class="rk-block"></div></div>
                                             <div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-C9" class="rk-block"></div><div id="rk-C10" class="rk-block"></div><div id="rk-C11" class="rk-block"></div><div id="rk-C12" class="rk-block"></div></div>
                                         </div>
 
-                                        <!-- Right Backbone: B1-B12 -->
                                         <div class="absolute top-[4%] right-[4%] w-[12%] h-[92%] grid grid-rows-3 gap-2">
                                             <div class="flex flex-row gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-B4" class="rk-block"></div><div id="rk-B3" class="rk-block"></div><div id="rk-B2" class="rk-block"></div><div id="rk-B1" class="rk-block"></div></div>
                                             <div class="flex flex-row gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-B8" class="rk-block"></div><div id="rk-B7" class="rk-block"></div><div id="rk-B6" class="rk-block"></div><div id="rk-B5" class="rk-block"></div></div>
                                             <div class="flex flex-row gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-B12" class="rk-block"></div><div id="rk-B11" class="rk-block"></div><div id="rk-B10" class="rk-block"></div><div id="rk-B9" class="rk-block"></div></div>
                                         </div>
-
                                     </div>
 
-                                    <!-- Detalles Básicos (UNIFICADOS) -->
                                     <div class="w-full flex justify-center">
                                         <div class="bg-gray-50 px-6 py-4 rounded-xl border border-gray-200 w-full max-w-sm text-center shadow-sm">
-                                            <span class="block text-[10px] text-gray-400 uppercase font-black tracking-wider">Ubicación</span>
-                                            <span id="locModulo" class="text-3xl sm:text-4xl font-black text-orange-500 leading-none mt-1 block">-</span>
+                                            <span class="block text-[10px] text-gray-400 uppercase font-black tracking-wider">Ubicación Fija</span>
+                                            <span id="locModulo" class="text-4xl sm:text-5xl font-black text-orange-500 leading-none mt-2 block">-</span>
                                         </div>
                                     </div>
                                     <p id="locRaw" class="text-[9px] font-medium text-gray-400 mt-4 text-center tracking-widest uppercase"></p>
                                 </div>
                             </div>
-                            <!-- FIN MAPA BODEGA -->
                             
                             <div class="mt-4 w-full px-2">
                                 <button onclick="abrirModalMerma()" class="w-full bg-white text-red-600 border-2 border-red-500 hover:bg-red-50 px-4 py-4 rounded-xl font-bold text-base transition-colors shadow-sm flex items-center justify-center gap-2">
@@ -593,13 +581,13 @@
                         </div>
                         
                         <div id="datasheetArea" class="hidden w-full">
-                            <a id="btnDatasheet" href="#" target="_blank" class="w-full bg-orange-50 text-orange-700 hover:bg-orange-100 py-4 rounded-xl font-bold transition-colors flex justify-center items-center gap-2 border border-orange-200">
+                            <button id="btnDatasheet" onclick="abrirModalFicha()" class="w-full bg-orange-50 text-orange-700 hover:bg-orange-100 py-4 rounded-xl font-bold transition-colors flex justify-center items-center gap-2 border border-orange-200 mt-4">
                                 <i class="fa-solid fa-file-pdf text-xl"></i> Ver Ficha Técnica
-                            </a>
+                            </button>
                         </div>
-                        <div id="noDataArea" class="hidden mt-4 mb-4 text-gray-400 text-sm w-full">No hay ficha técnica disponible.</div>
+                        <div id="noDataArea" class="hidden mt-4 mb-4 text-gray-400 text-sm w-full text-center">No hay ficha técnica disponible.</div>
 
-                        <div class="border-t border-gray-100 pt-4 mt-4 w-full">
+                        <div class="border-t border-gray-100 pt-4 mt-4 w-full text-center">
                             <p class="text-[10px] text-gray-300 font-medium">Desarrollado para Deteco IC SA</p>
                         </div>
                     </div>
@@ -611,11 +599,9 @@
                 </div>
             </div>
 
-            <!-- VISTA 4: INVENTARIO (AUDITORÍA PRO CON SESIÓN Y AGREGAR MANUAL) -->
+            <!-- VISTA 3: INVENTARIO -->
             <div class="preview-panel view-section" id="view-inventario">
                 <div class="w-full max-w-2xl mx-auto px-2 h-full flex flex-col">
-                    
-                    <!-- ESTADO: INVENTARIO NO INICIADO -->
                     <div id="invStartContainer" class="flex-1 flex flex-col items-center justify-center p-6 text-center h-full">
                         <div class="w-24 h-24 bg-orange-100 text-orange-500 rounded-full flex items-center justify-center text-4xl mb-4 shadow-sm">
                             <i class="fa-solid fa-clipboard-list"></i>
@@ -627,7 +613,6 @@
                         </button>
                     </div>
 
-                    <!-- ESTADO: INVENTARIO ACTIVO -->
                     <div id="invActiveContainer" class="hidden flex-col h-full w-full">
                         <div class="text-center mb-2 shrink-0 relative w-full pt-2">
                             <h2 class="text-3xl font-black text-gray-900 mb-1 tracking-tight">INVENTARIO</h2>
@@ -684,7 +669,7 @@
                 </div>
             </div>
 
-            <!-- VISTA 5: MERMAS Y DAÑOS -->
+            <!-- VISTA 4: MERMAS Y DAÑOS -->
             <div class="preview-panel view-section" id="view-mermas">
                 <div class="w-full max-w-2xl mx-auto px-2 relative h-full flex flex-col">
                     <div class="text-center mb-6 shrink-0 relative w-full pt-2">
@@ -715,7 +700,7 @@
         </div>
     </div>
 
-    <!-- LOGICA -->
+    <!-- LOGICA JAVASCRIPT -->
     <script>
         window.addEventListener('unhandledrejection', function(event) {
             console.warn("Promesa rechazada capturada globalmente:", event.reason);
@@ -733,7 +718,6 @@
         let colaImpresion = [];
         let currentMermaFotoBase64 = null; 
 
-        // --- SISTEMAS DE AUTO-GUARDADO ---
         const PIN_BODEGA = "1234"; 
         let inventarioDesbloqueado = false;
         
@@ -768,8 +752,15 @@
             name: document.getElementById('nameInput'), productCode: document.getElementById('productCodeInput'), 
             orgInput: document.getElementById('orgInput'), family: document.getElementById('familyInput'), checkNum: document.getElementById('checkNumbering'),
             orientation: document.getElementById('orientationInput'), dbSearch: document.getElementById('dbSearch'), searchResults: document.getElementById('searchResults'),
-            sizeName: document.getElementById('sizeName'), sizeSku: document.getElementById('sizeSku'), sizeOrg: document.getElementById('sizeOrg'), sizeFamily: document.getElementById('sizeFamily'),
-            valSizeName: document.getElementById('valSizeName'), valSizeSku: document.getElementById('valSizeSku'), valSizeOrg: document.getElementById('valSizeOrg'), valSizeFamily: document.getElementById('valSizeFamily')
+            sizeName: document.getElementById('sizeName'), 
+            // Eliminamos sizeSku y sizeFamily para evitar errores si no están en el HTML
+            sizeOrg: document.getElementById('sizeOrg'), 
+            valSizeName: document.getElementById('valSizeName'), 
+            valSizeOrg: document.getElementById('valSizeOrg'),
+            consumo: document.getElementById('consumoInput'),
+            min: document.getElementById('minInput'),
+            max: document.getElementById('maxInput'),
+            style: document.getElementById('styleInput')
         };
 
         window.addEventListener('load', async () => {
@@ -777,10 +768,11 @@
                 const urlParams = new URLSearchParams(window.location.search);
                 const searchId = urlParams.get('id');
                 
-                setView('visor');
+                setView('generator'); 
                 await loadDB();
                 
                 if (searchId) {
+                    setView('visor');
                     document.getElementById('manualInput').value = searchId;
                     manualSearch(searchId);
                 }
@@ -814,7 +806,6 @@
         window.addEventListener("pageshow", (e) => { if (e.persisted) intentarSincronizacion(); });
         setInterval(() => { if (document.visibilityState === 'visible') { ultimaSincronizacion = Date.now(); loadDB(false); } }, 180000);
 
-        // --- LECTURA BASE DE DATOS (SMART READER 6.34) ---
         async function loadDB(isManualRefresh = false) {
             const statusEl = document.getElementById('dbStatus');
             const syncIcon = document.getElementById('syncIcon');
@@ -844,7 +835,6 @@
                     const targetSheetName = workbook.SheetNames.includes('STOCK') ? 'STOCK' : workbook.SheetNames[0];
                     const worksheet = workbook.Sheets[targetSheetName];
                     
-                    // ESCÁNER INTELIGENTE PARA ENCONTRAR LA FILA DE ENCABEZADOS
                     const rawData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" });
                     let headerRowIndex = 0;
                     for(let i = 0; i < Math.min(15, rawData.length); i++) {
@@ -923,7 +913,6 @@
             }
         }
 
-        // --- FUNCION TOGGLE UBICACION ---
         function toggleLocationArea() {
             const locArea = document.getElementById('locationArea');
             if(locArea.classList.contains('hidden')) {
@@ -934,7 +923,37 @@
             }
         }
 
-        // --- VISOR LOGICA ---
+        function abrirModalFicha() {
+            if(!window.currentProd || !window.currentProd.FICHA) return;
+            
+            const modal = document.getElementById('modalFichaTecnica');
+            const iframe = document.getElementById('iframeFicha');
+            const btnDescarga = document.getElementById('btnDescargarFicha');
+            const title = document.getElementById('modalFichaTitle');
+            
+            let url = window.currentProd.FICHA;
+            
+            if(url.includes('dropbox.com')) {
+                url = url.replace('dl=0', 'raw=1').replace('dl=1', 'raw=1');
+            } else if (url.includes('drive.google.com')) {
+                url = url.replace('/view', '/preview'); 
+            }
+            
+            iframe.src = url;
+            btnDescarga.href = window.currentProd.FICHA; 
+            title.innerText = `Ficha: ${window.currentProd.NOMBRE}`;
+            
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function cerrarModalFicha() {
+            const modal = document.getElementById('modalFichaTecnica');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            document.getElementById('iframeFicha').src = ''; 
+        }
+
         function handleEnter(e) { if(e.key === 'Enter') { document.getElementById('visorSearchResults').classList.add('hidden'); manualSearch(); } }
 
         function manualSearch(codeOverride) {
@@ -948,8 +967,8 @@
             if (!prod) prod = dbProducts.find(p => p.NOMBRE && p.NOMBRE.toUpperCase().includes(searchCode));
 
             const resDiv = document.getElementById('scanResult'); const errDiv = document.getElementById('scanError');
-            const datasDiv = document.getElementById('datasheetArea'); const btnData = document.getElementById('btnDatasheet');
-            const noDataDiv = document.getElementById('noDataArea'); const stockEl = document.getElementById('resStock');
+            const datasDiv = document.getElementById('datasheetArea'); const noDataDiv = document.getElementById('noDataArea'); 
+            const stockEl = document.getElementById('resStock');
             document.getElementById('visorSearchResults').classList.add('hidden');
             
             document.getElementById('locationArea').classList.add('hidden');
@@ -971,7 +990,7 @@
                 document.getElementById('resUnidad').innerText = prod.UNIDAD || 'UND';
                 
                 if (prod.FICHA && prod.FICHA.length > 5) {
-                    datasDiv.classList.remove('hidden'); noDataDiv.classList.add('hidden'); btnData.href = prod.FICHA;
+                    datasDiv.classList.remove('hidden'); noDataDiv.classList.add('hidden');
                 } else { datasDiv.classList.add('hidden'); noDataDiv.classList.remove('hidden'); }
 
                 const org = prod.ORGANIZADOR || '';
@@ -988,7 +1007,6 @@
                         el.classList.add('text-gray-400', 'bg-white/90', 'border-gray-100');
                     });
 
-                    // Lógica del mapa rediseñado: Solo A, B, C
                     const match = org.match(/^(A|B|C)[\s\-]*0*(\d+)?/i);
 
                     if (match) {
@@ -1055,7 +1073,6 @@
             }
         });
 
-        // --- SISTEMA DE COMPRESIÓN DE FOTOS PARA MERMAS ---
         function procesarFotoMerma(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -1104,7 +1121,6 @@
             document.getElementById('modalVerFoto').classList.remove('flex');
         }
 
-        // --- LÓGICA MÓDULO MERMAS ---
         function abrirModalMerma() {
             if(!window.currentProd) return;
             document.getElementById('modalMermaCode').innerText = window.currentProd.CODIGO;
@@ -1223,7 +1239,6 @@
             }
         }
 
-        // --- LÓGICA MÓDULO INVENTARIO PRO REDISEÑADO ---
         function intentarVerInventario() {
             if(inventarioDesbloqueado) { setView('inventario'); actualizarUIEstadoInventario(); } 
             else {
@@ -1243,7 +1258,6 @@
             } else { document.getElementById('pinError').classList.remove('hidden'); document.getElementById('inputPinBodega').value = ''; }
         }
 
-        // SESIONES DE INVENTARIO
         function abrirModalInicioInventario() {
             document.getElementById('invInputNombre').value = '';
             document.getElementById('invInputRut').value = '';
@@ -1490,7 +1504,6 @@
             container.innerHTML = inventarioLogs.map(l => `<div class="border-b border-gray-50 pb-1 mb-1">${l}</div>`).join('');
         }
 
-        // --- SISTEMA DE COMPARTIR EXCEL ---
         async function procesarDescargaOCompartir(datosExcel, nombreArchivo, nombreHoja, meta = null) {
             if(datosExcel.length === 0) { alert("No hay datos para exportar."); return; }
             
@@ -1594,7 +1607,6 @@
             }
         }
 
-        // --- ESCÁNER QR ---
         function openScanner(target) {
             scannerTargetView = target; 
             const modal = document.getElementById('modalScanner');
@@ -1611,7 +1623,6 @@
         }
         function closeScanner() { const modal = document.getElementById('modalScanner'); modal.classList.add('hidden'); modal.classList.remove('flex'); if (html5QrcodeScanner) { html5QrcodeScanner.stop().catch(err => console.warn(err)); } }
 
-        // --- NAVEGACIÓN ---
         function setView(view) {
             if(view === 'inventario' && !inventarioDesbloqueado) { intentarVerInventario(); return; }
             if(view !== 'inventario' && inventarioDesbloqueado) { inventarioDesbloqueado = false; document.getElementById('inputPinBodega').value = ''; }
@@ -1635,7 +1646,6 @@
 
             const btnGen = document.getElementById('btn-gen'); if(btnGen) btnGen.className = view === 'generator' ? 'ios-btn btn-active-tab shrink-0' : 'ios-btn btn-ghost shrink-0';
             const btnVis = document.getElementById('btn-vis'); if(btnVis) btnVis.className = view === 'visor' ? 'ios-btn btn-active-tab shrink-0' : 'ios-btn btn-ghost shrink-0';
-            
             const btnInv = document.getElementById('btn-inv'); if(btnInv) btnInv.className = view === 'inventario' ? 'ios-btn btn-active-tab shrink-0 text-gray-800 border-gray-200 bg-white shadow-sm' : 'ios-btn btn-ghost shrink-0 text-gray-500';
             const btnMer = document.getElementById('btn-mermas'); if(btnMer) btnMer.className = view === 'mermas' ? 'ios-btn btn-active-tab shrink-0 text-red-600 border-red-200 bg-red-50 relative' : 'ios-btn btn-ghost shrink-0 text-red-600 relative';
         }
@@ -1647,7 +1657,6 @@
             else { panel.classList.add('settings-collapsed'); btn.classList.remove('bg-orange-200'); }
         }
 
-        // --- GENERADOR ETIQUETAS ---
         els.dbSearch.addEventListener('input', (e) => {
             const val = e.target.value.toLowerCase();
             if(val.length < 2) { els.searchResults.classList.add('hidden'); return; }
@@ -1660,11 +1669,12 @@
                     div.innerHTML = `<span><strong>${p.CODIGO}</strong></span> <span class="text-gray-500 truncate ml-2 text-xs">${p.NOMBRE}</span>`;
                     div.onclick = () => {
                         els.productCode.value = p.CODIGO || ''; els.name.value = p.NOMBRE || ''; els.family.value = p.CATEGORIA || '';
+                        
+                        els.consumo.value = '0'; 
+                        els.min.value = Math.floor(parseInt(p.STOCK || '0') * 0.2);
+                        els.max.value = p.STOCK || '0';
+                        
                         els.searchResults.classList.add('hidden'); els.dbSearch.value = '';
-                        if(document.getElementById('view-visor').classList.contains('active')) {
-                            const panel = document.getElementById('panel-settings'); const btn = document.getElementById('btn-settings-toggle');
-                            panel.classList.add('settings-collapsed'); btn.classList.remove('bg-orange-200');
-                        }
                     };
                     els.searchResults.appendChild(div);
                 });
@@ -1674,7 +1684,16 @@
         function incrementarAlfanumerico(str) { return str.replace(/\d+$/, function(n) { return String(parseInt(n, 10) + 1).padStart(n.length, '0'); }); }
 
         function agregarALaHoja() {
-            colaImpresion.push({ nombre: els.name.value || 'SIN NOMBRE', sku: els.productCode.value || '-', org: els.orgInput.value || '-', familia: els.family.value || '-' });
+            colaImpresion.push({ 
+                nombre: els.name.value || 'SIN NOMBRE', 
+                sku: els.productCode.value || '-', 
+                org: els.orgInput.value || '-', 
+                familia: els.family.value || '-',
+                consumo: els.consumo.value || '-',
+                min: els.min.value || '-',
+                max: els.max.value || '-',
+                estilo: els.style.value || '5s'
+            });
             if (els.checkNum.checked) { let actualOrg = els.orgInput.value.trim(); if (actualOrg !== '') { els.orgInput.value = incrementarAlfanumerico(actualOrg); } }
             renderLabels();
             const btn = document.getElementById('btnAgregarHoja'); const originalText = btn.innerHTML;
@@ -1687,9 +1706,16 @@
 
         function renderLabels() {
             els.wrapper.innerHTML = '';
-            const rows = parseInt(els.rows.value) || 5; const cols = parseInt(els.cols.value) || 4; const orientation = els.orientation.value;
-            const sName = els.sizeName.value + 'px'; const sSku = els.sizeSku.value + 'px'; const sOrg = els.sizeOrg.value + 'px'; const sFamily = els.sizeFamily.value + 'px';
-            els.valSizeName.innerText = sName; els.valSizeSku.innerText = sSku; els.valSizeOrg.innerText = sOrg; els.valSizeFamily.innerText = sFamily;
+            const rows = parseInt(els.rows.value) || 3; const cols = parseInt(els.cols.value) || 2; const orientation = els.orientation.value;
+            const sName = els.sizeName ? els.sizeName.value + 'px' : '24px';
+            const sSku = els.sizeSku ? els.sizeSku.value + 'px' : '12px'; 
+            const sOrg = els.sizeOrg ? els.sizeOrg.value + 'px' : '20px'; 
+            const sFamily = els.sizeFamily ? els.sizeFamily.value + 'px' : '10px';
+            
+            if(els.valSizeName) els.valSizeName.innerText = sName;
+            if(els.valSizeSku) els.valSizeSku.innerText = sSku;
+            if(els.valSizeOrg) els.valSizeOrg.innerText = sOrg;
+            if(els.valSizeFamily) els.valSizeFamily.innerText = sFamily;
 
             if(orientation === 'landscape') { document.documentElement.style.setProperty('--page-width', '297mm'); document.documentElement.style.setProperty('--page-height', '210mm'); } 
             else { document.documentElement.style.setProperty('--page-width', '210mm'); document.documentElement.style.setProperty('--page-height', '297mm'); }
@@ -1706,15 +1732,110 @@
                         const itemIndex = count; const item = colaImpresion[count]; count++;
                         const smartLink = `${baseUrl}?id=${item.sku}`; const qrId = `qr-code-${count}`;
                         const card = document.createElement('div'); card.className = 'label-card';
+                        
+                        let cardContent = '';
+                        
+                        // --- DISEÑO 1: 5S CLÁSICO ---
+                        if (item.estilo === '5s') {
+                            cardContent = `
+                                <div class="w-full h-full border-[3px] border-black flex flex-col bg-white box-border">
+                                    <div class="flex-1 grid grid-cols-4 grid-rows-2 border-b-[3px] border-black">
+                                        <div class="col-span-1 row-span-2 border-r-[3px] border-black flex flex-col">
+                                            <div class="text-[10px] font-black text-center border-b-[3px] border-black p-1 leading-tight uppercase">Consumo<br>Semanal</div>
+                                            <div class="flex-1 flex items-center justify-center font-black text-4xl">${item.consumo}</div>
+                                        </div>
+                                        <div class="col-span-2 row-span-1 border-b-[3px] border-r-[3px] border-black flex flex-col items-center justify-center px-2 py-1 text-center overflow-hidden">
+                                            <div class="text-[9px] font-black text-gray-500 uppercase tracking-widest w-full border-b border-gray-300 mb-1 pb-[1px]">${item.sku}</div>
+                                            <div class="font-black leading-tight flex-1 flex items-center" style="font-size: ${sName}">${item.nombre}</div>
+                                        </div>
+                                        <div class="col-span-1 row-span-1 flex flex-col items-center justify-center p-1 bg-gray-100 border-b-[3px] border-black">
+                                            <div class="text-[9px] font-black text-center uppercase tracking-widest border-b border-gray-300 w-full mb-1 pb-[1px]">Nº CAJÓN</div>
+                                            <div class="font-black text-center text-orange-600 flex-1 flex items-center" style="font-size: ${sOrg}">${item.org}</div>
+                                        </div>
+                                        <div class="col-span-2 row-span-1 border-r-[3px] border-black flex">
+                                            <div class="flex-1 border-r-[3px] border-black flex flex-col">
+                                                <div class="text-[10px] font-black text-center border-b border-black bg-gray-100">MIN</div>
+                                                <div class="flex-1 flex items-center justify-center font-black text-2xl">${item.min}</div>
+                                            </div>
+                                            <div class="flex-1 flex flex-col">
+                                                <div class="text-[10px] font-black text-center border-b border-black bg-gray-100">MAX</div>
+                                                <div class="flex-1 flex items-center justify-center font-black text-2xl">${item.max}</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-span-1 row-span-2 flex items-center justify-center p-1 relative top-[-50%] h-[200%] bg-white border-l-[3px] border-black box-border">
+                                            <div id="${qrId}" class="w-[85%] aspect-square flex items-center justify-center"></div>
+                                        </div>
+                                    </div>
+                                    <div class="h-10 flex shrink-0">
+                                        <div class="w-1/4 border-r-[3px] border-black flex items-center justify-center p-1">
+                                            <img src="logo.png" class="max-h-full object-contain grayscale" onerror="this.style.display='none'">
+                                        </div>
+                                        <div class="flex-1 flex items-center justify-center bg-gray-100">
+                                             <span class="text-[10px] text-gray-500 font-black uppercase tracking-widest">${item.familia}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        } 
+                        // --- DISEÑO 2: MODERNO DETECO ---
+                        else if (item.estilo === 'modern') {
+                            cardContent = `
+                                <div class="w-full h-full border-2 border-orange-500 rounded-xl flex flex-col bg-white overflow-hidden shadow-sm relative box-border">
+                                    <div class="bg-orange-500 text-white flex justify-between items-center px-4 py-1.5 shrink-0">
+                                        <span class="font-black text-[10px] tracking-widest uppercase">DETECO IC SA</span>
+                                        <span class="font-black text-lg">${item.org}</span>
+                                    </div>
+                                    <div class="flex-1 flex p-3 gap-3">
+                                        <div class="flex-[3] flex flex-col justify-center">
+                                            <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">CÓDIGO: ${item.sku}</span>
+                                            <span class="font-black leading-tight text-gray-900 mt-1 line-clamp-2" style="font-size: ${sName}">${item.nombre}</span>
+                                            <div class="flex gap-2 mt-auto pt-2">
+                                                <div class="bg-gray-100 rounded-lg px-2 py-1.5 flex-1 flex items-center justify-between border border-gray-200"><span class="text-[9px] text-gray-500 font-black uppercase">MIN</span><span class="font-black text-xl text-gray-800">${item.min}</span></div>
+                                                <div class="bg-gray-100 rounded-lg px-2 py-1.5 flex-1 flex items-center justify-between border border-gray-200"><span class="text-[9px] text-gray-500 font-black uppercase">MAX</span><span class="font-black text-xl text-gray-800">${item.max}</span></div>
+                                                <div class="bg-orange-50 rounded-lg px-2 py-1.5 flex-1 flex items-center justify-between border border-orange-100"><span class="text-[9px] text-orange-600 font-black uppercase">CNS</span><span class="font-black text-xl text-orange-600">${item.consumo}</span></div>
+                                            </div>
+                                        </div>
+                                        <div class="flex-[1] flex flex-col items-center justify-center border-l-2 border-gray-100 pl-3">
+                                            <div id="${qrId}" class="w-full aspect-square flex items-center justify-center"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                        // --- DISEÑO 3: ALTA VISIBILIDAD ---
+                        else if (item.estilo === 'highvis') {
+                            cardContent = `
+                                <div class="w-full h-full border-4 border-gray-900 flex flex-col bg-white box-border">
+                                    <div class="flex h-3/5 border-b-4 border-gray-900">
+                                        <div class="flex-[3] p-3 flex flex-col justify-center border-r-4 border-gray-900">
+                                            <span class="font-black text-sm bg-gray-900 text-white px-2 py-0.5 self-start mb-2 inline-block tracking-widest">${item.sku}</span>
+                                            <span class="font-black leading-none text-black line-clamp-3" style="font-size: ${sName}">${item.nombre}</span>
+                                        </div>
+                                        <div class="flex-[1] bg-[#F26522] flex flex-col items-center justify-center p-2 text-white">
+                                            <span class="text-[9px] font-black uppercase tracking-widest border-b-2 border-white/30 pb-1 mb-1 w-full text-center">UBICACIÓN</span>
+                                            <span class="font-black text-center leading-none" style="font-size: ${sOrg}">${item.org}</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex h-2/5">
+                                         <div class="flex-1 flex flex-col items-center justify-center border-r-4 border-gray-400 p-1 bg-gray-100">
+                                             <span class="text-[12px] font-black text-gray-500 tracking-widest">MIN</span>
+                                             <span class="font-black text-5xl text-gray-900 leading-none">${item.min}</span>
+                                         </div>
+                                         <div class="flex-1 flex flex-col items-center justify-center border-r-4 border-gray-900 p-1 bg-gray-200">
+                                             <span class="text-[12px] font-black text-gray-600 tracking-widest">MAX</span>
+                                             <span class="font-black text-5xl text-gray-900 leading-none">${item.max}</span>
+                                         </div>
+                                         <div class="flex-1 flex items-center justify-center p-2 bg-white">
+                                             <div id="${qrId}" class="h-[90%] aspect-square flex items-center justify-center mix-blend-multiply"></div>
+                                         </div>
+                                    </div>
+                                </div>
+                            `;
+                        }
+
                         card.innerHTML = `
-                            <button onclick="eliminarEtiqueta(${itemIndex})" class="btn-delete-label no-print absolute top-2 right-2 bg-red-50 text-red-500 hover:bg-red-500 hover:text-white w-7 h-7 rounded-full flex items-center justify-center transition-colors z-10 shadow-sm border border-red-200"><i class="fa-solid fa-xmark text-sm"></i></button>
-                            <div class="strip-orange"></div>
-                            <div class="left-col">
-                                <div class="header-block"><div class="product-name" style="font-size:${sName}">${item.nombre}</div><div class="product-sku-row"><span class="sku-label">CÓDIGO:</span><span class="sku-value" style="font-size:${sSku}">${item.sku}</span></div></div>
-                                <div class="organizer-block"><span class="organizer-number" style="font-size:${sOrg}">${item.org}</span></div>
-                                <div class="product-family" style="font-size:${sFamily}">${item.familia}</div>
-                            </div>
-                            <div class="right-col"><div class="qr-wrapper"><div class="qr-container" id="${qrId}"></div></div><div class="logo-container"><img src="logo.png" onerror="this.style.display='none'"></div></div>
+                            <button onclick="eliminarEtiqueta(${itemIndex})" class="btn-delete-label no-print absolute top-1 right-1 bg-red-500 text-white hover:bg-red-700 w-6 h-6 rounded-full flex items-center justify-center transition-colors z-30 shadow-md"><i class="fa-solid fa-xmark text-xs"></i></button>
+                            ${cardContent}
                         `;
                         page.appendChild(card); new QRCode(card.querySelector(`#${qrId}`), { text: smartLink, width: 300, height: 300, correctLevel: QRCode.CorrectLevel.H });
                     } else {
@@ -1728,7 +1849,7 @@
         }
 
         function downloadPDF() {
-            if (!document.getElementById('view-generator').classList.contains('active')) { alert("Debes estar en 'Generador' para descargar el PDF."); return; }
+            if (!document.getElementById('view-generator').classList.contains('active')) { alert("Debes estar en 'Etiquetado 5S' para descargar el PDF."); return; }
             if (colaImpresion.length === 0) { alert("No hay etiquetas en la hoja para descargar."); return; }
 
             const element = document.getElementById('pages-wrapper'); const rightContent = document.querySelector('.right-content'); const previewPanel = document.getElementById('view-generator');
@@ -1758,7 +1879,7 @@
             setTimeout(() => {
                 const orient = els.orientation.value === 'landscape' ? 'l' : 'p';
                 const opt = {
-                    margin: 0, filename: 'etiquetas_deteco.pdf', image: { type: 'jpeg', quality: 0.98 },
+                    margin: 0, filename: 'etiquetas_5S_deteco.pdf', image: { type: 'jpeg', quality: 0.98 },
                     html2canvas: { scale: 2, useCORS: true, scrollY: 0, windowY: 0, backgroundColor: '#ffffff', onclone: function(clonedDoc) { const imgs = clonedDoc.querySelectorAll('img'); imgs.forEach(img => { if (!img.complete || img.naturalWidth === 0) { img.parentNode.removeChild(img); } }); } },
                     jsPDF: { unit: 'mm', format: 'a4', orientation: orient }
                 };
@@ -1767,7 +1888,11 @@
         }
 
         let timeout;
-        [els.rows, els.cols, els.orientation, els.sizeName, els.sizeSku, els.sizeOrg, els.sizeFamily].forEach(el => { el.addEventListener('input', () => { clearTimeout(timeout); timeout = setTimeout(renderLabels, 150); }); });
+        [els.rows, els.cols, els.orientation, els.sizeName, els.sizeSku, els.sizeOrg, els.sizeFamily].forEach(el => { 
+            if (el) {
+                el.addEventListener('input', () => { clearTimeout(timeout); timeout = setTimeout(renderLabels, 150); }); 
+            }
+        });
     </script>
 </body>
 </html>
