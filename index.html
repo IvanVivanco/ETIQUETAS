@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Deteco DTX 6.41</title>
+    <title>Deteco DTX 6.42</title>
 
     <!-- PWA / WEB APP NATIVA META TAGS -->
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -138,12 +138,12 @@
         </div>
     </div>
 
-    <!-- MODALES GENERALES (Contraseña, Inventario, Merma, Ficha) -->
+    <!-- MODALES GENERALES -->
     <div id="modalAuth" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[4000] p-4 backdrop-blur-md">
         <div class="bg-white rounded-3xl p-8 w-full max-w-sm shadow-2xl flex flex-col items-center">
             <div class="w-16 h-16 bg-orange-50 text-orange-500 border border-orange-100 rounded-full flex items-center justify-center text-3xl mb-4"><i class="fa-solid fa-lock"></i></div>
             <h3 class="text-2xl font-black text-gray-900 mb-2">Acceso Restringido</h3>
-            <p class="text-sm text-gray-500 text-center mb-6">Módulo exclusivo de Auditoría. Ingresa tu PIN.</p>
+            <p class="text-sm text-gray-500 text-center mb-6">Módulo exclusivo de Auditoría de Bodega. Ingresa tu PIN de acceso.</p>
             <input type="password" id="inputPinBodega" placeholder="PIN de 4 dígitos" class="w-full text-center tracking-[0.5em] text-3xl font-black py-4 px-4 rounded-2xl border-2 border-gray-200 text-gray-800 outline-none focus:border-orange-500 shadow-sm transition-colors bg-gray-50 mb-4" autocomplete="off" onkeypress="if(event.key === 'Enter') validarPin()">
             <div id="pinError" class="hidden text-red-500 text-sm font-bold mb-4">PIN Incorrecto.</div>
             <div class="flex gap-3 w-full">
@@ -158,6 +158,7 @@
             <div class="text-center mb-6">
                 <div class="w-16 h-16 bg-orange-100 text-orange-500 rounded-full flex items-center justify-center text-3xl mx-auto mb-3 shadow-sm border border-orange-200"><i class="fa-solid fa-clipboard-user"></i></div>
                 <h3 class="text-2xl font-black text-gray-900 mb-1">Nueva Auditoría</h3>
+                <p class="text-sm text-gray-500">Ingresa los datos para registrar el inicio del conteo.</p>
             </div>
             <div class="space-y-4 mb-8">
                 <div><input type="text" id="invInputNombre" placeholder="Nombre Responsable" class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-3 font-bold mt-1 focus:outline-none focus:border-orange-500"></div>
@@ -208,24 +209,26 @@
     </div>
 
     <div id="modalMerma" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[3500] p-4 backdrop-blur-sm">
-        <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl transform transition-all relative flex flex-col">
+        <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl transform transition-all relative flex flex-col max-h-[90vh]">
             <button onclick="cerrarModalMerma()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 z-10"><i class="fa-solid fa-xmark text-xl"></i></button>
             <h3 class="text-xl font-black text-red-600 mb-2 mt-2"><i class="fa-solid fa-triangle-exclamation mr-2"></i> Reportar Merma</h3>
-            <div class="bg-red-50 p-3 rounded-xl border border-red-100 mb-4 text-center mt-2">
-                <span id="modalMermaCode" class="text-xs font-bold text-red-500 block mb-1">...</span>
-                <p id="modalMermaName" class="text-sm font-bold text-gray-700 leading-tight">...</p>
+            <div class="overflow-y-auto w-full hide-scroll pb-4 flex-1">
+                <div class="bg-red-50 p-3 rounded-xl border border-red-100 mb-4 text-center mt-2">
+                    <span id="modalMermaCode" class="text-xs font-bold text-red-500 block mb-1">...</span>
+                    <p id="modalMermaName" class="text-sm font-bold text-gray-700 leading-tight">...</p>
+                </div>
+                <div class="mb-4 flex items-center justify-center gap-4">
+                    <button onclick="cambiarCantMerma(-1)" class="w-12 h-12 rounded-full bg-gray-100 text-gray-600 font-black text-xl hover:bg-gray-200 transition-colors">-</button>
+                    <input type="number" id="inputModalMermaQty" value="1" min="1" class="w-24 border-0 bg-transparent text-4xl font-black text-center text-gray-900 focus:outline-none p-0 hide-scroll">
+                    <button onclick="cambiarCantMerma(1)" class="w-12 h-12 rounded-full bg-red-100 text-red-600 font-black text-xl hover:bg-red-200 transition-colors">+</button>
+                </div>
+                <select id="inputMotivoMerma" class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-3 font-bold text-gray-700 mb-3"><option value="Daño Físico / Roto">Daño Físico / Roto</option><option value="Material Defectuoso">Material Defectuoso</option><option value="Extraviado / Perdido">Extraviado / Perdido</option><option value="Vencido">Vencido</option><option value="Otro">Otro...</option></select>
+                <button onclick="document.getElementById('inputMermaFoto').click()" class="w-full bg-gray-100 text-gray-700 py-3 rounded-xl font-bold border border-gray-200 mb-3"><i class="fa-solid fa-camera"></i> Tomar Foto Evidencia</button>
+                <input type="file" id="inputMermaFoto" accept="image/*" capture="environment" class="hidden" onchange="procesarFotoMerma(event)">
+                <div id="previewMermaFotoContainer" class="hidden mb-3 relative w-full h-32 bg-gray-100 rounded-xl overflow-hidden border border-gray-200"><img id="previewMermaFoto" src="" class="w-full h-full object-cover"><button onclick="removerFotoMerma()" class="absolute top-2 right-2 bg-red-500 text-white w-8 h-8 rounded-full shadow-md flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button></div>
+                <input type="text" id="inputObsMerma" placeholder="Observación (Ej: Cayó de grúa)" class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 mb-2">
             </div>
-            <div class="mb-4 flex items-center justify-center gap-4">
-                <button onclick="cambiarCantMerma(-1)" class="w-12 h-12 rounded-full bg-gray-100 text-gray-600 font-black text-xl hover:bg-gray-200 transition-colors">-</button>
-                <input type="number" id="inputModalMermaQty" value="1" min="1" class="w-24 border-0 bg-transparent text-4xl font-black text-center text-gray-900 focus:outline-none p-0 hide-scroll">
-                <button onclick="cambiarCantMerma(1)" class="w-12 h-12 rounded-full bg-red-100 text-red-600 font-black text-xl hover:bg-red-200 transition-colors">+</button>
-            </div>
-            <select id="inputMotivoMerma" class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-3 font-bold text-gray-700 mb-3"><option value="Daño Físico / Roto">Daño Físico / Roto</option><option value="Material Defectuoso">Material Defectuoso</option><option value="Extraviado / Perdido">Extraviado / Perdido</option><option value="Vencido">Vencido</option><option value="Otro">Otro...</option></select>
-            <button onclick="document.getElementById('inputMermaFoto').click()" class="w-full bg-gray-100 text-gray-700 py-3 rounded-xl font-bold border border-gray-200 mb-3"><i class="fa-solid fa-camera"></i> Tomar Foto Evidencia</button>
-            <input type="file" id="inputMermaFoto" accept="image/*" capture="environment" class="hidden" onchange="procesarFotoMerma(event)">
-            <div id="previewMermaFotoContainer" class="hidden mb-3 relative w-full h-32 bg-gray-100 rounded-xl overflow-hidden border border-gray-200"><img id="previewMermaFoto" src="" class="w-full h-full object-cover"><button onclick="removerFotoMerma()" class="absolute top-2 right-2 bg-red-500 text-white w-8 h-8 rounded-full shadow-md flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button></div>
-            <input type="text" id="inputObsMerma" placeholder="Observación (Ej: Cayó de grúa)" class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 mb-2">
-            <button onclick="confirmarMerma()" class="w-full bg-red-600 text-white py-4 rounded-xl font-black text-lg shadow-md mt-2">Registrar Merma</button>
+            <button onclick="confirmarMerma()" class="w-full bg-red-600 text-white py-4 rounded-xl font-black text-lg shadow-md mt-2 shrink-0">Registrar Merma</button>
         </div>
     </div>
 
@@ -233,37 +236,37 @@
         <div class="w-full max-w-4xl h-[85vh] bg-white rounded-3xl overflow-hidden flex flex-col shadow-2xl relative">
             <div class="flex justify-between items-center p-4 border-b border-gray-200 bg-gray-50 shrink-0">
                 <h3 class="text-lg font-black text-gray-800 truncate pr-4" id="modalFichaTitle">Ficha Técnica</h3>
-                <button onclick="cerrarModalFicha()" class="text-gray-400 hover:text-red-500 w-8 h-8 flex items-center justify-center rounded-full bg-white shadow-sm border border-gray-200"><i class="fa-solid fa-xmark text-xl"></i></button>
+                <button onclick="cerrarModalFicha()" class="text-gray-400 hover:text-red-500 w-8 h-8 flex items-center justify-center rounded-full bg-white shadow-sm border border-gray-200 transition-colors"><i class="fa-solid fa-xmark text-xl"></i></button>
             </div>
             <div class="flex-1 w-full bg-gray-200 relative overflow-hidden">
                 <div class="absolute inset-0 flex items-center justify-center -z-10 text-gray-400 text-sm flex-col gap-2"><i class="fa-solid fa-spinner fa-spin text-3xl"></i><span class="font-bold uppercase tracking-widest text-[10px]">Cargando documento...</span></div>
                 <iframe id="iframeFicha" src="" class="w-full h-full border-0 z-10 relative" title="Ficha Técnica"></iframe>
             </div>
             <div class="p-4 bg-white border-t border-gray-200 shrink-0 flex gap-3">
-                <a id="btnDescargarFicha" href="#" target="_blank" download class="flex-1 bg-orange-500 text-white py-4 rounded-xl font-black text-center shadow-md"><i class="fa-solid fa-download"></i> Descargar Archivo</a>
+                <a id="btnDescargarFicha" href="#" target="_blank" download class="flex-1 bg-orange-500 text-white hover:bg-orange-600 py-4 rounded-xl font-black text-center transition-colors shadow-md flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-download"></i> Descargar Archivo Original
+                </a>
             </div>
         </div>
     </div>
 
     <!-- PANEL PRINCIPAL -->
     <div class="main-layout">
-        <!-- BARRA LATERAL IZQUIERDA (CONFIGURACIÓN DE ETIQUETAS) -->
+        <!-- BARRA LATERAL IZQUIERDA -->
         <div class="settings-panel no-print settings-collapsed" id="panel-settings" style="display: none;">
             <div class="settings-inner">
                 
-                <!-- Buscador BD -->
                 <div class="control-group">
                     <div class="relative w-full">
                         <i class="fa-solid fa-search absolute left-3 top-3 text-gray-400 text-xs"></i>
-                        <input type="text" id="dbSearch" placeholder="Buscar en BD para autocompletar..." class="w-full bg-white border-2 border-gray-200 rounded-xl pl-8 pr-3 py-2 text-sm font-bold text-gray-900 outline-none focus:border-orange-500">
+                        <input type="text" id="dbSearch" placeholder="Buscar producto en BD..." class="w-full bg-white border-2 border-gray-200 rounded-xl pl-8 pr-3 py-2 text-sm font-bold text-gray-900 outline-none focus:border-orange-500">
                         <div id="searchResults" class="hidden absolute top-full left-0 w-full bg-white shadow-xl border border-gray-100 rounded-lg mt-1 z-50 max-h-48 overflow-y-auto"></div>
                     </div>
                     <div id="dbStatus" class="text-[9px] text-gray-400 text-right mt-1 font-bold">CONECTANDO...</div>
                 </div>
 
-                <!-- GRUPO 1: DATOS DEL PRODUCTO -->
                 <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm mb-4">
-                    <div class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-1 border-b border-gray-100 pb-2"><i class="fa-solid fa-box text-orange-500"></i> Información Base</div>
+                    <div class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-1 border-b border-gray-100 pb-2"><i class="fa-solid fa-box text-orange-500"></i> Datos del Producto</div>
                     <div class="flex flex-col gap-3">
                         <div>
                             <label class="text-[9px] font-bold text-gray-500 uppercase ml-1">Código / SKU</label>
@@ -273,14 +276,9 @@
                             <label class="text-[9px] font-bold text-gray-500 uppercase ml-1">Nombre Material</label>
                             <input type="text" id="nameInput" placeholder="Ej: Guantes Cabritilla" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm font-bold text-gray-900 outline-none focus:border-orange-500">
                         </div>
-                        <div>
-                            <label class="text-[9px] font-bold text-gray-500 uppercase ml-1">Familia (Opcional)</label>
-                            <input type="text" id="familyInput" placeholder="Ej: EPP" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm font-bold text-gray-900 outline-none focus:border-orange-500">
-                        </div>
                     </div>
                 </div>
 
-                <!-- GRUPO 2: UBICACIÓN Y 5S -->
                 <div class="bg-orange-50/50 p-4 rounded-2xl border border-orange-100 shadow-sm mb-4">
                     <div class="text-[10px] font-black text-orange-600 uppercase tracking-widest mb-3 flex items-center gap-1 border-b border-orange-200/50 pb-2"><i class="fa-solid fa-layer-group"></i> Ubicación y Kanban 5S</div>
                     <div class="flex flex-col gap-3">
@@ -290,30 +288,28 @@
                         </div>
                         <div class="grid grid-cols-3 gap-2">
                             <div>
-                                <label class="text-[8px] font-black text-gray-500 uppercase text-center block w-full mb-1">Consumo Semanal</label>
+                                <label class="text-[8px] font-black text-gray-500 uppercase text-center block w-full mb-1">Consumo<br>Semanal</label>
                                 <input type="number" id="consumoInput" value="24" class="w-full bg-white border border-gray-200 rounded-lg px-1 py-2 text-sm font-black text-gray-800 text-center outline-none focus:border-orange-500">
                             </div>
                             <div>
-                                <label class="text-[8px] font-black text-gray-500 uppercase text-center block w-full mb-1">Stock MIN</label>
+                                <label class="text-[8px] font-black text-gray-500 uppercase text-center block w-full mb-1"><br>Stock MIN</label>
                                 <input type="number" id="minInput" value="48" class="w-full bg-white border border-gray-200 rounded-lg px-1 py-2 text-sm font-black text-gray-800 text-center outline-none focus:border-orange-500">
                             </div>
                             <div>
-                                <label class="text-[8px] font-black text-gray-500 uppercase text-center block w-full mb-1">Stock MAX</label>
+                                <label class="text-[8px] font-black text-gray-500 uppercase text-center block w-full mb-1"><br>Stock MAX</label>
                                 <input type="number" id="maxInput" value="108" class="w-full bg-white border border-gray-200 rounded-lg px-1 py-2 text-sm font-black text-gray-800 text-center outline-none focus:border-orange-500">
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- GRUPO 3: DISEÑO E IMPRESIÓN -->
                 <div class="bg-gray-50 p-4 rounded-2xl border border-gray-200 shadow-sm mb-4">
-                    <div class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3 border-b border-gray-200 pb-2"><i class="fa-solid fa-palette mr-1"></i> Diseño Visual</div>
+                    <div class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3 border-b border-gray-200 pb-2"><i class="fa-solid fa-palette mr-1"></i> Diseño de Etiqueta</div>
                     
                     <div class="mb-4">
-                        <select id="styleInput" class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-xs font-bold text-gray-800 outline-none focus:border-orange-500 cursor-pointer shadow-sm">
-                            <option value="5s_orange" selected>Diseño 1: Croquis Naranja (Clásico)</option>
-                            <option value="5s_solid">Diseño 2: Encabezados Sólidos Naranjas</option>
-                            <option value="5s_dark">Diseño 3: Industrial Dark (Letras Naranjas)</option>
+                        <select id="styleInput" class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-[11px] font-bold text-gray-800 outline-none focus:border-orange-500 cursor-pointer shadow-sm">
+                            <option value="5s_solid_white" selected>Opción A: Encabezados Naranjas (Fondo Blanco)</option>
+                            <option value="5s_solid_orange">Opción B: Encabezados Naranjas (Fondo Suave)</option>
                         </select>
                     </div>
 
@@ -333,7 +329,6 @@
                     <i class="fa-solid fa-plus"></i> Añadir a la Hoja
                 </button>
 
-                <!-- Diseño Hoja -->
                 <div class="mt-6 pt-4 border-t border-gray-200">
                     <div class="flex justify-between items-center mb-3">
                         <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Ajustes de Página</span>
@@ -373,13 +368,12 @@
         <!-- CONTENEDOR DERECHO -->
         <div class="right-content">
             
-            <!-- VISTA 1: GENERADOR -->
             <div class="preview-panel view-section active" id="view-generator">
                 <div class="w-full text-center mb-4 opacity-50 no-print flex flex-col items-center justify-center">
                     <p class="text-xs font-bold uppercase tracking-widest"><i class="fa-solid fa-print"></i> Previsualización A4</p>
-                    <p class="text-[10px] max-w-sm mt-1">Modifica los datos en el panel izquierdo y presiona "Añadir a la Hoja". El diseño es puro blanco para evitar efecto "parche" al imprimir.</p>
+                    <p class="text-[10px] max-w-sm mt-1">Fondo de la App en blanco para no gastar tinta gris.</p>
                 </div>
-                <div id="pages-wrapper" class="w-full flex flex-col items-center bg-gray-100 py-4"></div>
+                <div id="pages-wrapper" class="w-full flex flex-col items-center bg-white py-4"></div>
             </div>
 
             <!-- VISTA 2: VISOR -->
@@ -429,14 +423,13 @@
                                 <i class="fa-solid fa-map-location-dot"></i> Ver Ubicación Física
                             </button>
 
-                            <!-- MAPA BODEGA 2D DISEÑO MODERNO -->
+                            <!-- MAPA BODEGA 2D -->
                             <div id="locationArea" class="hidden w-full mt-4 mb-4 transition-all duration-300">
                                 <div class="bg-white rounded-3xl p-4 sm:p-6 w-full border border-gray-200 shadow-sm">
                                     <div class="flex items-center justify-center mb-2">
                                         <h4 class="text-[10px] font-black text-gray-400 uppercase tracking-widest"><i class="fa-solid fa-map-location-dot mr-1"></i> Layout de Bodega</h4>
                                     </div>
                                     <div class="relative w-full max-w-[340px] aspect-[4/5] mx-auto map-grid-bg rounded-2xl border border-gray-200 shadow-inner overflow-hidden mt-2 mb-6">
-                                        <!-- MAP CONTENT EXACTAMENTE IGUAL A 6.36 -->
                                         <div id="lbl-pasillo-a" class="absolute left-[20%] top-[20%] bg-white/90 backdrop-blur px-3 py-1 rounded-full font-black text-[12px] text-gray-400 border border-gray-100 shadow-sm transition-all duration-300 z-10">PASILLO A</div>
                                         <div id="lbl-pasillo-b" class="absolute right-[14%] top-[50%] -translate-y-1/2 rotate-90 bg-white/90 backdrop-blur px-3 py-1 rounded-full font-black text-[12px] text-gray-400 border border-gray-100 shadow-sm transition-all duration-300 z-10 origin-center">PASILLO B</div>
                                         <div id="lbl-pasillo-c" class="absolute left-[20%] bottom-[20%] bg-white/90 backdrop-blur px-3 py-1 rounded-full font-black text-[12px] text-gray-400 border border-gray-100 shadow-sm transition-all duration-300 z-10">PASILLO C</div>
@@ -446,30 +439,25 @@
                                             <div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-A13" class="rk-block"></div><div id="rk-A14" class="rk-block"></div><div id="rk-A15" class="rk-block"></div><div id="rk-A16" class="rk-block"></div></div>
                                             <div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-A17" class="rk-block"></div><div id="rk-A18" class="rk-block"></div><div id="rk-A19" class="rk-block"></div><div id="rk-A20" class="rk-block"></div></div>
                                         </div>
-
                                         <div class="absolute top-[32%] left-[4%] w-[58%] h-[12%] grid grid-cols-2 gap-2">
                                             <div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-A1" class="rk-block"></div><div id="rk-A2" class="rk-block"></div><div id="rk-A3" class="rk-block"></div><div id="rk-A4" class="rk-block"></div></div>
                                             <div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-A5" class="rk-block"></div><div id="rk-A6" class="rk-block"></div><div id="rk-A7" class="rk-block"></div><div id="rk-A8" class="rk-block"></div></div>
                                         </div>
-
                                         <div class="absolute bottom-[32%] left-[4%] w-[58%] h-[12%] grid grid-cols-2 gap-2">
                                             <div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-C13" class="rk-block"></div><div id="rk-C14" class="rk-block"></div><div id="rk-C15" class="rk-block"></div><div id="rk-C16" class="rk-block"></div></div>
                                             <div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-C17" class="rk-block"></div><div id="rk-C18" class="rk-block"></div><div id="rk-C19" class="rk-block"></div><div id="rk-C20" class="rk-block"></div></div>
                                         </div>
-
                                         <div class="absolute bottom-[4%] left-[4%] w-[80%] h-[12%] grid grid-cols-3 gap-2">
                                             <div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-C1" class="rk-block"></div><div id="rk-C2" class="rk-block"></div><div id="rk-C3" class="rk-block"></div><div id="rk-C4" class="rk-block"></div></div>
                                             <div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-C5" class="rk-block"></div><div id="rk-C6" class="rk-block"></div><div id="rk-C7" class="rk-block"></div><div id="rk-C8" class="rk-block"></div></div>
                                             <div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-C9" class="rk-block"></div><div id="rk-C10" class="rk-block"></div><div id="rk-C11" class="rk-block"></div><div id="rk-C12" class="rk-block"></div></div>
                                         </div>
-
                                         <div class="absolute top-[4%] right-[4%] w-[12%] h-[92%] grid grid-rows-3 gap-2">
                                             <div class="flex flex-row gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-B4" class="rk-block"></div><div id="rk-B3" class="rk-block"></div><div id="rk-B2" class="rk-block"></div><div id="rk-B1" class="rk-block"></div></div>
                                             <div class="flex flex-row gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-B8" class="rk-block"></div><div id="rk-B7" class="rk-block"></div><div id="rk-B6" class="rk-block"></div><div id="rk-B5" class="rk-block"></div></div>
                                             <div class="flex flex-row gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-B12" class="rk-block"></div><div id="rk-B11" class="rk-block"></div><div id="rk-B10" class="rk-block"></div><div id="rk-B9" class="rk-block"></div></div>
                                         </div>
                                     </div>
-
                                     <div class="w-full flex justify-center">
                                         <div class="bg-gray-50 px-6 py-4 rounded-xl border border-gray-200 w-full max-w-sm text-center shadow-sm">
                                             <span class="block text-[10px] text-gray-400 uppercase font-black tracking-wider">Ubicación Fija</span>
@@ -479,6 +467,7 @@
                                     <p id="locRaw" class="text-[9px] font-medium text-gray-400 mt-4 text-center tracking-widest uppercase"></p>
                                 </div>
                             </div>
+                            <!-- FIN MAPA -->
                             
                             <div class="mt-4 w-full px-2">
                                 <button onclick="abrirModalMerma()" class="w-full bg-white text-red-600 border-2 border-red-500 hover:bg-red-50 px-4 py-4 rounded-xl font-bold text-base transition-colors shadow-sm flex items-center justify-center gap-2">
@@ -487,26 +476,23 @@
                             </div>
                         </div>
                         
+                        <!-- BOTÓN FICHA TÉCNICA -->
                         <div id="datasheetArea" class="hidden w-full">
                             <button id="btnDatasheet" onclick="abrirModalFicha()" class="w-full bg-orange-50 text-orange-700 hover:bg-orange-100 py-4 rounded-xl font-bold transition-colors flex justify-center items-center gap-2 border border-orange-200 mt-4">
                                 <i class="fa-solid fa-file-pdf text-xl"></i> Ver Ficha Técnica
                             </button>
                         </div>
                         <div id="noDataArea" class="hidden mt-4 mb-4 text-gray-400 text-sm w-full text-center">No hay ficha técnica disponible.</div>
-
-                        <div class="border-t border-gray-100 pt-4 mt-4 w-full text-center">
-                            <p class="text-[10px] text-gray-300 font-medium">Desarrollado para Deteco IC SA</p>
-                        </div>
+                        <div class="border-t border-gray-100 pt-4 mt-4 w-full text-center"><p class="text-[10px] text-gray-300 font-medium">Desarrollado para Deteco IC SA</p></div>
                     </div>
 
                     <div id="scanError" class="hidden bg-red-50 text-red-600 p-4 rounded-xl text-center mt-4 border border-red-100 font-medium w-full mx-2 shadow-sm">
-                        <i class="fa-solid fa-circle-exclamation text-xl mb-2 block"></i> 
-                        Producto no encontrado en el inventario actual.
+                        <i class="fa-solid fa-circle-exclamation text-xl mb-2 block"></i> Producto no encontrado en el inventario actual.
                     </div>
                 </div>
             </div>
 
-            <!-- VISTA 3: INVENTARIO (AUDITORÍA PRO) -->
+            <!-- VISTA 3: INVENTARIO -->
             <div class="preview-panel view-section" id="view-inventario">
                 <div class="w-full max-w-2xl mx-auto px-2 h-full flex flex-col">
                     <div id="invStartContainer" class="flex-1 flex flex-col items-center justify-center p-6 text-center h-full">
@@ -521,21 +507,12 @@
                     <div id="invActiveContainer" class="hidden flex-col h-full w-full">
                         <div class="text-center mb-2 shrink-0 relative w-full pt-2">
                             <h2 class="text-3xl font-black text-gray-900 mb-1 tracking-tight">INVENTARIO</h2>
-                            <div class="w-full bg-gray-200 rounded-full h-2 mb-1 mt-2 overflow-hidden shadow-inner">
-                                <div id="invProgressBar" class="bg-orange-500 h-full transition-all duration-500" style="width: 0%"></div>
-                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2 mb-1 mt-2 overflow-hidden shadow-inner"><div id="invProgressBar" class="bg-orange-500 h-full transition-all duration-500" style="width: 0%"></div></div>
                             <p class="text-gray-500 text-xs font-bold uppercase tracking-wider" id="invProgressText">0 de 0 contados</p>
                         </div>
-
                         <div class="bg-orange-50 border border-orange-100 rounded-xl p-3 mb-4 shrink-0 shadow-sm flex justify-between items-center">
-                            <div>
-                                <p class="text-[9px] font-bold text-orange-400 uppercase tracking-widest">Período</p>
-                                <p class="text-sm font-black text-orange-900 uppercase" id="lblInvPeriodo">...</p>
-                            </div>
-                            <div class="text-right">
-                                <p class="text-[9px] font-bold text-orange-400 uppercase tracking-widest">Responsable</p>
-                                <p class="text-sm font-black text-orange-900 truncate max-w-[120px] sm:max-w-[200px]" id="lblInvResponsable">...</p>
-                            </div>
+                            <div><p class="text-[9px] font-bold text-orange-400 uppercase tracking-widest">Período</p><p class="text-sm font-black text-orange-900 uppercase" id="lblInvPeriodo">...</p></div>
+                            <div class="text-right"><p class="text-[9px] font-bold text-orange-400 uppercase tracking-widest">Responsable</p><p class="text-sm font-black text-orange-900 truncate max-w-[120px] sm:max-w-[200px]" id="lblInvResponsable">...</p></div>
                         </div>
 
                         <div class="flex gap-2 mb-2 shrink-0">
@@ -547,26 +524,18 @@
                         </div>
 
                         <div class="flex items-center justify-between mb-2 px-1 shrink-0 mt-1">
-                            <button onclick="abrirModalNuevoProducto()" class="bg-white text-green-600 border border-green-200 hover:bg-green-50 px-3 py-1.5 rounded-xl font-bold text-[10px] shadow-sm flex items-center gap-1.5 transition-colors uppercase tracking-wider">
-                                <i class="fa-solid fa-plus"></i> Agregar Manual
-                            </button>
+                            <button onclick="abrirModalNuevoProducto()" class="bg-white text-green-600 border border-green-200 hover:bg-green-50 px-3 py-1.5 rounded-xl font-bold text-[10px] shadow-sm flex items-center gap-1.5 transition-colors uppercase tracking-wider"><i class="fa-solid fa-plus"></i> Agregar Manual</button>
                             <label class="flex items-center gap-2 cursor-pointer bg-white px-3 py-1.5 rounded-xl border border-gray-200 shadow-sm hover:bg-gray-50 transition-colors">
                                 <input type="checkbox" id="checkOcultarContados" class="w-4 h-4 accent-orange-500" onchange="toggleOcultarContados()">
                                 <span class="text-[10px] font-bold text-gray-600 uppercase tracking-wider">Ocultar contados</span>
                             </label>
                         </div>
 
-                        <div class="flex-1 overflow-hidden flex flex-col mb-4">
-                            <div class="overflow-y-auto w-full h-full pb-10 hide-scroll" id="invFullListContainer"></div>
-                        </div>
+                        <div class="flex-1 overflow-hidden flex flex-col mb-4"><div class="overflow-y-auto w-full h-full pb-10 hide-scroll" id="invFullListContainer"></div></div>
 
                         <div class="flex gap-2 shrink-0 mb-4 w-full px-1">
-                            <button onclick="exportarInventarioExcelSolo()" id="btnExcelSolo" class="bg-white text-green-700 hover:bg-green-50 border border-green-200 py-3 rounded-xl font-bold text-[10px] sm:text-xs transition-colors shadow-sm flex flex-col items-center justify-center shrink-0 w-16" title="Bajar Excel Parcial">
-                                <i class="fa-solid fa-download mb-1 text-lg"></i> Bajar
-                            </button>
-                            <button onclick="finalizarInventario()" id="btnCerrarInv" class="flex-1 bg-red-600 text-white hover:bg-red-700 py-3 rounded-xl font-black text-sm transition-colors shadow-md flex items-center justify-center gap-2">
-                                <i class="fa-solid fa-lock text-xl"></i> Cerrar Inventario y Exportar
-                            </button>
+                            <button onclick="exportarInventarioExcelSolo()" id="btnExcelSolo" class="bg-white text-green-700 hover:bg-green-50 border border-green-200 py-3 rounded-xl font-bold text-[10px] sm:text-xs transition-colors shadow-sm flex flex-col items-center justify-center shrink-0 w-16" title="Bajar Excel Parcial"><i class="fa-solid fa-download mb-1 text-lg"></i> Bajar</button>
+                            <button onclick="finalizarInventario()" id="btnCerrarInv" class="flex-1 bg-red-600 text-white hover:bg-red-700 py-3 rounded-xl font-black text-sm transition-colors shadow-md flex items-center justify-center gap-2"><i class="fa-solid fa-lock text-xl"></i> Cerrar Inventario y Exportar</button>
                         </div>
                     </div>
                 </div>
@@ -577,9 +546,7 @@
                 <div class="w-full max-w-2xl mx-auto px-2 relative h-full flex flex-col">
                     <div class="text-center mb-6 shrink-0 relative w-full pt-2">
                         <h2 class="text-3xl font-black text-red-600 mb-2">Registro de Mermas</h2>
-                        <button onclick="finalizarMermas()" class="absolute top-0 right-0 text-gray-300 hover:text-red-500 bg-white p-2 sm:p-3 rounded-full shadow-sm border border-gray-100 transition-colors z-10" title="Borrar toda la lista de mermas">
-                            <i class="fa-solid fa-trash-can"></i>
-                        </button>
+                        <button onclick="finalizarMermas()" class="absolute top-0 right-0 text-gray-300 hover:text-red-500 bg-white p-2 sm:p-3 rounded-full shadow-sm border border-gray-100 transition-colors z-10" title="Borrar toda la lista de mermas"><i class="fa-solid fa-trash-can"></i></button>
                         <p class="text-gray-500">Pérdidas, daños o material defectuoso</p>
                     </div>
 
@@ -592,9 +559,7 @@
                     </div>
 
                     <div class="flex gap-2 shrink-0 mb-4 w-full px-1">
-                        <button onclick="exportarMermasExcel()" id="btnExcelMermas" class="flex-1 bg-[#107c41] text-white hover:bg-[#0b5e31] py-4 rounded-xl font-black text-sm transition-colors shadow-md flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-share-nodes text-xl"></i> Compartir Reporte de Mermas
-                        </button>
+                        <button onclick="exportarMermasExcel()" id="btnExcelMermas" class="flex-1 bg-[#107c41] text-white hover:bg-[#0b5e31] py-4 rounded-xl font-black text-sm transition-colors shadow-md flex items-center justify-center gap-2"><i class="fa-solid fa-share-nodes text-xl"></i> Compartir Reporte de Mermas</button>
                     </div>
                 </div>
             </div>
@@ -635,20 +600,16 @@
             localStorage.setItem('deteco_inv_meta', JSON.stringify(inventarioMetadata));
         }
 
-        function saveMermasState() {
-            localStorage.setItem('deteco_mermas', JSON.stringify(listaMermas));
-        }
+        function saveMermasState() { localStorage.setItem('deteco_mermas', JSON.stringify(listaMermas)); }
 
         function addLog(msg) {
             const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
             inventarioLogs.unshift(`[${time}] ${msg}`);
             if(inventarioLogs.length > 50) inventarioLogs.pop(); 
-            saveInventarioState();
-            renderLogs();
+            saveInventarioState(); renderLogs();
         }
 
         // --- MAPEO DIRECTO CON EL HTML ---
-        // Usamos una función para obtener elementos en tiempo real y evitar errores si el DOM no cargó.
         const els = {
             get wrapper() { return document.getElementById('pages-wrapper'); },
             get rows() { return document.getElementById('rowsInput'); },
@@ -679,26 +640,20 @@
                 setView('generator'); 
                 await loadDB();
                 
-                if (searchId) {
-                    setView('visor');
-                    document.getElementById('manualInput').value = searchId;
-                    manualSearch(searchId);
-                }
+                if (searchId) { setView('visor'); document.getElementById('manualInput').value = searchId; manualSearch(searchId); }
                 
                 renderLabels();
                 actualizarUIMermas();
                 actualizarUIEstadoInventario();
 
-                // Listeners de los Sliders (Se ligan despues de cargar)
+                // Listeners de los Sliders
+                let timeout;
                 [els.rows, els.cols, els.orientation, els.sizeName, els.sizeOrg, els.style].forEach(el => { 
                     if (el) { el.addEventListener('input', () => { clearTimeout(timeout); timeout = setTimeout(renderLabels, 150); }); }
                 });
 
                 const splash = document.getElementById('splash-screen');
-                setTimeout(() => {
-                    splash.style.opacity = '0';
-                    setTimeout(() => { splash.style.display = 'none'; }, 700); 
-                }, 500); 
+                setTimeout(() => { splash.style.opacity = '0'; setTimeout(() => { splash.style.display = 'none'; }, 700); }, 500); 
 
             } catch (err) {
                 console.error("Error cargando la app: ", err);
@@ -707,13 +662,7 @@
         });
 
         let ultimaSincronizacion = Date.now();
-        function intentarSincronizacion() {
-            const ahora = Date.now();
-            if (ahora - ultimaSincronizacion > 10000) {
-                ultimaSincronizacion = ahora;
-                setTimeout(() => { loadDB(true); }, 500);
-            }
-        }
+        function intentarSincronizacion() { const ahora = Date.now(); if (ahora - ultimaSincronizacion > 10000) { ultimaSincronizacion = ahora; setTimeout(() => { loadDB(true); }, 500); } }
         document.addEventListener("visibilitychange", () => { if (document.visibilityState === 'visible') intentarSincronizacion(); });
         window.addEventListener("focus", intentarSincronizacion);
         window.addEventListener("pageshow", (e) => { if (e.persisted) intentarSincronizacion(); });
@@ -737,9 +686,7 @@
                         'https://api.allorigins.win/raw?url=' + encodeURIComponent(DROPBOX_EXCEL_URL)
                     ];
 
-                    for (const url of urlsToTry) {
-                        try { res = await fetch(url); if (res.ok) break; } catch (err) { console.warn("Fallo intento fetch:", url); }
-                    }
+                    for (const url of urlsToTry) { try { res = await fetch(url); if (res.ok) break; } catch (err) {} }
                     if (!res || !res.ok) throw new Error("Imposible descargar de Dropbox");
 
                     const arrayBuffer = await res.arrayBuffer();
@@ -753,8 +700,7 @@
                     for(let i = 0; i < Math.min(15, rawData.length); i++) {
                         const rowStr = rawData[i].join('').toUpperCase();
                         if(rowStr.includes('COD') && (rowStr.includes('DESCRIPCION') || rowStr.includes('NOMBRE'))) {
-                            headerRowIndex = i;
-                            break;
+                            headerRowIndex = i; break;
                         }
                     }
 
@@ -767,12 +713,9 @@
                             nRow[cleanKey] = String(row[key]).trim(); 
                         }
                         return {
-                            CODIGO: nRow['COD'] || nRow['CODIGO'] || '',
-                            NOMBRE: nRow['DESCRIPCION'] || nRow['NOMBRE'] || '',
-                            STOCK: nRow['STOCK ACTUAL'] || nRow['STOCK'] || '0', 
-                            UNIDAD: nRow['UDM'] || nRow['UNIDAD'] || 'UND',
-                            CATEGORIA: nRow['FAMILIA'] || nRow['CATEGORIA'] || '', 
-                            FICHA: nRow['FICHA'] || nRow['FICHA TECNICA'] || '',
+                            CODIGO: nRow['COD'] || nRow['CODIGO'] || '', NOMBRE: nRow['DESCRIPCION'] || nRow['NOMBRE'] || '',
+                            STOCK: nRow['STOCK ACTUAL'] || nRow['STOCK'] || '0', UNIDAD: nRow['UDM'] || nRow['UNIDAD'] || 'UND',
+                            CATEGORIA: nRow['FAMILIA'] || nRow['CATEGORIA'] || '', FICHA: nRow['FICHA'] || nRow['FICHA TECNICA'] || '',
                             ORGANIZADOR: nRow['UBICACION'] || nRow['ORGANIZADOR'] || nRow['PASILLO'] || ''
                         };
                     }).filter(p => p.CODIGO);
@@ -785,10 +728,7 @@
                     let headerRowIndex = 0;
                     for(let i = 0; i < Math.min(15, rows.length); i++) {
                         const rowStr = rows[i].join('').toUpperCase();
-                        if(rowStr.includes('COD') && (rowStr.includes('DESCRIPCION') || rowStr.includes('NOMBRE'))) {
-                            headerRowIndex = i;
-                            break;
-                        }
+                        if(rowStr.includes('COD') && (rowStr.includes('DESCRIPCION') || rowStr.includes('NOMBRE'))) { headerRowIndex = i; break; }
                     }
 
                     const headers = rows[headerRowIndex].map(h => h.trim().toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/"/g,''));
@@ -797,19 +737,15 @@
                         let nRow = {};
                         r.forEach((val, i) => { if(headers[i]) nRow[headers[i]] = val.replace(/"/g,'').trim(); });
                         return {
-                            CODIGO: nRow['COD'] || nRow['CODIGO'] || '',
-                            NOMBRE: nRow['DESCRIPCION'] || nRow['NOMBRE'] || '',
-                            STOCK: nRow['STOCK ACTUAL'] || nRow['STOCK'] || '0', 
-                            UNIDAD: nRow['UDM'] || nRow['UNIDAD'] || 'UND',
-                            CATEGORIA: nRow['FAMILIA'] || nRow['CATEGORIA'] || '', 
-                            FICHA: nRow['FICHA'] || nRow['FICHA TECNICA'] || '',
+                            CODIGO: nRow['COD'] || nRow['CODIGO'] || '', NOMBRE: nRow['DESCRIPCION'] || nRow['NOMBRE'] || '',
+                            STOCK: nRow['STOCK ACTUAL'] || nRow['STOCK'] || '0', UNIDAD: nRow['UDM'] || nRow['UNIDAD'] || 'UND',
+                            CATEGORIA: nRow['FAMILIA'] || nRow['CATEGORIA'] || '', FICHA: nRow['FICHA'] || nRow['FICHA TECNICA'] || '',
                             ORGANIZADOR: nRow['UBICACION'] || nRow['ORGANIZADOR'] || nRow['PASILLO'] || ''
                         };
                     }).filter(p => p.CODIGO);
                 }
 
                 dbProducts.sort((a, b) => a.NOMBRE.localeCompare(b.NOMBRE));
-
                 if(statusEl) { statusEl.innerText = `Online: ${dbProducts.length} productos`; statusEl.className = "text-[10px] text-green-600 text-right font-bold mt-1"; }
                 
                 if(isManualRefresh) {
@@ -828,44 +764,24 @@
 
         function toggleLocationArea() {
             const locArea = document.getElementById('locationArea');
-            if(locArea.classList.contains('hidden')) {
-                locArea.classList.remove('hidden');
-                setTimeout(() => { locArea.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100);
-            } else {
-                locArea.classList.add('hidden');
-            }
+            if(locArea.classList.contains('hidden')) { locArea.classList.remove('hidden'); setTimeout(() => { locArea.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100); } 
+            else { locArea.classList.add('hidden'); }
         }
 
         function abrirModalFicha() {
             if(!window.currentProd || !window.currentProd.FICHA) return;
-            
-            const modal = document.getElementById('modalFichaTecnica');
-            const iframe = document.getElementById('iframeFicha');
-            const btnDescarga = document.getElementById('btnDescargarFicha');
-            const title = document.getElementById('modalFichaTitle');
+            const modal = document.getElementById('modalFichaTecnica'); const iframe = document.getElementById('iframeFicha');
+            const btnDescarga = document.getElementById('btnDescargarFicha'); const title = document.getElementById('modalFichaTitle');
             
             let url = window.currentProd.FICHA;
+            if(url.includes('dropbox.com')) { url = url.replace('dl=0', 'raw=1').replace('dl=1', 'raw=1'); } 
+            else if (url.includes('drive.google.com')) { url = url.replace('/view', '/preview'); }
             
-            if(url.includes('dropbox.com')) {
-                url = url.replace('dl=0', 'raw=1').replace('dl=1', 'raw=1');
-            } else if (url.includes('drive.google.com')) {
-                url = url.replace('/view', '/preview'); 
-            }
-            
-            iframe.src = url;
-            btnDescarga.href = window.currentProd.FICHA; 
-            title.innerText = `Ficha: ${window.currentProd.NOMBRE}`;
-            
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
+            iframe.src = url; btnDescarga.href = window.currentProd.FICHA; title.innerText = `Ficha: ${window.currentProd.NOMBRE}`;
+            modal.classList.remove('hidden'); modal.classList.add('flex');
         }
 
-        function cerrarModalFicha() {
-            const modal = document.getElementById('modalFichaTecnica');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-            document.getElementById('iframeFicha').src = ''; 
-        }
+        function cerrarModalFicha() { const modal = document.getElementById('modalFichaTecnica'); modal.classList.add('hidden'); modal.classList.remove('flex'); document.getElementById('iframeFicha').src = ''; }
 
         function handleEnter(e) { if(e.key === 'Enter') { document.getElementById('visorSearchResults').classList.add('hidden'); manualSearch(); } }
 
@@ -883,7 +799,6 @@
             const datasDiv = document.getElementById('datasheetArea'); const noDataDiv = document.getElementById('noDataArea'); 
             const stockEl = document.getElementById('resStock');
             document.getElementById('visorSearchResults').classList.add('hidden');
-            
             document.getElementById('locationArea').classList.add('hidden');
             const btnShowLoc = document.getElementById('btnShowLocation');
 
@@ -894,17 +809,13 @@
                 
                 const stockNum = parseInt(prod.STOCK) || 0;
                 stockEl.innerText = prod.STOCK || 0;
-                
                 stockEl.classList.remove('text-green-500', 'text-yellow-500', 'text-red-500');
-                if (stockNum > 20) { stockEl.classList.add('text-green-500'); } 
-                else if (stockNum > 0 && stockNum <= 20) { stockEl.classList.add('text-yellow-500'); } 
-                else { stockEl.classList.add('text-red-500'); }
+                if (stockNum > 20) { stockEl.classList.add('text-green-500'); } else if (stockNum > 0 && stockNum <= 20) { stockEl.classList.add('text-yellow-500'); } else { stockEl.classList.add('text-red-500'); }
 
                 document.getElementById('resUnidad').innerText = prod.UNIDAD || 'UND';
                 
-                if (prod.FICHA && prod.FICHA.length > 5) {
-                    datasDiv.classList.remove('hidden'); noDataDiv.classList.add('hidden');
-                } else { datasDiv.classList.add('hidden'); noDataDiv.classList.remove('hidden'); }
+                if (prod.FICHA && prod.FICHA.length > 5) { datasDiv.classList.remove('hidden'); noDataDiv.classList.add('hidden'); } 
+                else { datasDiv.classList.add('hidden'); noDataDiv.classList.remove('hidden'); }
 
                 const org = prod.ORGANIZADOR || '';
                 
@@ -915,32 +826,20 @@
                     btnShowLoc.disabled = false;
 
                     document.querySelectorAll('.rk-active').forEach(el => el.classList.remove('rk-active'));
-                    document.querySelectorAll('[id^="lbl-pasillo-"]').forEach(el => {
-                        el.classList.remove('text-white', 'bg-orange-500', 'scale-110', 'border-orange-500');
-                        el.classList.add('text-gray-400', 'bg-white/90', 'border-gray-100');
-                    });
+                    document.querySelectorAll('[id^="lbl-pasillo-"]').forEach(el => { el.classList.remove('text-white', 'bg-orange-500', 'scale-110', 'border-orange-500'); el.classList.add('text-gray-400', 'bg-white/90', 'border-gray-100'); });
 
                     const match = org.match(/^(A|B|C)[\s\-]*0*(\d+)?/i);
 
                     if (match) {
                         let pasillo = match[1].toUpperCase();
                         let estanteria = match[2] || '';
-
                         document.getElementById('locModulo').innerText = estanteria ? `${pasillo}-${estanteria.padStart(2, '0')}` : pasillo;
                         document.getElementById('locRaw').innerText = `CÓDIGO EXCEL: ${org}`;
                         document.getElementById('locRaw').classList.remove('text-red-500', 'font-black');
 
                         const lbl = document.getElementById(`lbl-pasillo-${pasillo.toLowerCase()}`);
-                        if(lbl) {
-                            lbl.classList.remove('text-gray-400', 'bg-white/90', 'border-gray-100');
-                            lbl.classList.add('text-white', 'bg-orange-500', 'scale-110', 'border-orange-500');
-                        }
-
-                        if (estanteria) {
-                            const rkId = `rk-${pasillo}${parseInt(estanteria)}`;
-                            const rkEl = document.getElementById(rkId);
-                            if(rkEl) { rkEl.classList.add('rk-active'); }
-                        }
+                        if(lbl) { lbl.classList.remove('text-gray-400', 'bg-white/90', 'border-gray-100'); lbl.classList.add('text-white', 'bg-orange-500', 'scale-110', 'border-orange-500'); }
+                        if (estanteria) { const rkId = `rk-${pasillo}${parseInt(estanteria)}`; const rkEl = document.getElementById(rkId); if(rkEl) { rkEl.classList.add('rk-active'); } }
                     } else {
                         document.getElementById('locModulo').innerText = org.substring(0, 5) || '-';
                         document.getElementById('locRaw').innerText = `CÓDIGO NO RECONOCIDO: ${org}`;
@@ -949,8 +848,7 @@
                     btnShowLoc.classList.remove('hidden', 'bg-orange-50', 'text-orange-600', 'border-orange-200', 'hover:bg-orange-100');
                     btnShowLoc.classList.add('flex', 'bg-gray-100', 'text-gray-400', 'border-transparent', 'cursor-not-allowed');
                     btnShowLoc.innerHTML = '<i class="fa-solid fa-location-dot"></i> Ubicación no registrada';
-                    btnShowLoc.disabled = true;
-                    document.getElementById('locModulo').innerText = '-';
+                    btnShowLoc.disabled = true; document.getElementById('locModulo').innerText = '-';
                 }
 
                 setTimeout(() => { resDiv.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 150);
@@ -992,75 +890,47 @@
         function procesarFotoMerma(event) {
             const file = event.target.files[0];
             if (!file) return;
-
             const reader = new FileReader();
             reader.readAsDataURL(file);
             reader.onload = (e) => {
                 const img = new Image();
                 img.src = e.target.result;
                 img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 600; 
-                    const scaleSize = MAX_WIDTH / img.width;
-                    canvas.width = MAX_WIDTH;
-                    canvas.height = img.height * scaleSize;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    
+                    const canvas = document.createElement('canvas'); const MAX_WIDTH = 600; const scaleSize = MAX_WIDTH / img.width;
+                    canvas.width = MAX_WIDTH; canvas.height = img.height * scaleSize;
+                    const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                     currentMermaFotoBase64 = canvas.toDataURL('image/jpeg', 0.6); 
-                    
-                    document.getElementById('previewMermaFoto').src = currentMermaFotoBase64;
-                    document.getElementById('previewMermaFotoContainer').classList.remove('hidden');
+                    document.getElementById('previewMermaFoto').src = currentMermaFotoBase64; document.getElementById('previewMermaFotoContainer').classList.remove('hidden');
                 }
             }
         }
 
-        function removerFotoMerma() {
-            currentMermaFotoBase64 = null;
-            document.getElementById('inputMermaFoto').value = '';
-            document.getElementById('previewMermaFotoContainer').classList.add('hidden');
-            document.getElementById('previewMermaFoto').src = '';
-        }
+        function removerFotoMerma() { currentMermaFotoBase64 = null; document.getElementById('inputMermaFoto').value = ''; document.getElementById('previewMermaFotoContainer').classList.add('hidden'); document.getElementById('previewMermaFoto').src = ''; }
 
         function abrirFotoMerma(codigo, index) {
             const merma = listaMermas[index];
             if(merma && merma.FOTO) {
-                document.getElementById('verFotoGrande').src = merma.FOTO;
-                document.getElementById('verFotoTitulo').innerText = `${merma.CANTIDAD}x ${merma.NOMBRE} (${merma.MOTIVO})`;
-                document.getElementById('modalVerFoto').classList.remove('hidden');
-                document.getElementById('modalVerFoto').classList.add('flex');
+                document.getElementById('verFotoGrande').src = merma.FOTO; document.getElementById('verFotoTitulo').innerText = `${merma.CANTIDAD}x ${merma.NOMBRE} (${merma.MOTIVO})`;
+                document.getElementById('modalVerFoto').classList.remove('hidden'); document.getElementById('modalVerFoto').classList.add('flex');
             }
         }
 
-        function cerrarModalVerFoto() {
-            document.getElementById('modalVerFoto').classList.add('hidden');
-            document.getElementById('modalVerFoto').classList.remove('flex');
-        }
+        function cerrarModalVerFoto() { document.getElementById('modalVerFoto').classList.add('hidden'); document.getElementById('modalVerFoto').classList.remove('flex'); }
 
         // --- LÓGICA MÓDULO MERMAS ---
         function abrirModalMerma() {
             if(!window.currentProd) return;
-            document.getElementById('modalMermaCode').innerText = window.currentProd.CODIGO;
-            document.getElementById('modalMermaName').innerText = window.currentProd.NOMBRE;
-            document.getElementById('inputModalMermaQty').value = 1;
-            document.getElementById('inputMotivoMerma').selectedIndex = 0;
-            document.getElementById('inputObsMerma').value = '';
+            document.getElementById('modalMermaCode').innerText = window.currentProd.CODIGO; document.getElementById('modalMermaName').innerText = window.currentProd.NOMBRE;
+            document.getElementById('inputModalMermaQty').value = 1; document.getElementById('inputMotivoMerma').selectedIndex = 0; document.getElementById('inputObsMerma').value = '';
             removerFotoMerma(); 
-            const modal = document.getElementById('modalMerma');
-            modal.classList.remove('hidden'); modal.classList.add('flex');
+            const modal = document.getElementById('modalMerma'); modal.classList.remove('hidden'); modal.classList.add('flex');
         }
 
-        function cerrarModalMerma() {
-            const modal = document.getElementById('modalMerma');
-            modal.classList.add('hidden'); modal.classList.remove('flex');
-        }
+        function cerrarModalMerma() { const modal = document.getElementById('modalMerma'); modal.classList.add('hidden'); modal.classList.remove('flex'); }
 
         function cambiarCantMerma(val) {
-            const input = document.getElementById('inputModalMermaQty');
-            let current = parseInt(input.value) || 0;
-            let newVal = current + val;
-            if(newVal < 1) newVal = 1;
-            input.value = newVal;
+            const input = document.getElementById('inputModalMermaQty'); let current = parseInt(input.value) || 0; let newVal = current + val;
+            if(newVal < 1) newVal = 1; input.value = newVal;
         }
 
         function confirmarMerma() {
@@ -1069,49 +939,22 @@
             const obs = document.getElementById('inputObsMerma').value.trim();
             const p = window.currentProd;
 
-            const nuevaMerma = {
-                'CÓDIGO': p.CODIGO,
-                'NOMBRE': p.NOMBRE,
-                'CANTIDAD': qty,
-                'UNIDAD': p.UNIDAD || 'UND',
-                'MOTIVO': motivo,
-                'OBSERVACIONES': obs,
-                'FECHA/HORA': new Date().toLocaleString(),
-                'FOTO': currentMermaFotoBase64 
-            };
-
-            listaMermas.unshift(nuevaMerma);
-            saveMermasState();
-            cerrarModalMerma(); 
-            actualizarUIMermas();
-            alert(`Merma registrada: ${qty}x ${p.NOMBRE}`);
+            const nuevaMerma = { 'CÓDIGO': p.CODIGO, 'NOMBRE': p.NOMBRE, 'CANTIDAD': qty, 'UNIDAD': p.UNIDAD || 'UND', 'MOTIVO': motivo, 'OBSERVACIONES': obs, 'FECHA/HORA': new Date().toLocaleString(), 'FOTO': currentMermaFotoBase64 };
+            listaMermas.unshift(nuevaMerma); saveMermasState(); cerrarModalMerma(); actualizarUIMermas(); alert(`Merma registrada: ${qty}x ${p.NOMBRE}`);
         }
 
-        function eliminarMerma(index) { 
-            listaMermas.splice(index, 1); 
-            saveMermasState();
-            actualizarUIMermas(); 
-        }
+        function eliminarMerma(index) { listaMermas.splice(index, 1); saveMermasState(); actualizarUIMermas(); }
 
         function actualizarUIMermas() {
-            const count = listaMermas.length;
-            const badge = document.getElementById('badge-mermas');
-            const totalText = document.getElementById('totalMermasText');
-            const contenedor = document.getElementById('listaMermasContenedor');
-
-            if(count > 0) { badge.innerText = count; badge.classList.remove('hidden'); } 
-            else { badge.classList.add('hidden'); }
+            const count = listaMermas.length; const badge = document.getElementById('badge-mermas'); const totalText = document.getElementById('totalMermasText'); const contenedor = document.getElementById('listaMermasContenedor');
+            if(count > 0) { badge.innerText = count; badge.classList.remove('hidden'); } else { badge.classList.add('hidden'); }
             totalText.innerText = `${count} REPORTES`;
 
-            if(count === 0) {
-                contenedor.innerHTML = `<div class="h-full flex flex-col items-center justify-center text-gray-400 gap-3"><i class="fa-solid fa-dumpster text-5xl text-gray-200"></i><p class="font-medium text-lg">No hay mermas reportadas.</p></div>`;
-                return;
-            }
+            if(count === 0) { contenedor.innerHTML = `<div class="h-full flex flex-col items-center justify-center text-gray-400 gap-3"><i class="fa-solid fa-dumpster text-5xl text-gray-200"></i><p class="font-medium text-lg">No hay mermas reportadas.</p></div>`; return; }
 
             let html = '<ul class="divide-y divide-gray-100 w-full">';
             listaMermas.forEach((item, index) => {
                 let fotoBtn = item.FOTO ? `<button onclick="abrirFotoMerma('${item['CÓDIGO']}', ${index})" class="text-blue-500 bg-blue-50 hover:bg-blue-100 p-2 rounded-lg mr-2 border border-blue-200 transition-colors shadow-sm"><i class="fa-solid fa-camera"></i></button>` : '';
-                
                 html += `
                     <li class="py-4 flex items-center justify-between gap-2 hover:bg-red-50/50 px-2 rounded-lg transition-colors w-full">
                         <div class="flex-1 min-w-0 pr-2">
@@ -1121,39 +964,22 @@
                         </div>
                         <div class="flex items-center shrink-0">
                             ${fotoBtn}
-                            <div class="bg-red-100 text-red-700 px-3 py-1 rounded-lg font-black text-lg border border-red-200 text-center min-w-[3.5rem] mr-2 shadow-sm">
-                                ${item['CANTIDAD']} <span class="text-[9px] uppercase block -mt-1">${item['UNIDAD']}</span>
-                            </div>
-                            <button onclick="eliminarMerma(${index})" class="text-gray-300 hover:text-red-500 transition-colors p-2" title="Eliminar error">
-                                <i class="fa-solid fa-xmark text-xl"></i>
-                            </button>
+                            <div class="bg-red-100 text-red-700 px-3 py-1 rounded-lg font-black text-lg border border-red-200 text-center min-w-[3.5rem] mr-2 shadow-sm">${item['CANTIDAD']} <span class="text-[9px] uppercase block -mt-1">${item['UNIDAD']}</span></div>
+                            <button onclick="eliminarMerma(${index})" class="text-gray-300 hover:text-red-500 transition-colors p-2" title="Eliminar error"><i class="fa-solid fa-xmark text-xl"></i></button>
                         </div>
                     </li>`;
             });
-            html += '</ul>';
-            contenedor.innerHTML = html;
+            html += '</ul>'; contenedor.innerHTML = html;
         }
 
         function exportarMermasExcel() {
-            const btn = document.getElementById('btnExcelMermas');
-            const iconOriginal = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-xl"></i> Procesando...';
-            
-            setTimeout(() => {
-                const fecha = new Date(); const nombreArchivo = `Mermas_Deteco_${fecha.getDate()}-${fecha.getMonth()+1}-${fecha.getFullYear()}.xlsx`;
-                procesarDescargaOCompartir(listaMermas, nombreArchivo, "Reporte Mermas").finally(() => {
-                    btn.innerHTML = iconOriginal;
-                });
-            }, 300);
+            const btn = document.getElementById('btnExcelMermas'); const iconOriginal = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-xl"></i> Procesando...';
+            setTimeout(() => { procesarDescargaOCompartir(listaMermas, `Mermas_Deteco_${new Date().getDate()}-${new Date().getMonth()+1}-${new Date().getFullYear()}.xlsx`, "Reporte Mermas").finally(() => { btn.innerHTML = iconOriginal; }); }, 300);
         }
 
         function finalizarMermas() {
             if(listaMermas.length === 0) { alert("No hay mermas para borrar."); return; }
-            if(confirm("⚠️ ¿Seguro que deseas borrar toda la lista de mermas de este dispositivo? ¡Asegúrate de bajar el Excel primero!")) {
-                listaMermas = [];
-                saveMermasState();
-                actualizarUIMermas();
-            }
+            if(confirm("⚠️ ¿Seguro que deseas borrar toda la lista de mermas de este dispositivo? ¡Asegúrate de bajar el Excel primero!")) { listaMermas = []; saveMermasState(); actualizarUIMermas(); }
         }
 
         // --- LÓGICA MÓDULO INVENTARIO ---
@@ -1170,52 +996,31 @@
 
         function validarPin() {
             const pinIngresado = document.getElementById('inputPinBodega').value;
-            if(pinIngresado === PIN_BODEGA) {
-                inventarioDesbloqueado = true; addLog("Sesión iniciada."); cerrarModalAuth();
-                setView('inventario'); actualizarUIEstadoInventario();
-            } else { document.getElementById('pinError').classList.remove('hidden'); document.getElementById('inputPinBodega').value = ''; }
+            if(pinIngresado === PIN_BODEGA) { inventarioDesbloqueado = true; addLog("Sesión iniciada."); cerrarModalAuth(); setView('inventario'); actualizarUIEstadoInventario(); } 
+            else { document.getElementById('pinError').classList.remove('hidden'); document.getElementById('inputPinBodega').value = ''; }
         }
 
         function abrirModalInicioInventario() {
-            document.getElementById('invInputNombre').value = '';
-            document.getElementById('invInputRut').value = '';
-            document.getElementById('invInputPeriodo').value = '';
-            const modal = document.getElementById('modalInicioInventario');
-            modal.classList.remove('hidden'); modal.classList.add('flex');
+            document.getElementById('invInputNombre').value = ''; document.getElementById('invInputRut').value = ''; document.getElementById('invInputPeriodo').value = '';
+            const modal = document.getElementById('modalInicioInventario'); modal.classList.remove('hidden'); modal.classList.add('flex');
         }
 
-        function cerrarModalInicioInventario() {
-            const modal = document.getElementById('modalInicioInventario');
-            modal.classList.add('hidden'); modal.classList.remove('flex');
-        }
+        function cerrarModalInicioInventario() { const modal = document.getElementById('modalInicioInventario'); modal.classList.add('hidden'); modal.classList.remove('flex'); }
 
         function confirmarInicioInventario() {
-            const nombre = document.getElementById('invInputNombre').value.trim();
-            const rut = document.getElementById('invInputRut').value.trim();
-            const periodo = document.getElementById('invInputPeriodo').value; 
-
-            if(!nombre || !rut || !periodo) {
-                alert("Por favor, completa todos los campos."); return;
-            }
-
+            const nombre = document.getElementById('invInputNombre').value.trim(); const rut = document.getElementById('invInputRut').value.trim(); const periodo = document.getElementById('invInputPeriodo').value; 
+            if(!nombre || !rut || !periodo) { alert("Por favor, completa todos los campos."); return; }
             inventarioMetadata = { nombre: nombre, rut: rut, periodo: periodo, fechaInicio: new Date().toLocaleString(), fechaTermino: null };
-            saveInventarioState(); cerrarModalInicioInventario(); addLog(`Auditoría ${periodo} iniciada por ${nombre}`); actualizarUIEstadoInventario();
+            saveInventarioState(); cerrarModalInicioInventario(); addLog(`Auditoría iniciada por ${nombre}`); actualizarUIEstadoInventario();
         }
 
         function actualizarUIEstadoInventario() {
-            const containerInactivo = document.getElementById('invStartContainer');
-            const containerActivo = document.getElementById('invActiveContainer');
-
+            const containerInactivo = document.getElementById('invStartContainer'); const containerActivo = document.getElementById('invActiveContainer');
             if(inventarioMetadata) {
-                containerInactivo.classList.add('hidden');
-                containerActivo.classList.remove('hidden'); containerActivo.classList.add('flex');
-                document.getElementById('lblInvPeriodo').innerText = inventarioMetadata.periodo;
-                document.getElementById('lblInvResponsable').innerText = inventarioMetadata.nombre;
+                containerInactivo.classList.add('hidden'); containerActivo.classList.remove('hidden'); containerActivo.classList.add('flex');
+                document.getElementById('lblInvPeriodo').innerText = inventarioMetadata.periodo; document.getElementById('lblInvResponsable').innerText = inventarioMetadata.nombre;
                 renderFullInventoryList(document.getElementById('invFilterInput').value);
-            } else {
-                containerActivo.classList.add('hidden'); containerActivo.classList.remove('flex');
-                containerInactivo.classList.remove('hidden');
-            }
+            } else { containerActivo.classList.add('hidden'); containerActivo.classList.remove('flex'); containerInactivo.classList.remove('hidden'); }
         }
 
         function toggleOcultarContados() { const filterText = document.getElementById('invFilterInput').value; renderFullInventoryList(filterText); }
@@ -1231,9 +1036,7 @@
                 }
             });
 
-            const total = allProductsToRender.length; 
-            let contados = 0;
-
+            const total = allProductsToRender.length; let contados = 0;
             let html = '<ul class="flex flex-col gap-3 px-2 pb-4 pt-1">';
             allProductsToRender.forEach(p => {
                 const isCounted = listaInventarioFisico.find(item => item['CÓDIGO'] === p.CODIGO);
@@ -1248,13 +1051,8 @@
                 if (isCounted) {
                     cardClass = 'bg-green-50 border-green-200 hover:bg-green-100'; 
                     iconBox = '<div class="w-10 h-10 rounded-xl bg-green-100 border border-green-200 flex items-center justify-center shrink-0 text-green-600"><i class="fa-solid fa-check-double"></i></div>';
-                    
                     let estadoTag = p.MANUAL ? 'Agregado' : 'Contado';
-                    statusBadge = `
-                        <div class="flex flex-col items-end">
-                            <span class="bg-green-500 text-white text-[9px] font-black px-2 py-0.5 rounded shadow-sm uppercase flex items-center gap-1"><i class="fa-solid fa-check"></i> ${estadoTag}</span>
-                            <span class="text-xs font-black text-gray-700 mt-1">${isCounted['INVENTARIO FÍSICO']} ${p.UNIDAD}</span>
-                        </div>`;
+                    statusBadge = `<div class="flex flex-col items-end"><span class="bg-green-500 text-white text-[9px] font-black px-2 py-0.5 rounded shadow-sm uppercase flex items-center gap-1"><i class="fa-solid fa-check"></i> ${estadoTag}</span><span class="text-xs font-black text-gray-700 mt-1">${isCounted['INVENTARIO FÍSICO']} ${p.UNIDAD}</span></div>`;
                 }
 
                 html += `
@@ -1274,41 +1072,26 @@
 
             container.innerHTML = html;
             const pct = total === 0 ? 0 : Math.round((contados / total) * 100);
-            document.getElementById('invProgressBar').style.width = pct + '%'; document.getElementById('invProgressText').innerText = `${contados} de ${total} productos contados (${pct}%)`;
+            document.getElementById('invProgressBar').style.width = pct + '%'; document.getElementById('invProgressText').innerText = `${contados} de ${total} contados (${pct}%)`;
         }
 
         function abrirModalNuevoProducto() {
-            document.getElementById('nuevoProdCode').value = '';
-            document.getElementById('nuevoProdName').value = '';
-            document.getElementById('nuevoProdQty').value = '';
-            document.getElementById('nuevoProdUdm').value = 'UND';
-            const modal = document.getElementById('modalNuevoProducto');
-            modal.classList.remove('hidden'); modal.classList.add('flex');
-            setTimeout(() => document.getElementById('nuevoProdName').focus(), 100);
+            document.getElementById('nuevoProdCode').value = ''; document.getElementById('nuevoProdName').value = ''; document.getElementById('nuevoProdQty').value = ''; document.getElementById('nuevoProdUdm').value = 'UND';
+            const modal = document.getElementById('modalNuevoProducto'); modal.classList.remove('hidden'); modal.classList.add('flex'); setTimeout(() => document.getElementById('nuevoProdName').focus(), 100);
         }
 
-        function cerrarModalNuevoProducto() {
-            const modal = document.getElementById('modalNuevoProducto');
-            modal.classList.add('hidden'); modal.classList.remove('flex');
-        }
+        function cerrarModalNuevoProducto() { const modal = document.getElementById('modalNuevoProducto'); modal.classList.add('hidden'); modal.classList.remove('flex'); }
 
         function guardarNuevoProductoManual() {
-            const name = document.getElementById('nuevoProdName').value.trim().toUpperCase();
-            let code = document.getElementById('nuevoProdCode').value.trim().toUpperCase();
-            const qtyStr = document.getElementById('nuevoProdQty').value;
-            const udm = document.getElementById('nuevoProdUdm').value.trim().toUpperCase() || 'UND';
+            const name = document.getElementById('nuevoProdName').value.trim().toUpperCase(); let code = document.getElementById('nuevoProdCode').value.trim().toUpperCase();
+            const qtyStr = document.getElementById('nuevoProdQty').value; const udm = document.getElementById('nuevoProdUdm').value.trim().toUpperCase() || 'UND';
 
             if(!name) { alert("Debes ingresar el nombre del material."); return; }
             if(qtyStr === '') { alert("Debes ingresar una cantidad."); return; }
-            
             if(!code) { code = 'MANUAL-' + Math.floor(Math.random() * 10000); }
             
             const qty = parseInt(qtyStr);
-
-            const dataConteo = {
-                'CÓDIGO': code, 'NOMBRE': name, 'STOCK SISTEMA': 0, 'INVENTARIO FÍSICO': qty, 'DIFERENCIA': qty,
-                'ESTADO': 'AGREGADO MANUAL', 'FECHA/HORA': new Date().toLocaleString(), 'UNIDAD': udm
-            };
+            const dataConteo = { 'CÓDIGO': code, 'NOMBRE': name, 'STOCK SISTEMA': 0, 'INVENTARIO FÍSICO': qty, 'DIFERENCIA': qty, 'ESTADO': 'AGREGADO MANUAL', 'FECHA/HORA': new Date().toLocaleString(), 'UNIDAD': udm };
 
             const existenteIndex = listaInventarioFisico.findIndex(item => item['CÓDIGO'] === code);
             if(existenteIndex >= 0) { listaInventarioFisico[existenteIndex] = dataConteo; addLog(`Mod. Manual: ${name}`); } 
@@ -1319,30 +1102,20 @@
 
         function abrirConteoModal(codigo, isManual = false) {
             let prod = dbProducts.find(p => p.CODIGO === codigo);
-            if(!prod && isManual) {
-                const manualItem = listaInventarioFisico.find(item => item['CÓDIGO'] === codigo);
-                if(manualItem) prod = { CODIGO: manualItem['CÓDIGO'], NOMBRE: manualItem['NOMBRE'], STOCK: 0 };
-            }
+            if(!prod && isManual) { const manualItem = listaInventarioFisico.find(item => item['CÓDIGO'] === codigo); if(manualItem) prod = { CODIGO: manualItem['CÓDIGO'], NOMBRE: manualItem['NOMBRE'], STOCK: 0 }; }
             if(!prod) { alert("Producto no encontrado."); return; }
             
-            invCurrentProd = prod;
-            document.getElementById('modalConteoCode').innerText = prod.CODIGO;
-            document.getElementById('modalConteoName').innerText = prod.NOMBRE;
+            invCurrentProd = prod; document.getElementById('modalConteoCode').innerText = prod.CODIGO; document.getElementById('modalConteoName').innerText = prod.NOMBRE;
             
             const isCounted = listaInventarioFisico.find(item => item['CÓDIGO'] === prod.CODIGO);
-            const inputFisico = document.getElementById('inputConteoFisico');
-            inputFisico.value = isCounted ? isCounted['INVENTARIO FÍSICO'] : '';
+            const inputFisico = document.getElementById('inputConteoFisico'); inputFisico.value = isCounted ? isCounted['INVENTARIO FÍSICO'] : '';
             
-            const modal = document.getElementById('modalConteo');
-            modal.classList.remove('hidden'); modal.classList.add('flex');
-            setTimeout(() => inputFisico.focus(), 100);
+            const modal = document.getElementById('modalConteo'); modal.classList.remove('hidden'); modal.classList.add('flex'); setTimeout(() => inputFisico.focus(), 100);
         }
 
         function cerrarConteoModal() { document.getElementById('modalConteo').classList.add('hidden'); document.getElementById('modalConteo').classList.remove('flex'); invCurrentProd = null; }
 
-        function abrirMermaDesdeInventario() {
-            if(!invCurrentProd) return; window.currentProd = invCurrentProd; cerrarConteoModal(); abrirModalMerma(); 
-        }
+        function abrirMermaDesdeInventario() { if(!invCurrentProd) return; window.currentProd = invCurrentProd; cerrarConteoModal(); abrirModalMerma(); }
 
         function guardarConteoFisico() {
             if(!invCurrentProd) return;
@@ -1500,7 +1273,7 @@
                 consumo: els.consumo ? els.consumo.value : '-',
                 min: els.min ? els.min.value : '-',
                 max: els.max ? els.max.value : '-',
-                estilo: els.style ? els.style.value : '5s_orange'
+                estilo: els.style ? els.style.value : '5s_solid_white'
             });
             if (els.checkNum && els.checkNum.checked && els.orgInput) { 
                 let actualOrg = els.orgInput.value.trim(); 
@@ -1549,47 +1322,8 @@
                         
                         let cardContent = '';
                         
-                        // --- DISEÑO 1: CROQUIS NARANJA ---
-                        if (item.estilo === '5s_orange') {
-                            cardContent = `
-                                <div class="w-full h-full border-[3px] border-[#F26522] flex flex-col bg-white box-border relative">
-                                    <div class="flex h-[60%] border-b-[3px] border-[#F26522]">
-                                        <div class="w-[25%] border-r-[3px] border-[#F26522] flex flex-col">
-                                            <div class="text-[8px] sm:text-[10px] font-black text-center border-b-[3px] border-[#F26522] p-1 uppercase text-[#F26522] leading-none bg-orange-50">Consumo<br>Semanal</div>
-                                            <div class="flex-1 flex items-center justify-center font-black text-4xl text-gray-900">${item.consumo}</div>
-                                        </div>
-                                        <div class="w-[50%] border-r-[3px] border-[#F26522] flex flex-col items-center justify-center p-2 relative">
-                                            <div class="absolute top-1 text-[10px] font-black text-gray-500 tracking-widest border-b border-gray-200 w-[80%] text-center uppercase">${item.sku}</div>
-                                            <div class="font-black text-center text-gray-900 leading-tight w-full mt-3 uppercase" style="font-size:${sName}">${item.nombre}</div>
-                                        </div>
-                                        <div class="w-[25%] flex flex-col">
-                                            <div class="text-[8px] sm:text-[10px] font-black text-center border-b-[3px] border-[#F26522] p-1 uppercase text-[#F26522] leading-none bg-orange-50">Nº Cajón</div>
-                                            <div class="flex-1 flex items-center justify-center font-black text-[#F26522] text-center leading-none" style="font-size:${sOrg}">${item.org}</div>
-                                        </div>
-                                    </div>
-                                    <div class="flex h-[40%]">
-                                        <div class="w-[25%] border-r-[3px] border-[#F26522] flex items-center justify-center p-2 relative">
-                                            <img src="logo.png" class="max-h-full max-w-full object-contain grayscale" onerror="this.style.display='none'">
-                                        </div>
-                                        <div class="w-[50%] border-r-[3px] border-[#F26522] flex">
-                                            <div class="w-1/2 border-r-[3px] border-[#F26522] flex flex-col">
-                                                <div class="text-[10px] font-black text-center border-b-[3px] border-[#F26522] text-[#F26522] bg-orange-50">MIN</div>
-                                                <div class="flex-1 flex items-center justify-center font-black text-3xl text-gray-900">${item.min}</div>
-                                            </div>
-                                            <div class="w-1/2 flex flex-col">
-                                                <div class="text-[10px] font-black text-center border-b-[3px] border-[#F26522] text-[#F26522] bg-orange-50">MAX</div>
-                                                <div class="flex-1 flex items-center justify-center font-black text-3xl text-gray-900">${item.max}</div>
-                                            </div>
-                                        </div>
-                                        <div class="w-[25%] flex items-center justify-center p-1 relative">
-                                            <div id="${qrId}" class="w-[90%] aspect-square flex items-center justify-center mix-blend-multiply"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            `;
-                        } 
-                        // --- DISEÑO 2: ENCABEZADOS SOLIDOS ---
-                        else if (item.estilo === '5s_solid') {
+                        // --- DISEÑO 2: ENCABEZADOS SOLIDOS BLANCOS ---
+                        if (item.estilo === '5s_solid_white') {
                             cardContent = `
                                 <div class="w-full h-full border-[3px] border-[#F26522] flex flex-col bg-white box-border relative">
                                     <div class="flex h-[60%] border-b-[3px] border-[#F26522]">
@@ -1601,14 +1335,14 @@
                                             <div class="absolute top-1 text-[10px] font-black text-gray-500 tracking-widest border-b border-gray-200 w-[80%] text-center uppercase">${item.sku}</div>
                                             <div class="font-black text-center text-gray-900 leading-tight w-full mt-3 uppercase" style="font-size:${sName}">${item.nombre}</div>
                                         </div>
-                                        <div class="w-[25%] flex flex-col bg-[#FFF7ED]">
+                                        <div class="w-[25%] flex flex-col bg-white">
                                             <div class="text-[8px] sm:text-[10px] font-black text-center border-b-[3px] border-[#F26522] p-1 uppercase text-white bg-[#F26522] leading-none">Nº Cajón</div>
                                             <div class="flex-1 flex items-center justify-center font-black text-[#F26522] text-center leading-none" style="font-size:${sOrg}">${item.org}</div>
                                         </div>
                                     </div>
                                     <div class="flex h-[40%]">
                                         <div class="w-[25%] border-r-[3px] border-[#F26522] flex items-center justify-center p-2 relative">
-                                            <img src="logo.png" class="max-h-full max-w-full object-contain grayscale opacity-50" onerror="this.style.display='none'">
+                                            <img src="logo.png" class="max-h-full max-w-full object-contain" onerror="this.style.display='none'">
                                         </div>
                                         <div class="w-[50%] border-r-[3px] border-[#F26522] flex">
                                             <div class="w-1/2 border-r-[3px] border-[#F26522] flex flex-col">
@@ -1620,47 +1354,47 @@
                                                 <div class="flex-1 flex items-center justify-center font-black text-3xl text-gray-900">${item.max}</div>
                                             </div>
                                         </div>
-                                        <div class="w-[25%] flex items-center justify-center p-1 relative">
-                                            <div id="${qrId}" class="w-[90%] aspect-square flex items-center justify-center mix-blend-multiply"></div>
+                                        <div class="w-[25%] flex items-center justify-end p-2 relative">
+                                            <div id="${qrId}" class="h-full aspect-square flex items-center justify-center mix-blend-multiply"></div>
                                         </div>
                                     </div>
                                 </div>
                             `;
                         }
-                        // --- DISEÑO 3: INDUSTRIAL DARK ---
-                        else if (item.estilo === '5s_dark') {
+                        // --- DISEÑO 3: ENCABEZADOS SOLIDOS (FONDO SUAVE) ---
+                        else if (item.estilo === '5s_solid_orange') {
                             cardContent = `
-                                <div class="w-full h-full border-[4px] border-gray-900 flex flex-col bg-white box-border relative">
-                                    <div class="flex h-[60%] border-b-[4px] border-gray-900">
-                                        <div class="w-[25%] border-r-[4px] border-gray-900 flex flex-col">
-                                            <div class="text-[8px] sm:text-[10px] font-black text-center border-b-[4px] border-gray-900 p-1 uppercase text-white bg-gray-900 leading-none">Consumo<br>Semanal</div>
+                                <div class="w-full h-full border-[4px] border-[#F26522] flex flex-col bg-[#FFF7ED] box-border relative">
+                                    <div class="flex h-[60%] border-b-[4px] border-[#F26522]">
+                                        <div class="w-[25%] border-r-[4px] border-[#F26522] flex flex-col">
+                                            <div class="text-[8px] sm:text-[10px] font-black text-center border-b-[4px] border-[#F26522] p-1 uppercase text-white bg-[#F26522] leading-none">Consumo<br>Semanal</div>
                                             <div class="flex-1 flex items-center justify-center font-black text-4xl text-gray-900">${item.consumo}</div>
                                         </div>
-                                        <div class="w-[50%] border-r-[4px] border-gray-900 flex flex-col items-center justify-center p-2 relative">
+                                        <div class="w-[50%] border-r-[4px] border-[#F26522] flex flex-col items-center justify-center p-2 relative">
                                             <div class="absolute top-1 text-[10px] font-black text-gray-500 tracking-widest border-b border-gray-300 w-[80%] text-center uppercase">${item.sku}</div>
                                             <div class="font-black text-center text-gray-900 leading-tight w-full mt-3 uppercase" style="font-size:${sName}">${item.nombre}</div>
                                         </div>
-                                        <div class="w-[25%] flex flex-col">
-                                            <div class="text-[8px] sm:text-[10px] font-black text-center border-b-[4px] border-gray-900 p-1 uppercase text-[#F26522] bg-gray-100 leading-none">Nº Cajón</div>
+                                        <div class="w-[25%] flex flex-col bg-white">
+                                            <div class="text-[8px] sm:text-[10px] font-black text-center border-b-[4px] border-[#F26522] p-1 uppercase text-white bg-[#F26522] leading-none">Nº Cajón</div>
                                             <div class="flex-1 flex items-center justify-center font-black text-[#F26522] text-center leading-none" style="font-size:${sOrg}">${item.org}</div>
                                         </div>
                                     </div>
                                     <div class="flex h-[40%]">
-                                        <div class="w-[25%] border-r-[4px] border-gray-900 flex flex-col">
-                                            <div class="flex-1 flex items-center justify-center p-2 relative"><img src="logo.png" class="max-h-full max-w-full object-contain grayscale" onerror="this.style.display='none'"></div>
+                                        <div class="w-[25%] border-r-[4px] border-[#F26522] flex items-center justify-center p-2 relative bg-white">
+                                            <img src="logo.png" class="max-h-full max-w-full object-contain" onerror="this.style.display='none'">
                                         </div>
-                                        <div class="w-[50%] border-r-[4px] border-gray-900 flex">
-                                            <div class="w-1/2 border-r-[4px] border-gray-900 flex flex-col">
-                                                <div class="text-[10px] font-black text-center border-b-[4px] border-gray-900 text-white bg-gray-900">MIN</div>
-                                                <div class="flex-1 flex items-center justify-center font-black text-3xl text-gray-900 bg-gray-50">${item.min}</div>
+                                        <div class="w-[50%] border-r-[4px] border-[#F26522] flex">
+                                            <div class="w-1/2 border-r-[4px] border-[#F26522] flex flex-col">
+                                                <div class="text-[10px] font-black text-center border-b-[4px] border-[#F26522] text-white bg-[#F26522]">MIN</div>
+                                                <div class="flex-1 flex items-center justify-center font-black text-3xl text-gray-900">${item.min}</div>
                                             </div>
                                             <div class="w-1/2 flex flex-col">
-                                                <div class="text-[10px] font-black text-center border-b-[4px] border-gray-900 text-white bg-gray-900">MAX</div>
-                                                <div class="flex-1 flex items-center justify-center font-black text-3xl text-gray-900 bg-gray-100">${item.max}</div>
+                                                <div class="text-[10px] font-black text-center border-b-[4px] border-[#F26522] text-white bg-[#F26522]">MAX</div>
+                                                <div class="flex-1 flex items-center justify-center font-black text-3xl text-gray-900">${item.max}</div>
                                             </div>
                                         </div>
-                                        <div class="w-[25%] flex items-center justify-center p-1 relative">
-                                            <div id="${qrId}" class="w-[90%] aspect-square flex items-center justify-center mix-blend-multiply"></div>
+                                        <div class="w-[25%] flex items-center justify-end p-2 relative bg-white">
+                                            <div id="${qrId}" class="h-full aspect-square flex items-center justify-center mix-blend-multiply"></div>
                                         </div>
                                     </div>
                                 </div>
