@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Deteco DTX 6.42</title>
+    <title>Deteco DTX 6.44</title>
 
     <!-- PWA / WEB APP NATIVA META TAGS -->
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -73,13 +73,19 @@
             .preview-panel { padding: 40px; }
         }
 
+        .control-group { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; width: 100%; }
+        .group-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #86868b; letter-spacing: 0.5px; border-bottom: 1px solid #f5f5f7; padding-bottom: 4px; }
+        .input-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; }
+        .ios-input { background: #f5f5f7; border: 1px solid transparent; border-radius: 8px; padding: 8px 12px; font-size: 0.9rem; width: 100%; transition: 0.2s; text-align: right; }
+        .ios-input:focus { background: #fff; border-color: var(--primary-color); outline: none; }
+        
         input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
         input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%; background: var(--primary-color); cursor: pointer; margin-top: -6px; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
         input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: #e5e5e5; border-radius: 2px; }
 
         .page { background: white; width: var(--page-width); height: var(--page-height); padding: 5mm; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); display: grid; box-sizing: border-box; position: relative; transition: width 0.3s, height 0.3s; max-width: 100%; }
         
-        .label-card { background: white; display: flex; flex-direction: column; overflow: hidden; position: relative; width: 100%; height: 100%; box-sizing: border-box; }
+        .label-card { background: white; display: flex; flex-direction: row; overflow: hidden; position: relative; width: 100%; height: 100%; box-sizing: border-box; }
         
         .hidden { display: none !important; }
         @media print {
@@ -138,7 +144,7 @@
         </div>
     </div>
 
-    <!-- MODALES GENERALES -->
+    <!-- MODALES GENERALES (Contraseña, Inventario, Merma, Ficha) -->
     <div id="modalAuth" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[4000] p-4 backdrop-blur-md">
         <div class="bg-white rounded-3xl p-8 w-full max-w-sm shadow-2xl flex flex-col items-center">
             <div class="w-16 h-16 bg-orange-50 text-orange-500 border border-orange-100 rounded-full flex items-center justify-center text-3xl mb-4"><i class="fa-solid fa-lock"></i></div>
@@ -172,11 +178,13 @@
         </div>
     </div>
 
-    <div id="modalNuevoProducto" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[4500] p-4 backdrop-blur-sm">
+    <div id="modalIngresarNuevo" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[4500] p-4 backdrop-blur-sm">
         <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl transform transition-all relative border border-gray-100">
             <button onclick="cerrarModalNuevoProducto()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500"><i class="fa-solid fa-xmark text-xl"></i></button>
             <div class="text-center mt-2 mb-4">
+                <div class="w-12 h-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-2xl mx-auto mb-2 shadow-sm border border-green-200"><i class="fa-solid fa-plus"></i></div>
                 <h3 class="text-xl font-black text-gray-900">Agregar Manual</h3>
+                <p class="text-xs text-gray-500">Material no registrado en sistema</p>
             </div>
             <div class="space-y-4 mb-6">
                 <input type="text" id="nuevoProdCode" placeholder="Código (Opcional)" class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-3 font-bold text-gray-900">
@@ -190,6 +198,7 @@
         </div>
     </div>
 
+    <!-- Modal Ingreso Conteo Físico -->
     <div id="modalConteo" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[3500] p-4 backdrop-blur-sm">
         <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl transform transition-all relative border border-gray-100">
             <button onclick="cerrarConteoModal()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500"><i class="fa-solid fa-xmark text-xl"></i></button>
@@ -199,7 +208,7 @@
             </div>
             <div class="flex flex-col justify-center items-center gap-2 mb-6 bg-orange-50/50 p-6 rounded-2xl w-full border border-orange-100">
                 <div class="text-[10px] text-orange-600 font-bold uppercase tracking-widest mb-2 text-center w-full">Ingresa el Conteo Físico Real</div>
-                <input type="number" id="inputConteoFisico" class="w-full text-center text-5xl font-black text-gray-900 border-b-4 border-orange-200 focus:outline-none bg-transparent" placeholder="0" onkeypress="if(event.key === 'Enter') guardarConteoFisico()">
+                <input type="number" id="inputConteoFisico" class="w-full text-center text-5xl font-black text-gray-900 border-b-4 border-orange-200 focus:outline-none bg-transparent hide-scroll" placeholder="0" onkeypress="if(event.key === 'Enter') guardarConteoFisico()">
             </div>
             <div class="flex gap-2 w-full">
                 <button onclick="guardarConteoFisico()" class="flex-[3] bg-orange-500 text-white py-4 rounded-xl font-black text-lg shadow-md"><i class="fa-solid fa-floppy-disk"></i> Guardar Conteo</button>
@@ -208,6 +217,7 @@
         </div>
     </div>
 
+    <!-- Modal Reporte de MERMAS -->
     <div id="modalMerma" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[3500] p-4 backdrop-blur-sm">
         <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl transform transition-all relative flex flex-col max-h-[90vh]">
             <button onclick="cerrarModalMerma()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 z-10"><i class="fa-solid fa-xmark text-xl"></i></button>
@@ -232,6 +242,16 @@
         </div>
     </div>
 
+    <!-- Modal para ver foto ampliada -->
+    <div id="modalVerFoto" class="fixed inset-0 bg-black/95 hidden items-center justify-center z-[5000] p-4 flex-col backdrop-blur-sm">
+        <div class="w-full flex justify-end mb-4 max-w-lg">
+            <button onclick="cerrarModalVerFoto()" class="bg-gray-800 text-white hover:text-red-500 rounded-full w-10 h-10 flex items-center justify-center"><i class="fa-solid fa-xmark text-xl"></i></button>
+        </div>
+        <img id="verFotoGrande" src="" class="max-w-full max-h-[75vh] object-contain rounded-xl border-2 border-gray-800 shadow-2xl">
+        <p id="verFotoTitulo" class="text-white mt-4 font-bold text-center text-sm uppercase tracking-wider"></p>
+    </div>
+
+    <!-- Modal Ficha Técnica PDF -->
     <div id="modalFichaTecnica" class="fixed inset-0 bg-black/90 hidden items-center justify-center z-[5000] p-4 flex-col backdrop-blur-sm transition-opacity">
         <div class="w-full max-w-4xl h-[85vh] bg-white rounded-3xl overflow-hidden flex flex-col shadow-2xl relative">
             <div class="flex justify-between items-center p-4 border-b border-gray-200 bg-gray-50 shrink-0">
@@ -250,23 +270,47 @@
         </div>
     </div>
 
+    <!-- Modal Logs de Inventario -->
+    <div id="modalLogs" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[3500] p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl flex flex-col max-h-[80vh]">
+            <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-100">
+                <h3 class="text-lg font-black text-gray-900"><i class="fa-solid fa-clock-rotate-left text-orange-500 mr-2"></i> Registro de Actividad</h3>
+                <button onclick="cerrarModalLogs()" class="text-gray-400 hover:text-red-500"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div id="logsContainer" class="flex-1 overflow-y-auto w-full text-sm text-gray-600 space-y-2 pr-2"></div>
+            <button onclick="cerrarModalLogs()" class="w-full mt-4 bg-gray-100 text-gray-700 hover:bg-gray-200 py-3 rounded-xl font-bold transition-colors">Cerrar</button>
+        </div>
+    </div>
+
+    <!-- Modal Scanner -->
+    <div id="modalScanner" class="fixed inset-0 bg-black/95 hidden items-center justify-center z-[3000] p-4 flex-col backdrop-blur-md">
+        <div class="bg-white rounded-3xl p-6 w-full max-w-sm flex flex-col items-center shadow-2xl">
+            <div class="flex justify-between items-center w-full mb-4 border-b border-gray-100 pb-2">
+                <h3 class="text-lg font-black text-gray-900"><i class="fa-solid fa-qrcode mr-2 text-orange-500"></i> Escanear Etiqueta</h3>
+                <button onclick="closeScanner()" class="text-gray-400 hover:text-red-500 transition-colors"><i class="fa-solid fa-xmark text-2xl"></i></button>
+            </div>
+            <div id="reader" class="w-full rounded-2xl overflow-hidden bg-gray-900 border-2 border-dashed border-gray-300 min-h-[250px] flex items-center justify-center shadow-inner"></div>
+            <p class="text-sm font-medium text-gray-500 mt-6 text-center leading-tight">Apunta la cámara al código.<br>La lectura será automática.</p>
+        </div>
+    </div>
+
     <!-- PANEL PRINCIPAL -->
     <div class="main-layout">
-        <!-- BARRA LATERAL IZQUIERDA -->
+        <!-- BARRA LATERAL IZQUIERDA (CONFIGURACIÓN DE ETIQUETAS) -->
         <div class="settings-panel no-print settings-collapsed" id="panel-settings" style="display: none;">
             <div class="settings-inner">
                 
                 <div class="control-group">
                     <div class="relative w-full">
                         <i class="fa-solid fa-search absolute left-3 top-3 text-gray-400 text-xs"></i>
-                        <input type="text" id="dbSearch" placeholder="Buscar producto en BD..." class="w-full bg-white border-2 border-gray-200 rounded-xl pl-8 pr-3 py-2 text-sm font-bold text-gray-900 outline-none focus:border-orange-500">
+                        <input type="text" id="dbSearch" placeholder="Buscar en BD para autocompletar..." class="w-full bg-white border-2 border-gray-200 rounded-xl pl-8 pr-3 py-2 text-sm font-bold text-gray-900 outline-none focus:border-orange-500">
                         <div id="searchResults" class="hidden absolute top-full left-0 w-full bg-white shadow-xl border border-gray-100 rounded-lg mt-1 z-50 max-h-48 overflow-y-auto"></div>
                     </div>
                     <div id="dbStatus" class="text-[9px] text-gray-400 text-right mt-1 font-bold">CONECTANDO...</div>
                 </div>
 
                 <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm mb-4">
-                    <div class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-1 border-b border-gray-100 pb-2"><i class="fa-solid fa-box text-orange-500"></i> Datos del Producto</div>
+                    <div class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-1 border-b border-gray-100 pb-2"><i class="fa-solid fa-box text-orange-500"></i> Información Base</div>
                     <div class="flex flex-col gap-3">
                         <div>
                             <label class="text-[9px] font-bold text-gray-500 uppercase ml-1">Código / SKU</label>
@@ -275,6 +319,10 @@
                         <div>
                             <label class="text-[9px] font-bold text-gray-500 uppercase ml-1">Nombre Material</label>
                             <input type="text" id="nameInput" placeholder="Ej: Guantes Cabritilla" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm font-bold text-gray-900 outline-none focus:border-orange-500">
+                        </div>
+                        <div>
+                            <label class="text-[9px] font-bold text-gray-500 uppercase ml-1">Familia (Opcional)</label>
+                            <input type="text" id="familyInput" placeholder="Ej: EPP" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm font-bold text-gray-900 outline-none focus:border-orange-500">
                         </div>
                     </div>
                 </div>
@@ -288,15 +336,15 @@
                         </div>
                         <div class="grid grid-cols-3 gap-2">
                             <div>
-                                <label class="text-[8px] font-black text-gray-500 uppercase text-center block w-full mb-1">Consumo<br>Semanal</label>
+                                <label class="text-[8px] font-black text-gray-500 uppercase text-center block w-full mb-1">Consumo Semanal</label>
                                 <input type="number" id="consumoInput" value="24" class="w-full bg-white border border-gray-200 rounded-lg px-1 py-2 text-sm font-black text-gray-800 text-center outline-none focus:border-orange-500">
                             </div>
                             <div>
-                                <label class="text-[8px] font-black text-gray-500 uppercase text-center block w-full mb-1"><br>Stock MIN</label>
+                                <label class="text-[8px] font-black text-gray-500 uppercase text-center block w-full mb-1">Stock MIN</label>
                                 <input type="number" id="minInput" value="48" class="w-full bg-white border border-gray-200 rounded-lg px-1 py-2 text-sm font-black text-gray-800 text-center outline-none focus:border-orange-500">
                             </div>
                             <div>
-                                <label class="text-[8px] font-black text-gray-500 uppercase text-center block w-full mb-1"><br>Stock MAX</label>
+                                <label class="text-[8px] font-black text-gray-500 uppercase text-center block w-full mb-1">Stock MAX</label>
                                 <input type="number" id="maxInput" value="108" class="w-full bg-white border border-gray-200 rounded-lg px-1 py-2 text-sm font-black text-gray-800 text-center outline-none focus:border-orange-500">
                             </div>
                         </div>
@@ -304,16 +352,17 @@
                 </div>
 
                 <div class="bg-gray-50 p-4 rounded-2xl border border-gray-200 shadow-sm mb-4">
-                    <div class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3 border-b border-gray-200 pb-2"><i class="fa-solid fa-palette mr-1"></i> Diseño de Etiqueta</div>
+                    <div class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3 border-b border-gray-200 pb-2"><i class="fa-solid fa-palette mr-1"></i> Diseño Visual</div>
                     
-                    <div class="mb-4">
+                    <div class="mb-3">
                         <select id="styleInput" class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-[11px] font-bold text-gray-800 outline-none focus:border-orange-500 cursor-pointer shadow-sm">
-                            <option value="5s_solid_white" selected>Opción A: Encabezados Naranjas (Fondo Blanco)</option>
-                            <option value="5s_solid_orange">Opción B: Encabezados Naranjas (Fondo Suave)</option>
+                            <option value="5s_orange">Diseño 1: Croquis Naranja (Clásico)</option>
+                            <option value="5s_solid_white" selected>Diseño 2: Encabezados Naranjas Sólidos</option>
+                            <option value="5s_dark">Diseño 3: Industrial Dark (Letras Naranjas)</option>
                         </select>
                     </div>
 
-                    <div class="flex flex-col gap-3">
+                    <div class="flex flex-col gap-3 mb-4">
                         <div>
                             <div class="flex justify-between text-[9px] font-bold text-gray-500 mb-1 uppercase tracking-widest"><span>Tamaño Letra Nombre</span> <span id="valSizeName" class="text-gray-800">22px</span></div>
                             <input type="range" id="sizeName" min="10" max="50" value="22" step="1">
@@ -322,6 +371,12 @@
                             <div class="flex justify-between text-[9px] font-bold text-gray-500 mb-1 uppercase tracking-widest"><span>Tamaño Letra Cajón</span> <span id="valSizeOrg" class="text-gray-800">28px</span></div>
                             <input type="range" id="sizeOrg" min="10" max="60" value="28" step="1">
                         </div>
+                    </div>
+
+                    <!-- NUEVO: TOGGLE DE QR -->
+                    <div class="flex items-center gap-2 pt-3 border-t border-gray-200">
+                        <input type="checkbox" id="checkIncludeQR" class="w-4 h-4 accent-orange-500" checked>
+                        <label for="checkIncludeQR" class="text-[10px] font-bold text-gray-700 uppercase tracking-wider cursor-pointer">Incluir Código QR en Etiqueta</label>
                     </div>
                 </div>
 
@@ -376,7 +431,7 @@
                 <div id="pages-wrapper" class="w-full flex flex-col items-center bg-white py-4"></div>
             </div>
 
-            <!-- VISTA 2: VISOR -->
+            <!-- VISTA 2: VISOR PRINCIPAL -->
             <div class="preview-panel view-section" id="view-visor">
                 <div class="w-full max-w-xl mx-auto flex flex-col items-center">
                     <div class="text-center mb-6 px-2 w-full">
@@ -423,41 +478,25 @@
                                 <i class="fa-solid fa-map-location-dot"></i> Ver Ubicación Física
                             </button>
 
-                            <!-- MAPA BODEGA 2D -->
+                            <!-- MAPA BODEGA 2D DISEÑO MODERNO -->
                             <div id="locationArea" class="hidden w-full mt-4 mb-4 transition-all duration-300">
                                 <div class="bg-white rounded-3xl p-4 sm:p-6 w-full border border-gray-200 shadow-sm">
                                     <div class="flex items-center justify-center mb-2">
                                         <h4 class="text-[10px] font-black text-gray-400 uppercase tracking-widest"><i class="fa-solid fa-map-location-dot mr-1"></i> Layout de Bodega</h4>
                                     </div>
                                     <div class="relative w-full max-w-[340px] aspect-[4/5] mx-auto map-grid-bg rounded-2xl border border-gray-200 shadow-inner overflow-hidden mt-2 mb-6">
+                                        <!-- PASILLOS Y ESTANTES... -->
                                         <div id="lbl-pasillo-a" class="absolute left-[20%] top-[20%] bg-white/90 backdrop-blur px-3 py-1 rounded-full font-black text-[12px] text-gray-400 border border-gray-100 shadow-sm transition-all duration-300 z-10">PASILLO A</div>
                                         <div id="lbl-pasillo-b" class="absolute right-[14%] top-[50%] -translate-y-1/2 rotate-90 bg-white/90 backdrop-blur px-3 py-1 rounded-full font-black text-[12px] text-gray-400 border border-gray-100 shadow-sm transition-all duration-300 z-10 origin-center">PASILLO B</div>
                                         <div id="lbl-pasillo-c" class="absolute left-[20%] bottom-[20%] bg-white/90 backdrop-blur px-3 py-1 rounded-full font-black text-[12px] text-gray-400 border border-gray-100 shadow-sm transition-all duration-300 z-10">PASILLO C</div>
 
-                                        <div class="absolute top-[4%] left-[4%] w-[80%] h-[12%] grid grid-cols-3 gap-2">
-                                            <div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-A9" class="rk-block"></div><div id="rk-A10" class="rk-block"></div><div id="rk-A11" class="rk-block"></div><div id="rk-A12" class="rk-block"></div></div>
-                                            <div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-A13" class="rk-block"></div><div id="rk-A14" class="rk-block"></div><div id="rk-A15" class="rk-block"></div><div id="rk-A16" class="rk-block"></div></div>
-                                            <div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-A17" class="rk-block"></div><div id="rk-A18" class="rk-block"></div><div id="rk-A19" class="rk-block"></div><div id="rk-A20" class="rk-block"></div></div>
-                                        </div>
-                                        <div class="absolute top-[32%] left-[4%] w-[58%] h-[12%] grid grid-cols-2 gap-2">
-                                            <div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-A1" class="rk-block"></div><div id="rk-A2" class="rk-block"></div><div id="rk-A3" class="rk-block"></div><div id="rk-A4" class="rk-block"></div></div>
-                                            <div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-A5" class="rk-block"></div><div id="rk-A6" class="rk-block"></div><div id="rk-A7" class="rk-block"></div><div id="rk-A8" class="rk-block"></div></div>
-                                        </div>
-                                        <div class="absolute bottom-[32%] left-[4%] w-[58%] h-[12%] grid grid-cols-2 gap-2">
-                                            <div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-C13" class="rk-block"></div><div id="rk-C14" class="rk-block"></div><div id="rk-C15" class="rk-block"></div><div id="rk-C16" class="rk-block"></div></div>
-                                            <div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-C17" class="rk-block"></div><div id="rk-C18" class="rk-block"></div><div id="rk-C19" class="rk-block"></div><div id="rk-C20" class="rk-block"></div></div>
-                                        </div>
-                                        <div class="absolute bottom-[4%] left-[4%] w-[80%] h-[12%] grid grid-cols-3 gap-2">
-                                            <div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-C1" class="rk-block"></div><div id="rk-C2" class="rk-block"></div><div id="rk-C3" class="rk-block"></div><div id="rk-C4" class="rk-block"></div></div>
-                                            <div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-C5" class="rk-block"></div><div id="rk-C6" class="rk-block"></div><div id="rk-C7" class="rk-block"></div><div id="rk-C8" class="rk-block"></div></div>
-                                            <div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-C9" class="rk-block"></div><div id="rk-C10" class="rk-block"></div><div id="rk-C11" class="rk-block"></div><div id="rk-C12" class="rk-block"></div></div>
-                                        </div>
-                                        <div class="absolute top-[4%] right-[4%] w-[12%] h-[92%] grid grid-rows-3 gap-2">
-                                            <div class="flex flex-row gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-B4" class="rk-block"></div><div id="rk-B3" class="rk-block"></div><div id="rk-B2" class="rk-block"></div><div id="rk-B1" class="rk-block"></div></div>
-                                            <div class="flex flex-row gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-B8" class="rk-block"></div><div id="rk-B7" class="rk-block"></div><div id="rk-B6" class="rk-block"></div><div id="rk-B5" class="rk-block"></div></div>
-                                            <div class="flex flex-row gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-B12" class="rk-block"></div><div id="rk-B11" class="rk-block"></div><div id="rk-B10" class="rk-block"></div><div id="rk-B9" class="rk-block"></div></div>
-                                        </div>
+                                        <div class="absolute top-[4%] left-[4%] w-[80%] h-[12%] grid grid-cols-3 gap-2"><div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-A9" class="rk-block"></div><div id="rk-A10" class="rk-block"></div><div id="rk-A11" class="rk-block"></div><div id="rk-A12" class="rk-block"></div></div><div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-A13" class="rk-block"></div><div id="rk-A14" class="rk-block"></div><div id="rk-A15" class="rk-block"></div><div id="rk-A16" class="rk-block"></div></div><div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-A17" class="rk-block"></div><div id="rk-A18" class="rk-block"></div><div id="rk-A19" class="rk-block"></div><div id="rk-A20" class="rk-block"></div></div></div>
+                                        <div class="absolute top-[32%] left-[4%] w-[58%] h-[12%] grid grid-cols-2 gap-2"><div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-A1" class="rk-block"></div><div id="rk-A2" class="rk-block"></div><div id="rk-A3" class="rk-block"></div><div id="rk-A4" class="rk-block"></div></div><div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-A5" class="rk-block"></div><div id="rk-A6" class="rk-block"></div><div id="rk-A7" class="rk-block"></div><div id="rk-A8" class="rk-block"></div></div></div>
+                                        <div class="absolute bottom-[32%] left-[4%] w-[58%] h-[12%] grid grid-cols-2 gap-2"><div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-C13" class="rk-block"></div><div id="rk-C14" class="rk-block"></div><div id="rk-C15" class="rk-block"></div><div id="rk-C16" class="rk-block"></div></div><div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-C17" class="rk-block"></div><div id="rk-C18" class="rk-block"></div><div id="rk-C19" class="rk-block"></div><div id="rk-C20" class="rk-block"></div></div></div>
+                                        <div class="absolute bottom-[4%] left-[4%] w-[80%] h-[12%] grid grid-cols-3 gap-2"><div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-C1" class="rk-block"></div><div id="rk-C2" class="rk-block"></div><div id="rk-C3" class="rk-block"></div><div id="rk-C4" class="rk-block"></div></div><div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-C5" class="rk-block"></div><div id="rk-C6" class="rk-block"></div><div id="rk-C7" class="rk-block"></div><div id="rk-C8" class="rk-block"></div></div><div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-C9" class="rk-block"></div><div id="rk-C10" class="rk-block"></div><div id="rk-C11" class="rk-block"></div><div id="rk-C12" class="rk-block"></div></div></div>
+                                        <div class="absolute top-[4%] right-[4%] w-[12%] h-[92%] grid grid-rows-3 gap-2"><div class="flex flex-row gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-B4" class="rk-block"></div><div id="rk-B3" class="rk-block"></div><div id="rk-B2" class="rk-block"></div><div id="rk-B1" class="rk-block"></div></div><div class="flex flex-row gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-B8" class="rk-block"></div><div id="rk-B7" class="rk-block"></div><div id="rk-B6" class="rk-block"></div><div id="rk-B5" class="rk-block"></div></div><div class="flex flex-row gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-B12" class="rk-block"></div><div id="rk-B11" class="rk-block"></div><div id="rk-B10" class="rk-block"></div><div id="rk-B9" class="rk-block"></div></div></div>
                                     </div>
+
                                     <div class="w-full flex justify-center">
                                         <div class="bg-gray-50 px-6 py-4 rounded-xl border border-gray-200 w-full max-w-sm text-center shadow-sm">
                                             <span class="block text-[10px] text-gray-400 uppercase font-black tracking-wider">Ubicación Fija</span>
@@ -467,27 +506,29 @@
                                     <p id="locRaw" class="text-[9px] font-medium text-gray-400 mt-4 text-center tracking-widest uppercase"></p>
                                 </div>
                             </div>
-                            <!-- FIN MAPA -->
                             
-                            <div class="mt-4 w-full px-2">
+                            <div class="mt-4 w-full px-2 flex gap-2">
                                 <button onclick="abrirModalMerma()" class="w-full bg-white text-red-600 border-2 border-red-500 hover:bg-red-50 px-4 py-4 rounded-xl font-bold text-base transition-colors shadow-sm flex items-center justify-center gap-2">
                                     <i class="fa-solid fa-triangle-exclamation text-lg"></i> Reportar Merma o Daño
                                 </button>
                             </div>
                         </div>
                         
-                        <!-- BOTÓN FICHA TÉCNICA -->
                         <div id="datasheetArea" class="hidden w-full">
                             <button id="btnDatasheet" onclick="abrirModalFicha()" class="w-full bg-orange-50 text-orange-700 hover:bg-orange-100 py-4 rounded-xl font-bold transition-colors flex justify-center items-center gap-2 border border-orange-200 mt-4">
                                 <i class="fa-solid fa-file-pdf text-xl"></i> Ver Ficha Técnica
                             </button>
                         </div>
                         <div id="noDataArea" class="hidden mt-4 mb-4 text-gray-400 text-sm w-full text-center">No hay ficha técnica disponible.</div>
-                        <div class="border-t border-gray-100 pt-4 mt-4 w-full text-center"><p class="text-[10px] text-gray-300 font-medium">Desarrollado para Deteco IC SA</p></div>
+
+                        <div class="border-t border-gray-100 pt-4 mt-4 w-full text-center">
+                            <p class="text-[10px] text-gray-300 font-medium">Desarrollado para Deteco IC SA</p>
+                        </div>
                     </div>
 
                     <div id="scanError" class="hidden bg-red-50 text-red-600 p-4 rounded-xl text-center mt-4 border border-red-100 font-medium w-full mx-2 shadow-sm">
-                        <i class="fa-solid fa-circle-exclamation text-xl mb-2 block"></i> Producto no encontrado en el inventario actual.
+                        <i class="fa-solid fa-circle-exclamation text-xl mb-2 block"></i> 
+                        Producto no encontrado en el inventario actual.
                     </div>
                 </div>
             </div>
@@ -541,7 +582,7 @@
                 </div>
             </div>
 
-            <!-- VISTA 4: MERMAS Y DAÑOS -->
+            <!-- VISTA 4: MERMAS -->
             <div class="preview-panel view-section" id="view-mermas">
                 <div class="w-full max-w-2xl mx-auto px-2 relative h-full flex flex-col">
                     <div class="text-center mb-6 shrink-0 relative w-full pt-2">
@@ -609,7 +650,6 @@
             saveInventarioState(); renderLogs();
         }
 
-        // --- MAPEO DIRECTO CON EL HTML ---
         const els = {
             get wrapper() { return document.getElementById('pages-wrapper'); },
             get rows() { return document.getElementById('rowsInput'); },
@@ -629,7 +669,8 @@
             get consumo() { return document.getElementById('consumoInput'); },
             get min() { return document.getElementById('minInput'); },
             get max() { return document.getElementById('maxInput'); },
-            get style() { return document.getElementById('styleInput'); }
+            get style() { return document.getElementById('styleInput'); },
+            get checkQR() { return document.getElementById('checkIncludeQR'); }
         };
 
         window.addEventListener('load', async () => {
@@ -646,11 +687,14 @@
                 actualizarUIMermas();
                 actualizarUIEstadoInventario();
 
-                // Listeners de los Sliders
                 let timeout;
                 [els.rows, els.cols, els.orientation, els.sizeName, els.sizeOrg, els.style].forEach(el => { 
                     if (el) { el.addEventListener('input', () => { clearTimeout(timeout); timeout = setTimeout(renderLabels, 150); }); }
                 });
+                
+                if(els.checkQR) {
+                    els.checkQR.addEventListener('change', renderLabels);
+                }
 
                 const splash = document.getElementById('splash-screen');
                 setTimeout(() => { splash.style.opacity = '0'; setTimeout(() => { splash.style.display = 'none'; }, 700); }, 500); 
@@ -886,7 +930,6 @@
             }
         });
 
-        // --- SISTEMA DE COMPRESIÓN DE FOTOS ---
         function procesarFotoMerma(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -917,7 +960,6 @@
 
         function cerrarModalVerFoto() { document.getElementById('modalVerFoto').classList.add('hidden'); document.getElementById('modalVerFoto').classList.remove('flex'); }
 
-        // --- LÓGICA MÓDULO MERMAS ---
         function abrirModalMerma() {
             if(!window.currentProd) return;
             document.getElementById('modalMermaCode').innerText = window.currentProd.CODIGO; document.getElementById('modalMermaName').innerText = window.currentProd.NOMBRE;
@@ -982,7 +1024,6 @@
             if(confirm("⚠️ ¿Seguro que deseas borrar toda la lista de mermas de este dispositivo? ¡Asegúrate de bajar el Excel primero!")) { listaMermas = []; saveMermasState(); actualizarUIMermas(); }
         }
 
-        // --- LÓGICA MÓDULO INVENTARIO ---
         function intentarVerInventario() {
             if(inventarioDesbloqueado) { setView('inventario'); actualizarUIEstadoInventario(); } 
             else {
@@ -1077,10 +1118,10 @@
 
         function abrirModalNuevoProducto() {
             document.getElementById('nuevoProdCode').value = ''; document.getElementById('nuevoProdName').value = ''; document.getElementById('nuevoProdQty').value = ''; document.getElementById('nuevoProdUdm').value = 'UND';
-            const modal = document.getElementById('modalNuevoProducto'); modal.classList.remove('hidden'); modal.classList.add('flex'); setTimeout(() => document.getElementById('nuevoProdName').focus(), 100);
+            const modal = document.getElementById('modalIngresarNuevo'); modal.classList.remove('hidden'); modal.classList.add('flex'); setTimeout(() => document.getElementById('nuevoProdName').focus(), 100);
         }
 
-        function cerrarModalNuevoProducto() { const modal = document.getElementById('modalNuevoProducto'); modal.classList.add('hidden'); modal.classList.remove('flex'); }
+        function cerrarModalNuevoProducto() { const modal = document.getElementById('modalIngresarNuevo'); modal.classList.add('hidden'); modal.classList.remove('flex'); }
 
         function guardarNuevoProductoManual() {
             const name = document.getElementById('nuevoProdName').value.trim().toUpperCase(); let code = document.getElementById('nuevoProdCode').value.trim().toUpperCase();
@@ -1161,7 +1202,7 @@
                 const file = new File([blob], nombreArchivo, { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
 
                 if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                    await navigator.share({ files: [file], title: 'Reporte Deteco', text: `Adjunto reporte` });
+                    await navigator.share({ files: [file], title: 'Reporte', text: `Adjunto reporte` });
                 } else {
                     XLSX.writeFile(workbook, nombreArchivo);
                 }
@@ -1273,7 +1314,7 @@
                 consumo: els.consumo ? els.consumo.value : '-',
                 min: els.min ? els.min.value : '-',
                 max: els.max ? els.max.value : '-',
-                estilo: els.style ? els.style.value : '5s_solid_white'
+                estilo: els.style ? els.style.value : '5s_orange'
             });
             if (els.checkNum && els.checkNum.checked && els.orgInput) { 
                 let actualOrg = els.orgInput.value.trim(); 
@@ -1301,6 +1342,9 @@
             const sName = (els.sizeName ? els.sizeName.value : '22') + 'px';
             const sOrg = (els.sizeOrg ? els.sizeOrg.value : '28') + 'px';
             
+            // Dinámica del QR
+            const hasQR = els.checkQR ? els.checkQR.checked : true;
+            
             if(els.valSizeName) els.valSizeName.innerText = sName;
             if(els.valSizeOrg) els.valSizeOrg.innerText = sOrg;
 
@@ -1322,80 +1366,125 @@
                         
                         let cardContent = '';
                         
-                        // --- DISEÑO 2: ENCABEZADOS SOLIDOS BLANCOS ---
-                        if (item.estilo === '5s_solid_white') {
+                        // --- DISEÑO 1: CROQUIS NARANJA CLASICO ---
+                        if (item.estilo === '5s_orange') {
                             cardContent = `
-                                <div class="w-full h-full border-[3px] border-[#F26522] flex flex-col bg-white box-border relative">
-                                    <div class="flex h-[60%] border-b-[3px] border-[#F26522]">
-                                        <div class="w-[25%] border-r-[3px] border-[#F26522] flex flex-col">
-                                            <div class="text-[8px] sm:text-[10px] font-black text-center border-b-[3px] border-[#F26522] p-1 uppercase text-white bg-[#F26522] leading-none">Consumo<br>Semanal</div>
-                                            <div class="flex-1 flex items-center justify-center font-black text-4xl text-gray-900">${item.consumo}</div>
+                                <div class="w-full h-full border-[3px] border-[#F26522] flex bg-white box-border relative">
+                                    <div class="w-[75%] flex flex-col border-r-[3px] border-[#F26522]">
+                                        <div class="h-[60%] flex border-b-[3px] border-[#F26522]">
+                                            <div class="w-[33.333%] border-r-[3px] border-[#F26522] flex flex-col">
+                                                <div class="text-[8px] sm:text-[10px] font-black text-center border-b-[3px] border-[#F26522] p-1 uppercase text-[#F26522] leading-none bg-orange-50">Consumo<br>Semanal</div>
+                                                <div class="flex-1 flex items-center justify-center font-black text-4xl text-gray-900">${item.consumo}</div>
+                                            </div>
+                                            <div class="w-[66.666%] flex flex-col items-center justify-center p-2 relative">
+                                                <div class="absolute top-1 text-[10px] font-black text-gray-500 tracking-widest border-b border-gray-200 w-[80%] text-center uppercase">${item.sku}</div>
+                                                <div class="font-black text-center text-gray-900 leading-tight w-full mt-3 uppercase" style="font-size:${sName}">${item.nombre}</div>
+                                            </div>
                                         </div>
-                                        <div class="w-[50%] border-r-[3px] border-[#F26522] flex flex-col items-center justify-center p-2 relative">
-                                            <div class="absolute top-1 text-[10px] font-black text-gray-500 tracking-widest border-b border-gray-200 w-[80%] text-center uppercase">${item.sku}</div>
-                                            <div class="font-black text-center text-gray-900 leading-tight w-full mt-3 uppercase" style="font-size:${sName}">${item.nombre}</div>
-                                        </div>
-                                        <div class="w-[25%] flex flex-col bg-white">
-                                            <div class="text-[8px] sm:text-[10px] font-black text-center border-b-[3px] border-[#F26522] p-1 uppercase text-white bg-[#F26522] leading-none">Nº Cajón</div>
-                                            <div class="flex-1 flex items-center justify-center font-black text-[#F26522] text-center leading-none" style="font-size:${sOrg}">${item.org}</div>
+                                        <div class="h-[40%] flex">
+                                            <div class="w-[33.333%] border-r-[3px] border-[#F26522] flex items-center justify-center p-2 relative">
+                                                <img src="logo.png" class="max-h-full max-w-full object-contain grayscale" onerror="this.style.display='none'">
+                                            </div>
+                                            <div class="w-[66.666%] flex">
+                                                <div class="w-1/2 border-r-[3px] border-[#F26522] flex flex-col">
+                                                    <div class="text-[10px] font-black text-center border-b-[3px] border-[#F26522] text-[#F26522] bg-orange-50">MIN</div>
+                                                    <div class="flex-1 flex items-center justify-center font-black text-3xl text-gray-900">${item.min}</div>
+                                                </div>
+                                                <div class="w-1/2 flex flex-col">
+                                                    <div class="text-[10px] font-black text-center border-b-[3px] border-[#F26522] text-[#F26522] bg-orange-50">MAX</div>
+                                                    <div class="flex-1 flex items-center justify-center font-black text-3xl text-gray-900">${item.max}</div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="flex h-[40%]">
-                                        <div class="w-[25%] border-r-[3px] border-[#F26522] flex items-center justify-center p-2 relative">
-                                            <img src="logo.png" class="max-h-full max-w-full object-contain" onerror="this.style.display='none'">
+                                    <div class="w-[25%] flex flex-col bg-white">
+                                        <div class="${hasQR ? 'h-[60%] border-b-[3px] border-[#F26522]' : 'h-full'} flex flex-col">
+                                            <div class="text-[8px] sm:text-[10px] font-black text-center border-b-[3px] border-[#F26522] p-1 uppercase text-[#F26522] leading-none bg-orange-50">Nº Cajón</div>
+                                            <div class="flex-1 flex items-center justify-center font-black text-[#F26522] text-center leading-none" style="font-size:${hasQR ? sOrg : 'calc(' + sOrg + ' * 1.5)'}">${item.org}</div>
                                         </div>
-                                        <div class="w-[50%] border-r-[3px] border-[#F26522] flex">
-                                            <div class="w-1/2 border-r-[3px] border-[#F26522] flex flex-col">
-                                                <div class="text-[10px] font-black text-center border-b-[3px] border-[#F26522] text-white bg-[#F26522]">MIN</div>
-                                                <div class="flex-1 flex items-center justify-center font-black text-3xl text-gray-900">${item.min}</div>
-                                            </div>
-                                            <div class="w-1/2 flex flex-col">
-                                                <div class="text-[10px] font-black text-center border-b-[3px] border-[#F26522] text-white bg-[#F26522]">MAX</div>
-                                                <div class="flex-1 flex items-center justify-center font-black text-3xl text-gray-900">${item.max}</div>
-                                            </div>
-                                        </div>
-                                        <div class="w-[25%] flex items-center justify-end p-2 relative">
-                                            <div id="${qrId}" class="h-full aspect-square flex items-center justify-center mix-blend-multiply"></div>
-                                        </div>
+                                        ${hasQR ? `<div class="h-[40%] flex items-center justify-center p-1 relative"><div id="${qrId}" class="w-[90%] aspect-square flex items-center justify-center mix-blend-multiply"></div></div>` : ''}
                                     </div>
                                 </div>
                             `;
-                        }
-                        // --- DISEÑO 3: ENCABEZADOS SOLIDOS (FONDO SUAVE) ---
-                        else if (item.estilo === '5s_solid_orange') {
+                        } 
+                        // --- DISEÑO 2: ENCABEZADOS SOLIDOS BLANCOS ---
+                        else if (item.estilo === '5s_solid_white') {
                             cardContent = `
-                                <div class="w-full h-full border-[4px] border-[#F26522] flex flex-col bg-[#FFF7ED] box-border relative">
-                                    <div class="flex h-[60%] border-b-[4px] border-[#F26522]">
-                                        <div class="w-[25%] border-r-[4px] border-[#F26522] flex flex-col">
-                                            <div class="text-[8px] sm:text-[10px] font-black text-center border-b-[4px] border-[#F26522] p-1 uppercase text-white bg-[#F26522] leading-none">Consumo<br>Semanal</div>
-                                            <div class="flex-1 flex items-center justify-center font-black text-4xl text-gray-900">${item.consumo}</div>
+                                <div class="w-full h-full border-[3px] border-[#F26522] flex bg-white box-border relative">
+                                    <div class="w-[75%] flex flex-col border-r-[3px] border-[#F26522]">
+                                        <div class="h-[60%] flex border-b-[3px] border-[#F26522]">
+                                            <div class="w-[33.333%] border-r-[3px] border-[#F26522] flex flex-col">
+                                                <div class="text-[8px] sm:text-[10px] font-black text-center border-b-[3px] border-[#F26522] p-1 uppercase text-white bg-[#F26522] leading-none">Consumo<br>Semanal</div>
+                                                <div class="flex-1 flex items-center justify-center font-black text-4xl text-gray-900">${item.consumo}</div>
+                                            </div>
+                                            <div class="w-[66.666%] flex flex-col items-center justify-center p-2 relative">
+                                                <div class="absolute top-1 text-[10px] font-black text-gray-500 tracking-widest border-b border-gray-200 w-[80%] text-center uppercase">${item.sku}</div>
+                                                <div class="font-black text-center text-gray-900 leading-tight w-full mt-3 uppercase" style="font-size:${sName}">${item.nombre}</div>
+                                            </div>
                                         </div>
-                                        <div class="w-[50%] border-r-[4px] border-[#F26522] flex flex-col items-center justify-center p-2 relative">
-                                            <div class="absolute top-1 text-[10px] font-black text-gray-500 tracking-widest border-b border-gray-300 w-[80%] text-center uppercase">${item.sku}</div>
-                                            <div class="font-black text-center text-gray-900 leading-tight w-full mt-3 uppercase" style="font-size:${sName}">${item.nombre}</div>
-                                        </div>
-                                        <div class="w-[25%] flex flex-col bg-white">
-                                            <div class="text-[8px] sm:text-[10px] font-black text-center border-b-[4px] border-[#F26522] p-1 uppercase text-white bg-[#F26522] leading-none">Nº Cajón</div>
-                                            <div class="flex-1 flex items-center justify-center font-black text-[#F26522] text-center leading-none" style="font-size:${sOrg}">${item.org}</div>
+                                        <div class="h-[40%] flex">
+                                            <div class="w-[33.333%] border-r-[3px] border-[#F26522] flex items-center justify-center p-2 relative">
+                                                <img src="logo.png" class="max-h-full max-w-full object-contain" onerror="this.style.display='none'">
+                                            </div>
+                                            <div class="w-[66.666%] flex">
+                                                <div class="w-1/2 border-r-[3px] border-[#F26522] flex flex-col">
+                                                    <div class="text-[10px] font-black text-center border-b-[3px] border-[#F26522] text-white bg-[#F26522]">MIN</div>
+                                                    <div class="flex-1 flex items-center justify-center font-black text-3xl text-gray-900">${item.min}</div>
+                                                </div>
+                                                <div class="w-1/2 flex flex-col">
+                                                    <div class="text-[10px] font-black text-center border-b-[3px] border-[#F26522] text-white bg-[#F26522]">MAX</div>
+                                                    <div class="flex-1 flex items-center justify-center font-black text-3xl text-gray-900">${item.max}</div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="flex h-[40%]">
-                                        <div class="w-[25%] border-r-[4px] border-[#F26522] flex items-center justify-center p-2 relative bg-white">
-                                            <img src="logo.png" class="max-h-full max-w-full object-contain" onerror="this.style.display='none'">
+                                    <div class="w-[25%] flex flex-col bg-white">
+                                        <div class="${hasQR ? 'h-[60%] border-b-[3px] border-[#F26522]' : 'h-full'} flex flex-col">
+                                            <div class="text-[8px] sm:text-[10px] font-black text-center border-b-[3px] border-[#F26522] p-1 uppercase text-white bg-[#F26522] leading-none">Nº Cajón</div>
+                                            <div class="flex-1 flex items-center justify-center font-black text-[#F26522] text-center leading-none" style="font-size:${hasQR ? sOrg : 'calc(' + sOrg + ' * 1.5)'}">${item.org}</div>
                                         </div>
-                                        <div class="w-[50%] border-r-[4px] border-[#F26522] flex">
-                                            <div class="w-1/2 border-r-[4px] border-[#F26522] flex flex-col">
-                                                <div class="text-[10px] font-black text-center border-b-[4px] border-[#F26522] text-white bg-[#F26522]">MIN</div>
-                                                <div class="flex-1 flex items-center justify-center font-black text-3xl text-gray-900">${item.min}</div>
+                                        ${hasQR ? `<div class="h-[40%] flex items-center justify-center p-1 relative"><div id="${qrId}" class="w-[90%] aspect-square flex items-center justify-center mix-blend-multiply"></div></div>` : ''}
+                                    </div>
+                                </div>
+                            `;
+                        } 
+                        // --- DISEÑO 3: INDUSTRIAL DARK ---
+                        else if (item.estilo === '5s_dark') {
+                            cardContent = `
+                                <div class="w-full h-full border-[4px] border-gray-900 flex bg-white box-border relative">
+                                    <div class="w-[75%] flex flex-col border-r-[4px] border-gray-900">
+                                        <div class="h-[60%] flex border-b-[4px] border-gray-900">
+                                            <div class="w-[33.333%] border-r-[4px] border-gray-900 flex flex-col">
+                                                <div class="text-[8px] sm:text-[10px] font-black text-center border-b-[4px] border-gray-900 p-1 uppercase text-white bg-gray-900 leading-none">Consumo<br>Semanal</div>
+                                                <div class="flex-1 flex items-center justify-center font-black text-4xl text-gray-900">${item.consumo}</div>
                                             </div>
-                                            <div class="w-1/2 flex flex-col">
-                                                <div class="text-[10px] font-black text-center border-b-[4px] border-[#F26522] text-white bg-[#F26522]">MAX</div>
-                                                <div class="flex-1 flex items-center justify-center font-black text-3xl text-gray-900">${item.max}</div>
+                                            <div class="w-[66.666%] flex flex-col items-center justify-center p-2 relative">
+                                                <div class="absolute top-1 text-[10px] font-black text-gray-500 tracking-widest border-b border-gray-300 w-[80%] text-center uppercase">${item.sku}</div>
+                                                <div class="font-black text-center text-gray-900 leading-tight w-full mt-3 uppercase" style="font-size:${sName}">${item.nombre}</div>
                                             </div>
                                         </div>
-                                        <div class="w-[25%] flex items-center justify-end p-2 relative bg-white">
-                                            <div id="${qrId}" class="h-full aspect-square flex items-center justify-center mix-blend-multiply"></div>
+                                        <div class="h-[40%] flex">
+                                            <div class="w-[33.333%] border-r-[4px] border-gray-900 flex items-center justify-center p-2 relative">
+                                                <img src="logo.png" class="max-h-full max-w-full object-contain grayscale" onerror="this.style.display='none'">
+                                            </div>
+                                            <div class="w-[66.666%] flex">
+                                                <div class="w-1/2 border-r-[4px] border-gray-900 flex flex-col">
+                                                    <div class="text-[10px] font-black text-center border-b-[4px] border-gray-900 text-white bg-gray-900">MIN</div>
+                                                    <div class="flex-1 flex items-center justify-center font-black text-3xl text-gray-900 bg-gray-50">${item.min}</div>
+                                                </div>
+                                                <div class="w-1/2 flex flex-col">
+                                                    <div class="text-[10px] font-black text-center border-b-[4px] border-gray-900 text-white bg-gray-900">MAX</div>
+                                                    <div class="flex-1 flex items-center justify-center font-black text-3xl text-gray-900 bg-gray-100">${item.max}</div>
+                                                </div>
+                                            </div>
                                         </div>
+                                    </div>
+                                    <div class="w-[25%] flex flex-col bg-white">
+                                        <div class="${hasQR ? 'h-[60%] border-b-[4px] border-gray-900' : 'h-full'} flex flex-col">
+                                            <div class="text-[8px] sm:text-[10px] font-black text-center border-b-[4px] border-gray-900 p-1 uppercase text-[#F26522] bg-gray-100 leading-none">Nº Cajón</div>
+                                            <div class="flex-1 flex items-center justify-center font-black text-[#F26522] text-center leading-none" style="font-size:${hasQR ? sOrg : 'calc(' + sOrg + ' * 1.5)'}">${item.org}</div>
+                                        </div>
+                                        ${hasQR ? `<div class="h-[40%] flex items-center justify-center p-1 relative"><div id="${qrId}" class="w-[90%] aspect-square flex items-center justify-center mix-blend-multiply"></div></div>` : ''}
                                     </div>
                                 </div>
                             `;
@@ -1405,7 +1494,11 @@
                             <button onclick="eliminarEtiqueta(${itemIndex})" class="btn-delete-label no-print absolute top-1 right-1 bg-red-500 text-white hover:bg-red-700 w-6 h-6 rounded-full flex items-center justify-center transition-colors z-30 shadow-md"><i class="fa-solid fa-xmark text-xs"></i></button>
                             ${cardContent}
                         `;
-                        page.appendChild(card); new QRCode(card.querySelector(`#${qrId}`), { text: smartLink, width: 300, height: 300, correctLevel: QRCode.CorrectLevel.H });
+                        page.appendChild(card);
+                        
+                        if (hasQR) {
+                            new QRCode(card.querySelector(`#${qrId}`), { text: smartLink, width: 300, height: 300, correctLevel: QRCode.CorrectLevel.H });
+                        }
                     } else {
                         const emptyCard = document.createElement('div'); emptyCard.className = 'label-card border-dashed border-2 border-gray-300 bg-gray-50 flex items-center justify-center opacity-50';
                         emptyCard.innerHTML = '<span class="text-gray-400 font-bold text-xs uppercase tracking-widest"><i class="fa-solid fa-ghost mr-1"></i> Espacio Libre</span>';
