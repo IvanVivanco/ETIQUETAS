@@ -1366,7 +1366,7 @@
                         const card = document.createElement('div'); card.className = 'label-card';
                         
                         let cardContent = '';
-                        const logoSrc = hasLogoGrayscale ? 'LOGO NEGRO.jpg' : 'logo.png';
+                        const logoSrc = hasLogoGrayscale ? 'LOGO%20NEGRO.jpg' : 'logo.png';
                         const logoImgClasses = `max-w-full max-h-full object-contain`;
                         const logoHTML = hasLogoInQR ? `<div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[28%] aspect-square bg-white flex items-center justify-center p-1 shadow-sm"><img src="${logoSrc}" class="${logoImgClasses}" onerror="this.style.display='none'"></div>` : '';
                         
