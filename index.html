@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Deteco DTX 6.48</title>
+    <title>Deteco DTX 6.49</title>
 
     <!-- PWA / WEB APP NATIVA META TAGS -->
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -105,7 +105,7 @@
     <div id="splash-screen" class="fixed inset-0 bg-[#F5F5F7] z-[9999] flex flex-col items-center justify-center transition-opacity duration-700 ease-in-out">
         <div class="flex flex-col items-center animate-pulse">
             <img src="logo.png" class="w-24 sm:w-32 h-auto mb-4 object-contain" onerror="this.style.display='none'">
-            <h1 class="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight">Deteco <span class="text-orange-600">DTX</span></h1>
+            <h1 class="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight">Deteco <span class="text-orange-600">DTX</span> <span class="text-2xl ml-2 text-gray-400">v6.49</span></h1>
             <div class="text-xs font-bold text-gray-400 tracking-widest mt-3 uppercase">Cargando Sistema...</div>
         </div>
         <div class="absolute bottom-8 text-center px-4 w-full">
@@ -523,7 +523,10 @@
                             </button>
                         </div>
                         <div id="noDataArea" class="hidden mt-4 mb-4 text-gray-400 text-sm w-full text-center">No hay ficha técnica disponible.</div>
-                        <div class="border-t border-gray-100 pt-4 mt-4 w-full text-center"><p class="text-[10px] text-gray-300 font-medium">Desarrollado para Deteco IC SA</p></div>
+                        <div class="border-t border-gray-100 pt-6 mt-6 w-full text-center pb-4">
+                            <p class="text-sm text-gray-400 font-bold uppercase tracking-widest">Desarrollado para Deteco IC SA</p>
+                            <p class="text-2xl font-black text-orange-500 mt-1">v6.49</p>
+                        </div>
                     </div>
 
                     <div id="scanError" class="hidden bg-red-50 text-red-600 p-4 rounded-xl text-center mt-4 border border-red-100 font-medium w-full mx-2 shadow-sm">
@@ -1368,7 +1371,7 @@
                         let cardContent = '';
                         const logoSrc = hasLogoGrayscale ? 'LOGO%20NEGRO.jpg' : 'logo.png';
                         const logoImgClasses = `max-w-full max-h-full object-contain`;
-                        const logoHTML = hasLogoInQR ? `<div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[28%] aspect-square bg-white flex items-center justify-center p-1 shadow-sm"><img src="${logoSrc}" class="${logoImgClasses}" onerror="this.style.display='none'"></div>` : '';
+                        const logoHTML = hasLogoInQR ? `<div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[28%] aspect-square bg-white flex items-center justify-center p-1 shadow-sm"><img src="${logoSrc}" class="${logoImgClasses}" onerror="console.warn('Fallo imagen: ' + this.src); this.style.display='none'"></div>` : '';
                         
                         if (item.estilo === '5s_orange') {
                             cardContent = `
