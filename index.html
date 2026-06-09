@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Deteco DTX v6.57</title>
+    <title>Deteco DTX v6.58</title>
 
     <!-- PWA / WEB APP NATIVA META TAGS -->
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -81,8 +81,9 @@
         
         .label-card { background: white; display: flex; flex-direction: row; overflow: hidden; position: relative; width: 100%; height: 100%; box-sizing: border-box; }
         
+        /* CORRECCIÓN ARQUITECTÓNICA DE MAQUETACIÓN QR (Solución definitiva del desdoblamiento) */
         .qr-container { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 4px; }
-        .qr-code-wrapper { position: relative; height: 100%; max-width: 100%; aspect-ratio: 1 / 1; display: flex; align-items: center; justify-content: center; }
+        .qr-code-wrapper { position: relative; height: 100%; width: 100%; max-width: 100%; aspect-ratio: 1 / 1; display: block; } /* Sin display flex para evitar desdoblamientos */
         
         [id^="qr-code-"] { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; position: relative; }
         
@@ -91,6 +92,25 @@
         
         /* Mostrar y escalar la imagen real generada por qrcode.js */
         [id^="qr-code-"] img { display: block !important; width: 100% !important; height: 100% !important; max-width: 100% !important; max-height: 100% !important; object-fit: contain; }
+
+        /* Estilo responsivo del logo superpuesto en el centro del QR */
+        .qr-logo-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 26%;
+            height: 26%;
+            background-color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 3px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            z-index: 10;
+            border-radius: 4px;
+            pointer-events: none;
+        }
 
         .hidden { display: none !important; }
         @media print {
@@ -116,7 +136,7 @@
     <div id="splash-screen" class="fixed inset-0 bg-[#F5F5F7] z-[9999] flex flex-col items-center justify-center transition-opacity duration-700 ease-in-out">
         <div class="flex flex-col items-center animate-pulse">
             <img src="logo.png" class="w-24 sm:w-32 h-auto mb-4 object-contain" onerror="this.style.display='none'">
-            <h1 class="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight">Deteco <span class="text-orange-600">DTX</span> <span class="text-2xl ml-2 text-gray-400">v6.57</span></h1>
+            <h1 class="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight">Deteco <span class="text-orange-600">DTX</span> <span class="text-2xl ml-2 text-gray-400">v6.58</span></h1>
             <div class="text-xs font-bold text-gray-400 tracking-widest mt-3 uppercase">Cargando Sistema...</div>
         </div>
         <div class="absolute bottom-8 text-center px-4 w-full">
@@ -398,7 +418,7 @@
                         </div>
                         <div class="flex items-center gap-2 mt-2">
                             <input type="checkbox" id="checkShowDrawer" class="w-4 h-4 accent-orange-500" checked>
-                            <label for="checkShowDrawer" class="text-[10px] font-bold text-orange-600 uppercase tracking-wider cursor-pointer">Mostrar Sección "Nº Cajón"</label>
+                            <label for="checkShowDrawer" class="text-[10px] font-bold text-[#F26522] uppercase tracking-wider cursor-pointer">Mostrar Sección "Nº Cajón"</label>
                         </div>
                     </div>
                 </div>
@@ -501,7 +521,7 @@
                                 <i class="fa-solid fa-map-location-dot"></i> Ver Ubicación Física
                             </button>
 
-                            <!-- MAPA BODEGA 2D DISEÑO MODERNO -->
+                            <!-- MAPA BODEGA 2D DISEÑO MODERNO (LAYOUT BODEGA 2) -->
                             <div id="locationArea" class="hidden w-full mt-4 mb-4 transition-all duration-300">
                                 <div class="bg-white rounded-3xl p-4 sm:p-6 w-full border border-gray-200 shadow-sm">
                                     <div class="flex items-center justify-center mb-2">
@@ -544,7 +564,7 @@
                         <div id="noDataArea" class="hidden mt-4 mb-4 text-gray-400 text-sm w-full text-center">No hay ficha técnica disponible.</div>
                         <div class="border-t border-gray-100 pt-6 mt-6 w-full text-center pb-4">
                             <p class="text-sm text-gray-400 font-bold uppercase tracking-widest">Desarrollado para Deteco IC SA</p>
-                            <p class="text-2xl font-black text-orange-500 mt-1">v6.56</p>
+                            <p class="text-2xl font-black text-orange-500 mt-1">v6.58</p>
                         </div>
                     </div>
 
@@ -710,45 +730,7 @@
             setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 2500);
         }
 
-        window.addEventListener('load', async () => {
-            try {
-                setView('generator'); 
-                await loadDB();
-                
-                const urlParams = new URLSearchParams(window.location.search);
-                const searchId = urlParams.get('id');
-                if (searchId) { setView('visor'); document.getElementById('manualInput').value = searchId; manualSearch(searchId); }
-                
-                renderLabels();
-                actualizarUIMermas();
-                actualizarUIEstadoInventario();
-
-                let timeout;
-                [els.rows, els.cols, els.orientation, els.sizeName, els.sizeOrg, els.sizeFamily, els.style].forEach(el => { 
-                    if (el) { el.addEventListener('input', () => { clearTimeout(timeout); timeout = setTimeout(renderLabels, 150); }); }
-                });
-                
-                if(els.checkQR) els.checkQR.addEventListener('change', renderLabels);
-                if(els.checkLogoInQR) els.checkLogoInQR.addEventListener('change', renderLabels);
-                if(els.checkLogoGrayscale) els.checkLogoGrayscale.addEventListener('change', renderLabels);
-                if(els.checkShowDrawer) els.checkShowDrawer.addEventListener('change', renderLabels);
-
-                const splash = document.getElementById('splash-screen');
-                setTimeout(() => { splash.style.opacity = '0'; setTimeout(() => { splash.style.display = 'none'; }, 700); }, 500); 
-
-            } catch (err) {
-                console.error("Error cargando la app: ", err);
-                document.getElementById('splash-screen').style.display = 'none';
-            }
-        });
-
-        let ultimaSincronizacion = Date.now();
-        function intentarSincronizacion() { const ahora = Date.now(); if (ahora - ultimaSincronizacion > 10000) { ultimaSincronizacion = ahora; setTimeout(() => { loadDB(true); }, 500); } }
-        document.addEventListener("visibilitychange", () => { if (document.visibilityState === 'visible') intentarSincronizacion(); });
-        window.addEventListener("focus", intentarSincronizacion);
-        window.addEventListener("pageshow", (e) => { if (e.persisted) intentarSincronizacion(); });
-        setInterval(() => { if (document.visibilityState === 'visible') { ultimaSincronizacion = Date.now(); loadDB(false); } }, 180000);
-
+        // --- STREAMING_CHUNK: Conectando con bases de datos Excel y procesando registros... ---
         async function loadDB(isManualRefresh = false) {
             const statusEl = document.getElementById('dbStatus');
             const syncIcon = document.getElementById('syncIcon');
@@ -843,12 +825,7 @@
             }
         }
 
-        function toggleLocationArea() {
-            const locArea = document.getElementById('locationArea');
-            if(locArea.classList.contains('hidden')) { locArea.classList.remove('hidden'); setTimeout(() => { locArea.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100); } 
-            else { locArea.classList.add('hidden'); }
-        }
-
+        // --- STREAMING_CHUNK: Implementando sistema de búsquedas manuales y visor de estanterías... ---
         function abrirModalFicha() {
             if(!window.currentProd || !window.currentProd.FICHA) return;
             const modal = document.getElementById('modalFichaTecnica'); const iframe = document.getElementById('iframeFicha');
@@ -915,9 +892,7 @@
                         let pasillo = match[1].toUpperCase();
                         let estanteria = match[2] || '';
                         
-                        // Formato limpio ("C1" en vez de "C-01")
                         document.getElementById('locModulo').innerText = estanteria ? `${pasillo}${estanteria}` : pasillo;
-                        
                         document.getElementById('locRaw').innerText = `CÓDIGO EXCEL: ${org}`;
                         document.getElementById('locRaw').classList.remove('text-red-500', 'font-black');
 
@@ -970,6 +945,7 @@
             }
         });
 
+        // --- STREAMING_CHUNK: Implementando lógica para reportar mermas y evidencias de fotos... ---
         function procesarFotoMerma(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -1065,6 +1041,7 @@
             if(confirm("⚠️ ¿Seguro que deseas borrar toda la lista de mermas de este dispositivo? ¡Asegúrate de bajar el Excel primero!")) { listaMermas = []; saveMermasState(); actualizarUIMermas(); }
         }
 
+        // --- STREAMING_CHUNK: Implementando controles de autenticación y auditoría de inventario... ---
         function intentarVerInventario() {
             if(inventarioDesbloqueado) { setView('inventario'); actualizarUIEstadoInventario(); } 
             else {
@@ -1221,6 +1198,7 @@
         function cerrarModalLogs() { document.getElementById('modalLogs').classList.add('hidden'); document.getElementById('modalLogs').classList.remove('flex'); }
         function renderLogs() { const container = document.getElementById('logsContainer'); if(inventarioLogs.length === 0) { container.innerHTML = '<p class="text-gray-400 text-center py-4">No hay actividad.</p>'; return; } container.innerHTML = inventarioLogs.map(l => `<div class="border-b border-gray-50 pb-1 mb-1">${l}</div>`).join(''); }
 
+        // --- STREAMING_CHUNK: Configurando exportaciones a Excel comprimidas... ---
         async function procesarDescargaOCompartir(datosExcel, nombreArchivo, nombreHoja, meta = null) {
             if(datosExcel.length === 0) { Toast("No hay datos para exportar.", "error"); return; }
             const workbook = XLSX.utils.book_new();
@@ -1313,6 +1291,7 @@
             else { panel.classList.add('settings-collapsed'); btn.classList.remove('bg-orange-200'); }
         }
 
+        // --- STREAMING_CHUNK: Creando el buscador de autocompletado en el panel izquierdo... ---
         if(els.dbSearch) {
             els.dbSearch.addEventListener('input', (e) => {
                 const val = e.target.value.toLowerCase();
@@ -1364,13 +1343,14 @@
             if(btn) {
                 const originalText = btn.innerHTML;
                 btn.innerHTML = '<i class="fa-solid fa-check"></i> ¡Añadida!'; btn.classList.replace('bg-orange-500', 'bg-green-500'); btn.classList.replace('hover:bg-orange-600', 'hover:bg-green-600');
-                setTimeout(() => { btn.innerHTML = originalText; btn.classList.replace('bg-green-500', 'bg-orange-500'); btn.classList.replace('hover:bg-orange-600', 'hover:bg-orange-600'); }, 1000);
+                setTimeout(() => { btn.innerHTML = originalText; btn.classList.replace('bg-green-500', 'bg-orange-500'); btn.classList.replace('hover:bg-orange-600', 'hover:bg-green-600'); }, 1000);
             }
         }
 
         function limpiarHoja() { if(confirm('¿Vaciar todas las etiquetas?')) { colaImpresion = []; renderLabels(); } }
         function eliminarEtiqueta(index) { colaImpresion.splice(index, 1); renderLabels(); }
 
+        // --- STREAMING_CHUNK: Motor de renderizado dinámico de etiquetas 5S... ---
         function renderLabels() {
             if(!els.wrapper) return;
             els.wrapper.innerHTML = '';
@@ -1409,10 +1389,10 @@
                         
                         let cardContent = '';
                         // Ruta de imagen de logo centralizada
-                        const logoSrc = hasLogoGrayscale ? 'LOGO%20NEGRO.jpg' : 'logo.png';
+                        const logoSrc = hasLogoGrayscale ? 'LOGO%20NEGRO_2.jpg' : 'logo.png';
                         
                         // SOLUCIÓN AL CENTRADO DEL LOGO: Forzar alineamiento absoluto perfecto sobre el canvas del QR
-                        const logoHTML = hasLogoInQR ? `<div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[28%] h-[28%] bg-white flex items-center justify-center p-[3px] shadow-md z-10 rounded-sm pointer-events-none"><img src="${logoSrc}" class="w-full h-full object-contain" onerror="console.warn('Fallo imagen: ' + this.src); this.style.display='none'"></div>` : '';
+                        const logoHTML = hasLogoInQR ? `<div class="qr-logo-overlay"><img src="${logoSrc}" class="w-full h-full object-contain" onerror="console.warn('Fallo imagen: ' + this.src); this.style.display='none'"></div>` : '';
                         
                         if (item.estilo === '5s_orange') {
                             cardContent = `
@@ -1575,9 +1555,10 @@
                                 <div class="w-full h-full border border-gray-200 flex bg-white box-border relative rounded-xl shadow-sm p-1">
                                     <div class="w-[14px] bg-[#F26522] h-full flex-shrink-0 rounded-l-lg"></div>
                                     <div class="flex-1 flex flex-col justify-center items-center text-center px-8 py-6 overflow-hidden relative">
+                                        <!-- ORDEN VISUAL MEJORADO: El Código SKU ahora está posicionado ARRIBA del nombre -->
                                         <div class="flex-1 flex flex-col justify-center items-center w-full">
+                                            <div class="text-[12px] sm:text-sm lg:text-lg font-black text-gray-400 mb-4 uppercase tracking-wider">CÓDIGO: <span class="text-gray-700">${item.sku}</span></div>
                                             <div class="font-black text-gray-900 leading-[1.1] tracking-tight uppercase break-words w-full text-center" style="font-size: ${sName}">${item.nombre}</div>
-                                            <div class="text-[12px] sm:text-sm lg:text-lg font-black text-gray-400 mt-4 uppercase tracking-wider">CÓDIGO: <span class="text-gray-700">${item.sku}</span></div>
                                         </div>
                                         
                                         ${showDrawer ? `<div class="font-black text-center text-black tracking-tighter leading-none my-6 uppercase break-words w-full" style="font-size: ${hasQR ? sOrg : 'calc(' + sOrg + ' * 1.3)'}">${item.org}</div>` : '<div class="my-auto"></div>'}
