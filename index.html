@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Deteco DTX v6.55</title>
+    <title>Deteco DTX v6.56</title>
 
     <!-- PWA / WEB APP NATIVA META TAGS -->
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -81,16 +81,17 @@
         
         .label-card { background: white; display: flex; flex-direction: row; overflow: hidden; position: relative; width: 100%; height: 100%; box-sizing: border-box; }
         
-        /* CSS RESPONSIVO PARA EL CODIGO QR (Solución definitiva para no tapar el QR) */
+        /* SOLUCIÓN AL QR INVISIBLE Y AJUSTES RESPONSIVOS */
         .qr-container { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 4px; }
         .qr-code-wrapper { position: relative; height: 100%; max-width: 100%; aspect-ratio: 1 / 1; display: flex; align-items: center; justify-content: center; }
         
-        /* Forzar al canvas del QR a no desbordarse */
-        [id^="qr-code-"] { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
-        [id^="qr-code-"] canvas { width: 100% !important; height: auto !important; max-width: 100%; object-fit: contain; }
+        [id^="qr-code-"] { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; position: relative; }
         
-        /* Ocultar la imagen redundante que genera la librería qrcode.js para evitar doble renderizado */
-        [id^="qr-code-"] img { display: none !important; } 
+        /* Ocultar el canvas inactivo generado por qrcode.js */
+        [id^="qr-code-"] canvas { display: none !important; }
+        
+        /* Mostrar y escalar la imagen real generada por qrcode.js */
+        [id^="qr-code-"] img { display: block !important; width: 100% !important; height: 100% !important; max-width: 100% !important; max-height: 100% !important; object-fit: contain; }
 
         .hidden { display: none !important; }
         @media print {
@@ -116,7 +117,7 @@
     <div id="splash-screen" class="fixed inset-0 bg-[#F5F5F7] z-[9999] flex flex-col items-center justify-center transition-opacity duration-700 ease-in-out">
         <div class="flex flex-col items-center animate-pulse">
             <img src="logo.png" class="w-24 sm:w-32 h-auto mb-4 object-contain" onerror="this.style.display='none'">
-            <h1 class="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight">Deteco <span class="text-orange-600">DTX</span> <span class="text-2xl ml-2 text-gray-400">v6.55</span></h1>
+            <h1 class="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight">Deteco <span class="text-orange-600">DTX</span> <span class="text-2xl ml-2 text-gray-400">v6.56</span></h1>
             <div class="text-xs font-bold text-gray-400 tracking-widest mt-3 uppercase">Cargando Sistema...</div>
         </div>
         <div class="absolute bottom-8 text-center px-4 w-full">
@@ -336,7 +337,7 @@
                     <div class="text-[10px] font-black text-orange-600 uppercase tracking-widest mb-3 flex items-center gap-1 border-b border-orange-200/50 pb-2"><i class="fa-solid fa-layer-group"></i> Ubicación y Kanban 5S</div>
                     <div class="flex flex-col gap-3">
                         <div>
-                            <label class="text-[9px] font-bold text-orange-600 uppercase ml-1">Nº de Cajón / Estante</label>
+                            <label class="text-[9px] font-bold text-orange-600 uppercase ml-1">Nº de Estante (Formatos: C1, A5, etc)</label>
                             <input type="text" id="orgInput" placeholder="Ej: C1" class="w-full bg-white border-2 border-orange-200 rounded-lg px-3 py-2 text-base font-black text-orange-600 text-center outline-none focus:border-orange-500 uppercase">
                         </div>
                         <div class="grid grid-cols-3 gap-2">
@@ -457,7 +458,7 @@
             <!-- VISTA 2: VISOR PRINCIPAL -->
             <div class="preview-panel view-section" id="view-visor">
                 <div class="w-full max-w-xl mx-auto flex flex-col items-center">
-                    <div class="text-center mb-6 px-2 w-full">
+                    <div class="text-center mb-6 shrink-0 text-center">
                         <h2 class="text-3xl font-black text-gray-900 mb-2">Visor de Inventario</h2>
                         <p class="text-gray-500 text-sm">Búsqueda manual o escaneo de código</p>
                     </div>
@@ -544,7 +545,7 @@
                         <div id="noDataArea" class="hidden mt-4 mb-4 text-gray-400 text-sm w-full text-center">No hay ficha técnica disponible.</div>
                         <div class="border-t border-gray-100 pt-6 mt-6 w-full text-center pb-4">
                             <p class="text-sm text-gray-400 font-bold uppercase tracking-widest">Desarrollado para Deteco IC SA</p>
-                            <p class="text-2xl font-black text-orange-500 mt-1">v6.55</p>
+                            <p class="text-2xl font-black text-orange-500 mt-1">v6.56</p>
                         </div>
                     </div>
 
@@ -698,6 +699,17 @@
             get checkLogoGrayscale() { return document.getElementById('checkLogoGrayscale'); },
             get checkShowDrawer() { return document.getElementById('checkShowDrawer'); }
         };
+
+        function Toast(msg, style='info') {
+            const existing = document.getElementById('app-toast');
+            if(existing) existing.remove();
+            const toast = document.createElement('div');
+            toast.id = 'app-toast';
+            toast.className = `fixed bottom-24 left-1/2 transform -translate-x-1/2 z-[9999] px-6 py-3 rounded-full text-white font-bold shadow-lg transition-all duration-300 text-sm tracking-wider uppercase ${style === 'error' ? 'bg-red-600' : 'bg-orange-600'}`;
+            toast.innerText = msg;
+            document.body.appendChild(toast);
+            setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 2500);
+        }
 
         window.addEventListener('load', async () => {
             try {
@@ -1004,17 +1016,6 @@
             if(newVal < 1) newVal = 1; input.value = newVal;
         }
 
-        function Toast(msg, style='info') {
-            const existing = document.getElementById('app-toast');
-            if(existing) existing.remove();
-            const toast = document.createElement('div');
-            toast.id = 'app-toast';
-            toast.className = `fixed bottom-24 left-1/2 transform -translate-x-1/2 z-[9999] px-6 py-3 rounded-full text-white font-bold shadow-lg transition-all duration-300 text-sm tracking-wider uppercase ${style === 'error' ? 'bg-red-600' : 'bg-orange-600'}`;
-            toast.innerText = msg;
-            document.body.appendChild(toast);
-            setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 2500);
-        }
-
         function confirmarMerma() {
             const qty = parseInt(document.getElementById('inputModalMermaQty').value) || 1;
             const motivo = document.getElementById('inputMotivoMerma').value;
@@ -1314,6 +1315,7 @@
             else { panel.classList.add('settings-collapsed'); btn.classList.remove('bg-orange-200'); }
         }
 
+        // --- GENERADOR DE ETIQUETAS ---
         if(els.dbSearch) {
             els.dbSearch.addEventListener('input', (e) => {
                 const val = e.target.value.toLowerCase();
@@ -1354,7 +1356,7 @@
                 consumo: els.consumo ? els.consumo.value : '-',
                 min: els.min ? els.min.value : '-',
                 max: els.max ? els.max.value : '-',
-                estilo: els.style ? els.style.value : '5s_orange'
+                estilo: els.style ? els.style.value : 'traditional_orange'
             });
             if (els.checkNum && els.checkNum.checked && els.orgInput) { 
                 let actualOrg = els.orgInput.value.trim(); 
@@ -1409,11 +1411,11 @@
                         const card = document.createElement('div'); card.className = 'label-card';
                         
                         let cardContent = '';
-                        // Ruta de imagen de logo
+                        // Ruta de imagen de logo centralizada
                         const logoSrc = hasLogoGrayscale ? 'LOGO%20NEGRO.jpg' : 'logo.png';
                         
-                        // Logo centrado de forma absoluta con z-index alto para posicionarlo encima del QR
-                        const logoHTML = hasLogoInQR ? `<div class="absolute w-[32%] h-[32%] bg-white flex items-center justify-center p-1 shadow-sm z-10 rounded-sm pointer-events-none"><img src="${logoSrc}" class="w-full h-full object-contain" onerror="console.warn('Fallo imagen: ' + this.src); this.style.display='none'"></div>` : '';
+                        // SOLUCIÓN AL CENTRADO DEL LOGO: Forzar alineamiento absoluto perfecto sobre el canvas del QR
+                        const logoHTML = hasLogoInQR ? `<div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[28%] h-[28%] bg-white flex items-center justify-center p-[3px] shadow-md z-10 rounded-sm pointer-events-none"><img src="${logoSrc}" class="w-full h-full object-contain" onerror="console.warn('Fallo imagen: ' + this.src); this.style.display='none'"></div>` : '';
                         
                         if (item.estilo === '5s_orange') {
                             cardContent = `
@@ -1600,9 +1602,8 @@
 
                         card.innerHTML = `<button onclick="eliminarEtiqueta(${itemIndex})" class="btn-delete-label no-print absolute top-1 right-1 bg-red-500 text-white hover:bg-red-700 w-6 h-6 rounded-full flex items-center justify-center transition-colors z-30 shadow-md"><i class="fa-solid fa-xmark text-xs"></i></button>${cardContent}`;
                         page.appendChild(card);
-                        // Asegurar el renderizado del QR si corresponde
+                        // Asegurar el renderizado del QR de forma robusta
                         if (hasQR) { 
-                            // Un timeout muy pequeño para asegurar que el DOM del canvas ya está montado
                             setTimeout(() => {
                                 const qrContainer = card.querySelector(`#${qrId}`);
                                 if(qrContainer) {
