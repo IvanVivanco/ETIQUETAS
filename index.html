@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Deteco DTX 6.51</title>
+    <title>Deteco DTX 6.52</title>
 
     <!-- PWA / WEB APP NATIVA META TAGS -->
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -82,13 +82,11 @@
         .label-card { background: white; display: flex; flex-direction: row; overflow: hidden; position: relative; width: 100%; height: 100%; box-sizing: border-box; }
         
         /* CSS RESPONSIVO PARA EL CODIGO QR (Solución del desbordamiento) */
-        [id^="qr-code-"] canvas, [id^="qr-code-"] img {
-            width: 100% !important;
-            height: 100% !important;
-            max-width: 100% !important;
-            max-height: 100% !important;
-            object-fit: contain;
-        }
+        .qr-container { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .qr-code-wrapper { position: relative; height: 100%; max-width: 100%; aspect-ratio: 1 / 1; display: flex; align-items: center; justify-content: center; }
+        [id^="qr-code-"] { width: 100%; height: 100%; mix-blend-mode: multiply; display: flex; align-items: center; justify-content: center; }
+        [id^="qr-code-"] canvas { width: 100% !important; height: 100% !important; max-width: 100%; object-fit: contain; }
+        [id^="qr-code-"] img { display: none !important; } /* Oculta solo la imagen sobrante del QR, no tu logo */
 
         .hidden { display: none !important; }
         @media print {
@@ -114,7 +112,7 @@
     <div id="splash-screen" class="fixed inset-0 bg-[#F5F5F7] z-[9999] flex flex-col items-center justify-center transition-opacity duration-700 ease-in-out">
         <div class="flex flex-col items-center animate-pulse">
             <img src="logo.png" class="w-24 sm:w-32 h-auto mb-4 object-contain" onerror="this.style.display='none'">
-            <h1 class="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight">Deteco <span class="text-orange-600">DTX</span> <span class="text-2xl ml-2 text-gray-400">v6.51</span></h1>
+            <h1 class="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight">Deteco <span class="text-orange-600">DTX</span> <span class="text-2xl ml-2 text-gray-400">v6.52</span></h1>
             <div class="text-xs font-bold text-gray-400 tracking-widest mt-3 uppercase">Cargando Sistema...</div>
         </div>
         <div class="absolute bottom-8 text-center px-4 w-full">
@@ -538,7 +536,7 @@
                         <div id="noDataArea" class="hidden mt-4 mb-4 text-gray-400 text-sm w-full text-center">No hay ficha técnica disponible.</div>
                         <div class="border-t border-gray-100 pt-6 mt-6 w-full text-center pb-4">
                             <p class="text-sm text-gray-400 font-bold uppercase tracking-widest">Desarrollado para Deteco IC SA</p>
-                            <p class="text-2xl font-black text-orange-500 mt-1">v6.51</p>
+                            <p class="text-2xl font-black text-orange-500 mt-1">v6.52</p>
                         </div>
                     </div>
 
@@ -1389,11 +1387,11 @@
                         const card = document.createElement('div'); card.className = 'label-card';
                         
                         let cardContent = '';
-                        const logoSrc = hasLogoGrayscale ? 'LOGO%20NEGRO_2.jpg' : 'logo.png';
-                        const logoImgClasses = `max-w-full max-h-full object-contain`;
+                        // Ruta del logo restaurada al original y espaciada
+                        const logoSrc = hasLogoGrayscale ? 'LOGO%20NEGRO.jpg' : 'logo.png';
                         
-                        // EL logo central ahora se posiciona encima con z-10 dentro del cuadrado responsivo
-                        const logoHTML = hasLogoInQR ? `<div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[30%] aspect-square bg-white flex items-center justify-center p-1 shadow-sm z-10"><img src="${logoSrc}" class="${logoImgClasses}" onerror="console.warn('Fallo imagen: ' + this.src); this.style.display='none'"></div>` : '';
+                        // EL logo central ahora se posiciona encima con z-10 dentro del cuadrado responsivo (28% del ancho)
+                        const logoHTML = hasLogoInQR ? `<div class="absolute w-[28%] h-[28%] bg-white flex items-center justify-center p-1 shadow-sm z-10"><img src="${logoSrc}" class="max-w-full max-h-full object-contain" onerror="console.warn('Fallo imagen: ' + this.src); this.style.display='none'"></div>` : '';
                         
                         if (item.estilo === '5s_orange') {
                             cardContent = `
@@ -1433,10 +1431,12 @@
                                             <div class="flex-1 flex items-center justify-center font-black text-[#F26522] text-center leading-none px-1 break-words" style="font-size:${hasQR ? sOrg : 'calc(' + sOrg + ' * 1.5)'}">${item.org}</div>
                                         </div>
                                         ${hasQR ? `
-                                        <div class="h-[40%] flex items-center justify-center p-1 sm:p-2 relative overflow-hidden">
-                                            <div class="relative max-w-full max-h-full aspect-square flex items-center justify-center">
-                                                <div id="${qrId}" class="w-full h-full mix-blend-multiply flex items-center justify-center"></div>
-                                                ${logoHTML}
+                                        <div class="h-[40%] p-1 sm:p-2">
+                                            <div class="qr-container">
+                                                <div class="qr-code-wrapper">
+                                                    <div id="${qrId}"></div>
+                                                    ${logoHTML}
+                                                </div>
                                             </div>
                                         </div>` : ''}
                                     </div>
@@ -1480,10 +1480,12 @@
                                             <div class="flex-1 flex items-center justify-center font-black text-[#F26522] text-center leading-none px-1 break-words" style="font-size:${hasQR ? sOrg : 'calc(' + sOrg + ' * 1.5)'}">${item.org}</div>
                                         </div>
                                         ${hasQR ? `
-                                        <div class="h-[40%] flex items-center justify-center p-1 sm:p-2 relative overflow-hidden">
-                                            <div class="relative max-w-full max-h-full aspect-square flex items-center justify-center">
-                                                <div id="${qrId}" class="w-full h-full mix-blend-multiply flex items-center justify-center"></div>
-                                                ${logoHTML}
+                                        <div class="h-[40%] p-1 sm:p-2">
+                                            <div class="qr-container">
+                                                <div class="qr-code-wrapper">
+                                                    <div id="${qrId}"></div>
+                                                    ${logoHTML}
+                                                </div>
                                             </div>
                                         </div>` : ''}
                                     </div>
@@ -1527,10 +1529,12 @@
                                             <div class="flex-1 flex items-center justify-center font-black text-[#F26522] text-center leading-none px-1 break-words" style="font-size:${hasQR ? sOrg : 'calc(' + sOrg + ' * 1.5)'}">${item.org}</div>
                                         </div>
                                         ${hasQR ? `
-                                        <div class="h-[40%] flex items-center justify-center p-1 sm:p-2 relative overflow-hidden">
-                                            <div class="relative max-w-full max-h-full aspect-square flex items-center justify-center">
-                                                <div id="${qrId}" class="w-full h-full mix-blend-multiply flex items-center justify-center"></div>
-                                                ${logoHTML}
+                                        <div class="h-[40%] p-1 sm:p-2">
+                                            <div class="qr-container">
+                                                <div class="qr-code-wrapper">
+                                                    <div id="${qrId}"></div>
+                                                    ${logoHTML}
+                                                </div>
                                             </div>
                                         </div>` : ''}
                                     </div>
@@ -1549,10 +1553,12 @@
                                         <div class="font-bold text-gray-400 uppercase tracking-widest mt-auto" style="font-size: ${sFamily}">${item.familia || 'EPP'}</div>
                                     </div>
                                     ${hasQR ? `
-                                    <div class="w-[30%] border-l border-gray-100 flex items-center justify-center p-2 sm:p-3 flex-shrink-0 relative overflow-hidden">
-                                        <div class="relative max-w-full max-h-full aspect-square flex items-center justify-center">
-                                            <div id="${qrId}" class="w-full h-full mix-blend-multiply flex items-center justify-center"></div>
-                                            ${logoHTML}
+                                    <div class="w-[30%] border-l border-gray-100 flex-shrink-0 p-2 sm:p-3">
+                                        <div class="qr-container">
+                                            <div class="qr-code-wrapper">
+                                                <div id="${qrId}"></div>
+                                                ${logoHTML}
+                                            </div>
                                         </div>
                                     </div>` : ''}
                                 </div>
@@ -1561,7 +1567,7 @@
 
                         card.innerHTML = `<button onclick="eliminarEtiqueta(${itemIndex})" class="btn-delete-label no-print absolute top-1 right-1 bg-red-500 text-white hover:bg-red-700 w-6 h-6 rounded-full flex items-center justify-center transition-colors z-30 shadow-md"><i class="fa-solid fa-xmark text-xs"></i></button>${cardContent}`;
                         page.appendChild(card);
-                        // Aumentamos el tamaño de renderizado original del QR para que tenga buena calidad al encogerlo por CSS
+                        // Renderizado grande original del QR para mantener excelente calidad al encogerse en contenedores pequeños
                         if (hasQR) { new QRCode(card.querySelector(`#${qrId}`), { text: smartLink, width: 400, height: 400, correctLevel: QRCode.CorrectLevel.H }); }
                     } else {
                         const emptyCard = document.createElement('div'); emptyCard.className = 'label-card border-dashed border-2 border-gray-300 bg-gray-50 flex items-center justify-center opacity-50'; emptyCard.innerHTML = '<span class="text-gray-400 font-bold text-xs uppercase tracking-widest"><i class="fa-solid fa-ghost mr-1"></i> Espacio Libre</span>'; page.appendChild(emptyCard);
