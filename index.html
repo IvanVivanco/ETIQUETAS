@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Deteco DTX v6.59</title>
+    <title>Deteco DTX v6.61</title>
 
     <!-- PWA / WEB APP NATIVA META TAGS -->
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -92,7 +92,7 @@
         /* Mostrar y escalar la imagen real generada por qrcode.js */
         [id^="qr-code-"] img { display: block !important; width: 100% !important; height: 100% !important; max-width: 100% !important; max-height: 100% !important; object-fit: contain; }
 
-        /* NUEVO: ESTILO ESTRICTO PARA EL LOGO CENTRAL DEL QR */
+        /* ESTILO ESTRICTO PARA EL LOGO CENTRAL DEL QR */
         .qr-logo-overlay {
             position: absolute;
             top: 50%;
@@ -135,7 +135,7 @@
     <div id="splash-screen" class="fixed inset-0 bg-[#F5F5F7] z-[9999] flex flex-col items-center justify-center transition-opacity duration-700 ease-in-out">
         <div class="flex flex-col items-center animate-pulse">
             <img src="logo.png" class="w-24 sm:w-32 h-auto mb-4 object-contain" onerror="this.style.display='none'">
-            <h1 class="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight">Deteco <span class="text-orange-600">DTX</span> <span class="text-2xl ml-2 text-gray-400">v6.60</span></h1>
+            <h1 class="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight">Deteco <span class="text-orange-600">DTX</span> <span class="text-2xl ml-2 text-gray-400">v6.61</span></h1>
             <div class="text-xs font-bold text-gray-400 tracking-widest mt-3 uppercase">Cargando Sistema...</div>
         </div>
         <div class="absolute bottom-8 text-center px-4 w-full">
@@ -532,7 +532,7 @@
                                 <i class="fa-solid fa-map-location-dot"></i> Ver Ubicación Física
                             </button>
 
-                            <!-- MAPA BODEGA 2D DISEÑO MODERNO (LAYOUT BODEGA 2) -->
+                            <!-- MAPA BODEGA 2D DISEÑO MODERNO -->
                             <div id="locationArea" class="hidden w-full mt-4 mb-4 transition-all duration-300">
                                 <div class="bg-white rounded-3xl p-4 sm:p-6 w-full border border-gray-200 shadow-sm">
                                     <div class="flex items-center justify-center mb-2">
@@ -575,7 +575,7 @@
                         <div id="noDataArea" class="hidden mt-4 mb-4 text-gray-400 text-sm w-full text-center">No hay ficha técnica disponible.</div>
                         <div class="border-t border-gray-100 pt-6 mt-6 w-full text-center pb-4">
                             <p class="text-sm text-gray-400 font-bold uppercase tracking-widest">Desarrollado para Deteco IC SA</p>
-                            <p class="text-2xl font-black text-orange-500 mt-1">v6.60</p>
+                            <p class="text-2xl font-black text-orange-500 mt-1">v6.61</p>
                         </div>
                     </div>
 
@@ -1414,7 +1414,7 @@
             if(btn) {
                 const originalText = btn.innerHTML;
                 btn.innerHTML = '<i class="fa-solid fa-check"></i> ¡Añadida!'; btn.classList.replace('bg-orange-500', 'bg-green-500'); btn.classList.replace('hover:bg-orange-600', 'hover:bg-green-600');
-                setTimeout(() => { btn.innerHTML = originalText; btn.classList.replace('bg-green-500', 'bg-orange-500'); btn.classList.replace('hover:bg-orange-600', 'hover:bg-green-600'); }, 1000);
+                setTimeout(() => { btn.innerHTML = originalText; btn.classList.replace('bg-green-500', 'bg-orange-500'); btn.classList.replace('hover:bg-green-600', 'hover:bg-orange-600'); }, 1000);
             }
         }
 
@@ -1463,8 +1463,10 @@
                         const card = document.createElement('div'); card.className = 'label-card';
                         
                         let cardContent = '';
-                        // Ruta de imagen de logo centralizada
-                        const logoSrc = hasLogoGrayscale ? 'LOGO%20NEGRO_2.jpg' : 'logo.png';
+                        
+                        // CORRECCIÓN V6.61: Quitamos el "_2" que estaba causando el error 404 (Not Found). 
+                        // Utilizamos "LOGO%20NEGRO.jpg" ya que el usuario re-subió el archivo con ese nombre original.
+                        const logoSrc = hasLogoGrayscale ? 'LOGO%20NEGRO.jpg' : 'logo.png';
                         
                         // SOLUCIÓN DEFINITIVA: Usar la nueva clase estricta .qr-logo-overlay
                         const logoHTML = hasLogoInQR ? `<div class="qr-logo-overlay"><img src="${logoSrc}" class="w-full h-full object-contain" onerror="console.warn('Fallo imagen: ' + this.src); this.style.display='none'"></div>` : '';
