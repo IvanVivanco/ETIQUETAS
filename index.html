@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Deteco DTX 6.52</title>
+    <title>Deteco DTX v6.55</title>
 
     <!-- PWA / WEB APP NATIVA META TAGS -->
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -81,12 +81,16 @@
         
         .label-card { background: white; display: flex; flex-direction: row; overflow: hidden; position: relative; width: 100%; height: 100%; box-sizing: border-box; }
         
-        /* CSS RESPONSIVO PARA EL CODIGO QR (Solución del desbordamiento) */
-        .qr-container { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        /* CSS RESPONSIVO PARA EL CODIGO QR (Solución definitiva para no tapar el QR) */
+        .qr-container { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 4px; }
         .qr-code-wrapper { position: relative; height: 100%; max-width: 100%; aspect-ratio: 1 / 1; display: flex; align-items: center; justify-content: center; }
-        [id^="qr-code-"] { width: 100%; height: 100%; mix-blend-mode: multiply; display: flex; align-items: center; justify-content: center; }
-        [id^="qr-code-"] canvas { width: 100% !important; height: 100% !important; max-width: 100%; object-fit: contain; }
-        [id^="qr-code-"] img { display: none !important; } /* Oculta solo la imagen sobrante del QR, no tu logo */
+        
+        /* Forzar al canvas del QR a no desbordarse */
+        [id^="qr-code-"] { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+        [id^="qr-code-"] canvas { width: 100% !important; height: auto !important; max-width: 100%; object-fit: contain; }
+        
+        /* Ocultar la imagen redundante que genera la librería qrcode.js para evitar doble renderizado */
+        [id^="qr-code-"] img { display: none !important; } 
 
         .hidden { display: none !important; }
         @media print {
@@ -112,7 +116,7 @@
     <div id="splash-screen" class="fixed inset-0 bg-[#F5F5F7] z-[9999] flex flex-col items-center justify-center transition-opacity duration-700 ease-in-out">
         <div class="flex flex-col items-center animate-pulse">
             <img src="logo.png" class="w-24 sm:w-32 h-auto mb-4 object-contain" onerror="this.style.display='none'">
-            <h1 class="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight">Deteco <span class="text-orange-600">DTX</span> <span class="text-2xl ml-2 text-gray-400">v6.52</span></h1>
+            <h1 class="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight">Deteco <span class="text-orange-600">DTX</span> <span class="text-2xl ml-2 text-gray-400">v6.55</span></h1>
             <div class="text-xs font-bold text-gray-400 tracking-widest mt-3 uppercase">Cargando Sistema...</div>
         </div>
         <div class="absolute bottom-8 text-center px-4 w-full">
@@ -145,7 +149,7 @@
         </div>
     </div>
 
-    <!-- MODALES GENERALES -->
+    <!-- MODALES GENERALES (Contraseña, Inventario, Merma, Ficha) -->
     <div id="modalAuth" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[4000] p-4 backdrop-blur-md">
         <div class="bg-white rounded-3xl p-8 w-full max-w-sm shadow-2xl flex flex-col items-center">
             <div class="w-16 h-16 bg-orange-50 text-orange-500 border border-orange-100 rounded-full flex items-center justify-center text-3xl mb-4"><i class="fa-solid fa-lock"></i></div>
@@ -392,6 +396,10 @@
                             <input type="checkbox" id="checkLogoGrayscale" class="w-4 h-4 accent-orange-500" checked>
                             <label for="checkLogoGrayscale" class="text-[10px] font-bold text-gray-700 uppercase tracking-wider cursor-pointer">Logo del QR en Blanco y Negro</label>
                         </div>
+                        <div class="flex items-center gap-2 mt-2">
+                            <input type="checkbox" id="checkShowDrawer" class="w-4 h-4 accent-orange-500" checked>
+                            <label for="checkShowDrawer" class="text-[10px] font-bold text-orange-600 uppercase tracking-wider cursor-pointer">Mostrar Sección "Nº Cajón"</label>
+                        </div>
                     </div>
                 </div>
 
@@ -536,7 +544,7 @@
                         <div id="noDataArea" class="hidden mt-4 mb-4 text-gray-400 text-sm w-full text-center">No hay ficha técnica disponible.</div>
                         <div class="border-t border-gray-100 pt-6 mt-6 w-full text-center pb-4">
                             <p class="text-sm text-gray-400 font-bold uppercase tracking-widest">Desarrollado para Deteco IC SA</p>
-                            <p class="text-2xl font-black text-orange-500 mt-1">v6.52</p>
+                            <p class="text-2xl font-black text-orange-500 mt-1">v6.55</p>
                         </div>
                     </div>
 
@@ -589,7 +597,7 @@
 
                         <div class="flex gap-2 shrink-0 mb-4 w-full px-1">
                             <button onclick="exportarInventarioExcelSolo()" id="btnExcelSolo" class="bg-white text-green-700 hover:bg-green-50 border border-green-200 py-3 rounded-xl font-bold text-[10px] sm:text-xs transition-colors shadow-sm flex flex-col items-center justify-center shrink-0 w-16" title="Bajar Excel Parcial"><i class="fa-solid fa-download mb-1 text-lg"></i> Bajar</button>
-                            <button onclick="finalizarInventario()" id="btnCerrarInv" class="flex-1 bg-red-600 text-white hover:bg-red-700 py-3 rounded-xl font-black text-sm transition-colors shadow-md flex items-center justify-center gap-2"><i class="fa-solid fa-lock text-xl"></i> Cerrar Inventario y Exportar</button>
+                            <button onclick="finalizarInventario()" id="btnCerrarInv" class="flex-1 bg-red-600 text-white hover:bg-red-700 py-3 rounded-xl font-black text-sm transition-colors shadow-md flex items-center justify-center gap-2"><i class="fa-solid fa-lock text-xl"></i> Compartir Inventario Cerrado</button>
                         </div>
                     </div>
                 </div>
@@ -687,7 +695,8 @@
             get style() { return document.getElementById('styleInput'); },
             get checkQR() { return document.getElementById('checkIncludeQR'); },
             get checkLogoInQR() { return document.getElementById('checkLogoInQR'); },
-            get checkLogoGrayscale() { return document.getElementById('checkLogoGrayscale'); }
+            get checkLogoGrayscale() { return document.getElementById('checkLogoGrayscale'); },
+            get checkShowDrawer() { return document.getElementById('checkShowDrawer'); }
         };
 
         window.addEventListener('load', async () => {
@@ -711,6 +720,7 @@
                 if(els.checkQR) els.checkQR.addEventListener('change', renderLabels);
                 if(els.checkLogoInQR) els.checkLogoInQR.addEventListener('change', renderLabels);
                 if(els.checkLogoGrayscale) els.checkLogoGrayscale.addEventListener('change', renderLabels);
+                if(els.checkShowDrawer) els.checkShowDrawer.addEventListener('change', renderLabels);
 
                 const splash = document.getElementById('splash-screen');
                 setTimeout(() => { splash.style.opacity = '0'; setTimeout(() => { splash.style.display = 'none'; }, 700); }, 500); 
@@ -894,7 +904,7 @@
                         let pasillo = match[1].toUpperCase();
                         let estanteria = match[2] || '';
                         
-                        // ACTUALIZACIÓN FORMATO: Se muestra "C1" directo en lugar de "C-01"
+                        // Formato limpio ("C1" en vez de "C-01")
                         document.getElementById('locModulo').innerText = estanteria ? `${pasillo}${estanteria}` : pasillo;
                         
                         document.getElementById('locRaw').innerText = `CÓDIGO EXCEL: ${org}`;
@@ -994,6 +1004,17 @@
             if(newVal < 1) newVal = 1; input.value = newVal;
         }
 
+        function Toast(msg, style='info') {
+            const existing = document.getElementById('app-toast');
+            if(existing) existing.remove();
+            const toast = document.createElement('div');
+            toast.id = 'app-toast';
+            toast.className = `fixed bottom-24 left-1/2 transform -translate-x-1/2 z-[9999] px-6 py-3 rounded-full text-white font-bold shadow-lg transition-all duration-300 text-sm tracking-wider uppercase ${style === 'error' ? 'bg-red-600' : 'bg-orange-600'}`;
+            toast.innerText = msg;
+            document.body.appendChild(toast);
+            setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 2500);
+        }
+
         function confirmarMerma() {
             const qty = parseInt(document.getElementById('inputModalMermaQty').value) || 1;
             const motivo = document.getElementById('inputMotivoMerma').value;
@@ -1001,7 +1022,8 @@
             const p = window.currentProd;
 
             const nuevaMerma = { 'CÓDIGO': p.CODIGO, 'NOMBRE': p.NOMBRE, 'CANTIDAD': qty, 'UNIDAD': p.UNIDAD || 'UND', 'MOTIVO': motivo, 'OBSERVACIONES': obs, 'FECHA/HORA': new Date().toLocaleString(), 'FOTO': currentMermaFotoBase64 };
-            listaMermas.unshift(nuevaMerma); saveMermasState(); cerrarModalMerma(); actualizarUIMermas(); alert(`Merma registrada: ${qty}x ${p.NOMBRE}`);
+            listaMermas.unshift(nuevaMerma); saveMermasState(); cerrarModalMerma(); actualizarUIMermas(); 
+            Toast(`Merma registrada: ${qty}x ${p.NOMBRE}`);
         }
 
         function eliminarMerma(index) { listaMermas.splice(index, 1); saveMermasState(); actualizarUIMermas(); }
@@ -1039,7 +1061,7 @@
         }
 
         function finalizarMermas() {
-            if(listaMermas.length === 0) { alert("No hay mermas para borrar."); return; }
+            if(listaMermas.length === 0) { Toast("No hay mermas para borrar."); return; }
             if(confirm("⚠️ ¿Seguro que deseas borrar toda la lista de mermas de este dispositivo? ¡Asegúrate de bajar el Excel primero!")) { listaMermas = []; saveMermasState(); actualizarUIMermas(); }
         }
 
@@ -1069,7 +1091,7 @@
 
         function confirmarInicioInventario() {
             const nombre = document.getElementById('invInputNombre').value.trim(); const rut = document.getElementById('invInputRut').value.trim(); const periodo = document.getElementById('invInputPeriodo').value; 
-            if(!nombre || !rut || !periodo) { alert("Por favor, completa todos los campos."); return; }
+            if(!nombre || !rut || !periodo) { Toast("Por favor, completa todos los campos.", "error"); return; }
             inventarioMetadata = { nombre: nombre, rut: rut, periodo: periodo, fechaInicio: new Date().toLocaleString(), fechaTermino: null };
             saveInventarioState(); cerrarModalInicioInventario(); addLog(`Auditoría iniciada por ${nombre}`); actualizarUIEstadoInventario();
         }
@@ -1146,8 +1168,8 @@
             const name = document.getElementById('nuevoProdName').value.trim().toUpperCase(); let code = document.getElementById('nuevoProdCode').value.trim().toUpperCase();
             const qtyStr = document.getElementById('nuevoProdQty').value; const udm = document.getElementById('nuevoProdUdm').value.trim().toUpperCase() || 'UND';
 
-            if(!name) { alert("Debes ingresar el nombre del material."); return; }
-            if(qtyStr === '') { alert("Debes ingresar una cantidad."); return; }
+            if(!name) { Toast("Debes ingresar el nombre del material.", "error"); return; }
+            if(qtyStr === '') { Toast("Debes ingresar una cantidad.", "error"); return; }
             if(!code) { code = 'MANUAL-' + Math.floor(Math.random() * 10000); }
             
             const qty = parseInt(qtyStr);
@@ -1163,7 +1185,7 @@
         function abrirConteoModal(codigo, isManual = false) {
             let prod = dbProducts.find(p => p.CODIGO === codigo);
             if(!prod && isManual) { const manualItem = listaInventarioFisico.find(item => item['CÓDIGO'] === codigo); if(manualItem) prod = { CODIGO: manualItem['CÓDIGO'], NOMBRE: manualItem['NOMBRE'], STOCK: 0 }; }
-            if(!prod) { alert("Producto no encontrado."); return; }
+            if(!prod) { Toast("Producto no encontrado.", "error"); return; }
             
             invCurrentProd = prod; document.getElementById('modalConteoCode').innerText = prod.CODIGO; document.getElementById('modalConteoName').innerText = prod.NOMBRE;
             
@@ -1180,7 +1202,7 @@
         function guardarConteoFisico() {
             if(!invCurrentProd) return;
             const inputVal = document.getElementById('inputConteoFisico').value;
-            if(inputVal === '') { alert("Ingresa un número válido."); return; }
+            if(inputVal === '') { Toast("Ingresa un número válido.", "error"); return; }
             
             const conteoFisico = parseInt(inputVal); const stockSistema = parseInt(invCurrentProd.STOCK) || 0; const diferencia = conteoFisico - stockSistema;
             
@@ -1201,7 +1223,7 @@
 
         // --- SISTEMA DE COMPARTIR EXCEL ---
         async function procesarDescargaOCompartir(datosExcel, nombreArchivo, nombreHoja, meta = null) {
-            if(datosExcel.length === 0) { alert("No hay datos para exportar."); return; }
+            if(datosExcel.length === 0) { Toast("No hay datos para exportar.", "error"); return; }
             const workbook = XLSX.utils.book_new();
 
             if(meta) {
@@ -1246,7 +1268,7 @@
                     const exito = await procesarDescargaOCompartir(listaInventarioFisico, `Inventario_FINAL_${inventarioMetadata.periodo}_Deteco.xlsx`, "Auditoría Física", inventarioMetadata);
                     btn.innerHTML = originalHtml;
                     if(exito) { if(confirm("✅ Reporte exportado exitosamente.\n\n¿Deseas borrar los datos para el próximo mes?")) { listaInventarioFisico = []; inventarioLogs = []; inventarioMetadata = null; saveInventarioState(); actualizarUIEstadoInventario(); } } 
-                    else { inventarioMetadata.fechaTermino = null; saveInventarioState(); alert("Exportación cancelada."); }
+                    else { inventarioMetadata.fechaTermino = null; saveInventarioState(); Toast("Exportación cancelada."); }
                 }, 300);
             }
         }
@@ -1260,7 +1282,7 @@
                 closeScanner(); 
                 if(scannerTargetView === 'visor') { document.getElementById('manualInput').value = scannedId; manualSearch(scannedId); } 
                 else if (scannerTargetView === 'inventario') { abrirConteoModal(scannedId); }
-            }).catch((err) => { alert("Por favor, permite el acceso a la cámara."); closeScanner(); });
+            }).catch((err) => { Toast("Por favor, permite el acceso a la cámara.", "error"); closeScanner(); });
         }
         function closeScanner() { const modal = document.getElementById('modalScanner'); modal.classList.add('hidden'); modal.classList.remove('flex'); if (html5QrcodeScanner) { html5QrcodeScanner.stop().catch(err => console.warn(err)); } }
 
@@ -1292,7 +1314,6 @@
             else { panel.classList.add('settings-collapsed'); btn.classList.remove('bg-orange-200'); }
         }
 
-        // --- GENERADOR DE ETIQUETAS ---
         if(els.dbSearch) {
             els.dbSearch.addEventListener('input', (e) => {
                 const val = e.target.value.toLowerCase();
@@ -1365,6 +1386,7 @@
             const hasQR = els.checkQR ? els.checkQR.checked : true;
             const hasLogoInQR = els.checkLogoInQR ? els.checkLogoInQR.checked : false;
             const hasLogoGrayscale = els.checkLogoGrayscale ? els.checkLogoGrayscale.checked : false;
+            const showDrawer = els.checkShowDrawer ? els.checkShowDrawer.checked : true;
             
             if(els.valSizeName) els.valSizeName.innerText = sName;
             if(els.valSizeOrg) els.valSizeOrg.innerText = sOrg;
@@ -1387,16 +1409,16 @@
                         const card = document.createElement('div'); card.className = 'label-card';
                         
                         let cardContent = '';
-                        // Ruta del logo restaurada al original y espaciada
+                        // Ruta de imagen de logo
                         const logoSrc = hasLogoGrayscale ? 'LOGO%20NEGRO.jpg' : 'logo.png';
                         
-                        // EL logo central ahora se posiciona encima con z-10 dentro del cuadrado responsivo (28% del ancho)
-                        const logoHTML = hasLogoInQR ? `<div class="absolute w-[28%] h-[28%] bg-white flex items-center justify-center p-1 shadow-sm z-10"><img src="${logoSrc}" class="max-w-full max-h-full object-contain" onerror="console.warn('Fallo imagen: ' + this.src); this.style.display='none'"></div>` : '';
+                        // Logo centrado de forma absoluta con z-index alto para posicionarlo encima del QR
+                        const logoHTML = hasLogoInQR ? `<div class="absolute w-[32%] h-[32%] bg-white flex items-center justify-center p-1 shadow-sm z-10 rounded-sm pointer-events-none"><img src="${logoSrc}" class="w-full h-full object-contain" onerror="console.warn('Fallo imagen: ' + this.src); this.style.display='none'"></div>` : '';
                         
                         if (item.estilo === '5s_orange') {
                             cardContent = `
                                 <div class="w-full h-full border-[3px] border-[#F26522] flex bg-white box-border relative">
-                                    <div class="w-[75%] flex flex-col border-r-[3px] border-[#F26522]">
+                                    <div class="${showDrawer || hasQR ? 'w-[75%]' : 'w-full'} flex flex-col ${showDrawer || hasQR ? 'border-r-[3px] border-[#F26522]' : ''}">
                                         <div class="h-[60%] flex border-b-[3px] border-[#F26522]">
                                             <div class="w-[33.333%] border-r-[3px] border-[#F26522] flex flex-col">
                                                 <div class="text-[8px] sm:text-[10px] lg:text-xs font-black text-center border-b-[3px] border-[#F26522] p-1 uppercase text-[#F26522] leading-none bg-orange-50">Consumo<br>Semanal</div>
@@ -1425,13 +1447,16 @@
                                             </div>
                                         </div>
                                     </div>
+                                    ${(showDrawer || hasQR) ? `
                                     <div class="w-[25%] flex flex-col bg-white">
+                                        ${showDrawer ? `
                                         <div class="${hasQR ? 'h-[60%] border-b-[3px] border-[#F26522]' : 'h-full'} flex flex-col">
                                             <div class="text-[8px] sm:text-[10px] lg:text-xs font-black text-center border-b-[3px] border-[#F26522] p-1 uppercase text-[#F26522] leading-none bg-orange-50">Nº Cajón</div>
                                             <div class="flex-1 flex items-center justify-center font-black text-[#F26522] text-center leading-none px-1 break-words" style="font-size:${hasQR ? sOrg : 'calc(' + sOrg + ' * 1.5)'}">${item.org}</div>
-                                        </div>
+                                        </div>` : ''}
+                                        
                                         ${hasQR ? `
-                                        <div class="h-[40%] p-1 sm:p-2">
+                                        <div class="${showDrawer ? 'h-[40%]' : 'h-full'} p-2">
                                             <div class="qr-container">
                                                 <div class="qr-code-wrapper">
                                                     <div id="${qrId}"></div>
@@ -1439,13 +1464,13 @@
                                                 </div>
                                             </div>
                                         </div>` : ''}
-                                    </div>
+                                    </div>` : ''}
                                 </div>
                             `;
                         } else if (item.estilo === '5s_solid_white') {
                             cardContent = `
                                 <div class="w-full h-full border-[3px] border-[#F26522] flex bg-white box-border relative">
-                                    <div class="w-[75%] flex flex-col border-r-[3px] border-[#F26522]">
+                                    <div class="${showDrawer || hasQR ? 'w-[75%]' : 'w-full'} flex flex-col ${showDrawer || hasQR ? 'border-r-[3px] border-[#F26522]' : ''}">
                                         <div class="h-[60%] flex border-b-[3px] border-[#F26522]">
                                             <div class="w-[33.333%] border-r-[3px] border-[#F26522] flex flex-col">
                                                 <div class="text-[8px] sm:text-[10px] lg:text-xs font-black text-center border-b-[3px] border-[#F26522] p-1 uppercase text-white bg-[#F26522] leading-none">Consumo<br>Semanal</div>
@@ -1474,13 +1499,16 @@
                                             </div>
                                         </div>
                                     </div>
+                                    ${(showDrawer || hasQR) ? `
                                     <div class="w-[25%] flex flex-col bg-white">
+                                        ${showDrawer ? `
                                         <div class="${hasQR ? 'h-[60%] border-b-[3px] border-[#F26522]' : 'h-full'} flex flex-col">
                                             <div class="text-[8px] sm:text-[10px] lg:text-xs font-black text-center border-b-[3px] border-[#F26522] p-1 uppercase text-white bg-[#F26522] leading-none">Nº Cajón</div>
                                             <div class="flex-1 flex items-center justify-center font-black text-[#F26522] text-center leading-none px-1 break-words" style="font-size:${hasQR ? sOrg : 'calc(' + sOrg + ' * 1.5)'}">${item.org}</div>
-                                        </div>
+                                        </div>` : ''}
+                                        
                                         ${hasQR ? `
-                                        <div class="h-[40%] p-1 sm:p-2">
+                                        <div class="${showDrawer ? 'h-[40%]' : 'h-full'} p-2">
                                             <div class="qr-container">
                                                 <div class="qr-code-wrapper">
                                                     <div id="${qrId}"></div>
@@ -1488,13 +1516,13 @@
                                                 </div>
                                             </div>
                                         </div>` : ''}
-                                    </div>
+                                    </div>` : ''}
                                 </div>
                             `;
                         } else if (item.estilo === '5s_dark') {
                             cardContent = `
                                 <div class="w-full h-full border-[4px] border-gray-900 flex bg-white box-border relative">
-                                    <div class="w-[75%] flex flex-col border-r-[4px] border-gray-900">
+                                    <div class="${showDrawer || hasQR ? 'w-[75%]' : 'w-full'} flex flex-col ${showDrawer || hasQR ? 'border-r-[4px] border-gray-900' : ''}">
                                         <div class="h-[60%] flex border-b-[4px] border-gray-900">
                                             <div class="w-[33.333%] border-r-[4px] border-gray-900 flex flex-col">
                                                 <div class="text-[8px] sm:text-[10px] lg:text-xs font-black text-center border-b-[4px] border-gray-900 p-1 uppercase text-white bg-gray-900 leading-none">Consumo<br>Semanal</div>
@@ -1523,13 +1551,16 @@
                                             </div>
                                         </div>
                                     </div>
+                                    ${(showDrawer || hasQR) ? `
                                     <div class="w-[25%] flex flex-col bg-white">
+                                        ${showDrawer ? `
                                         <div class="${hasQR ? 'h-[60%] border-b-[4px] border-gray-900' : 'h-full'} flex flex-col">
                                             <div class="text-[8px] sm:text-[10px] lg:text-xs font-black text-center border-b-[4px] border-gray-900 p-1 uppercase text-[#F26522] bg-gray-100 leading-none">Nº Cajón</div>
                                             <div class="flex-1 flex items-center justify-center font-black text-[#F26522] text-center leading-none px-1 break-words" style="font-size:${hasQR ? sOrg : 'calc(' + sOrg + ' * 1.5)'}">${item.org}</div>
-                                        </div>
+                                        </div>` : ''}
+                                        
                                         ${hasQR ? `
-                                        <div class="h-[40%] p-1 sm:p-2">
+                                        <div class="${showDrawer ? 'h-[40%]' : 'h-full'} p-2">
                                             <div class="qr-container">
                                                 <div class="qr-code-wrapper">
                                                     <div id="${qrId}"></div>
@@ -1537,7 +1568,7 @@
                                                 </div>
                                             </div>
                                         </div>` : ''}
-                                    </div>
+                                    </div>` : ''}
                                 </div>
                             `;
                         } else if (item.estilo === 'traditional_orange') {
@@ -1549,7 +1580,9 @@
                                             <div class="font-black text-gray-900 leading-[1.1] tracking-tight uppercase break-words w-full text-center" style="font-size: ${sName}">${item.nombre}</div>
                                             <div class="text-[12px] sm:text-sm lg:text-lg font-black text-gray-400 mt-4 uppercase tracking-wider">CÓDIGO: <span class="text-gray-700">${item.sku}</span></div>
                                         </div>
-                                        <div class="font-black text-center text-black tracking-tighter leading-none my-6 uppercase break-words w-full" style="font-size: ${hasQR ? sOrg : 'calc(' + sOrg + ' * 1.3)'}">${item.org}</div>
+                                        
+                                        ${showDrawer ? `<div class="font-black text-center text-black tracking-tighter leading-none my-6 uppercase break-words w-full" style="font-size: ${hasQR ? sOrg : 'calc(' + sOrg + ' * 1.3)'}">${item.org}</div>` : '<div class="my-auto"></div>'}
+                                        
                                         <div class="font-bold text-gray-400 uppercase tracking-widest mt-auto" style="font-size: ${sFamily}">${item.familia || 'EPP'}</div>
                                     </div>
                                     ${hasQR ? `
@@ -1567,8 +1600,16 @@
 
                         card.innerHTML = `<button onclick="eliminarEtiqueta(${itemIndex})" class="btn-delete-label no-print absolute top-1 right-1 bg-red-500 text-white hover:bg-red-700 w-6 h-6 rounded-full flex items-center justify-center transition-colors z-30 shadow-md"><i class="fa-solid fa-xmark text-xs"></i></button>${cardContent}`;
                         page.appendChild(card);
-                        // Renderizado grande original del QR para mantener excelente calidad al encogerse en contenedores pequeños
-                        if (hasQR) { new QRCode(card.querySelector(`#${qrId}`), { text: smartLink, width: 400, height: 400, correctLevel: QRCode.CorrectLevel.H }); }
+                        // Asegurar el renderizado del QR si corresponde
+                        if (hasQR) { 
+                            // Un timeout muy pequeño para asegurar que el DOM del canvas ya está montado
+                            setTimeout(() => {
+                                const qrContainer = card.querySelector(`#${qrId}`);
+                                if(qrContainer) {
+                                    new QRCode(qrContainer, { text: smartLink, width: 400, height: 400, correctLevel: QRCode.CorrectLevel.H }); 
+                                }
+                            }, 0);
+                        }
                     } else {
                         const emptyCard = document.createElement('div'); emptyCard.className = 'label-card border-dashed border-2 border-gray-300 bg-gray-50 flex items-center justify-center opacity-50'; emptyCard.innerHTML = '<span class="text-gray-400 font-bold text-xs uppercase tracking-widest"><i class="fa-solid fa-ghost mr-1"></i> Espacio Libre</span>'; page.appendChild(emptyCard);
                     }
@@ -1578,8 +1619,8 @@
         }
 
         function downloadPDF() {
-            if (!document.getElementById('view-generator').classList.contains('active')) { alert("Debes estar en 'Etiquetas 5S' para descargar el PDF."); return; }
-            if (colaImpresion.length === 0) { alert("No hay etiquetas en la hoja para descargar."); return; }
+            if (!document.getElementById('view-generator').classList.contains('active')) { Toast("Debes estar en 'Etiquetas 5S' para descargar el PDF.", "error"); return; }
+            if (colaImpresion.length === 0) { Toast("No hay etiquetas en la hoja para descargar.", "error"); return; }
 
             const element = document.getElementById('pages-wrapper'); const rightContent = document.querySelector('.right-content'); const previewPanel = document.getElementById('view-generator');
             const originalScrollYWindow = window.scrollY; const originalScrollY = rightContent ? rightContent.scrollTop : 0;
@@ -1608,11 +1649,23 @@
             setTimeout(() => {
                 const orient = els.orientation.value === 'landscape' ? 'l' : 'p';
                 const opt = {
-                    margin: 0, filename: 'etiquetas_5S_deteco.pdf', image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { scale: 2, useCORS: true, scrollY: 0, windowY: 0, backgroundColor: '#ffffff', onclone: function(clonedDoc) { const imgs = clonedDoc.querySelectorAll('img'); imgs.forEach(img => { if (!img.complete || img.naturalWidth === 0) { img.parentNode.removeChild(img); } }); } },
+                    margin: 0,
+                    filename: 'etiquetas_5S_deteco.pdf',
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { 
+                        scale: 2, 
+                        useCORS: true, 
+                        scrollY: 0, 
+                        windowY: 0, 
+                        backgroundColor: '#ffffff', 
+                        onclone: function(clonedDoc) { 
+                            const imgs = clonedDoc.querySelectorAll('img'); 
+                            imgs.forEach(img => { if (!img.complete || img.naturalWidth === 0) { img.parentNode.removeChild(img); } }); 
+                        } 
+                    },
                     jsPDF: { unit: 'mm', format: 'a4', orientation: orient }
                 };
-                html2pdf().set(opt).from(element).save().then(() => { restoreAll(); }).catch(err => { console.error(err); alert("Error al generar PDF."); restoreAll(); });
+                html2pdf().set(opt).from(element).save().then(() => { restoreAll(); }).catch(err => { console.error(err); Toast("Error al generar PDF.", "error"); restoreAll(); });
             }, 300);
         }
     </script>
