@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Deteco DTX v6.65</title>
+    <title>Deteco DTX v6.67</title>
 
     <!-- PWA / WEB APP NATIVA META TAGS -->
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -134,7 +134,7 @@
     <div id="splash-screen" class="fixed inset-0 bg-[#F5F5F7] z-[9999] flex flex-col items-center justify-center transition-opacity duration-700 ease-in-out">
         <div class="flex flex-col items-center animate-pulse">
             <img src="logo.png" class="w-24 sm:w-32 h-auto mb-4 object-contain" onerror="this.style.display='none'">
-            <h1 class="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight">Deteco <span class="text-orange-600">DTX</span> <span class="text-2xl ml-2 text-gray-400">v6.65</span></h1>
+            <h1 class="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight">Deteco <span class="text-orange-600">DTX</span> <span class="text-2xl ml-2 text-gray-400">v6.67</span></h1>
             <div class="text-xs font-bold text-gray-400 tracking-widest mt-3 uppercase">Cargando Sistema...</div>
         </div>
         <div class="absolute bottom-8 text-center px-4 w-full">
@@ -375,15 +375,15 @@
                         <div class="grid grid-cols-3 gap-2">
                             <div>
                                 <label class="text-[8px] font-black text-gray-500 uppercase text-center block w-full mb-1">Consumo Semanal</label>
-                                <input type="text" id="consumoInput" placeholder="Vacio" class="w-full bg-white border border-gray-200 rounded-lg px-1 py-2 text-sm font-black text-gray-800 text-center outline-none focus:border-orange-500">
+                                <input type="number" id="consumoInput" class="w-full bg-white border border-gray-200 rounded-lg px-1 py-2 text-sm font-black text-gray-800 text-center outline-none focus:border-orange-500" placeholder="Vacio">
                             </div>
                             <div>
                                 <label class="text-[8px] font-black text-gray-500 uppercase text-center block w-full mb-1">Stock MIN</label>
-                                <input type="text" id="minInput" placeholder="Vacio" class="w-full bg-white border border-gray-200 rounded-lg px-1 py-2 text-sm font-black text-gray-800 text-center outline-none focus:border-orange-500">
+                                <input type="number" id="minInput" class="w-full bg-white border border-gray-200 rounded-lg px-1 py-2 text-sm font-black text-gray-800 text-center outline-none focus:border-orange-500" placeholder="Vacio">
                             </div>
                             <div>
                                 <label class="text-[8px] font-black text-gray-500 uppercase text-center block w-full mb-1">Stock MAX</label>
-                                <input type="text" id="maxInput" placeholder="Vacio" class="w-full bg-white border border-gray-200 rounded-lg px-1 py-2 text-sm font-black text-gray-800 text-center outline-none focus:border-orange-500">
+                                <input type="number" id="maxInput" class="w-full bg-white border border-gray-200 rounded-lg px-1 py-2 text-sm font-black text-gray-800 text-center outline-none focus:border-orange-500" placeholder="Vacio">
                             </div>
                         </div>
                     </div>
@@ -577,7 +577,7 @@
                         <div id="noDataArea" class="hidden mt-4 mb-4 text-gray-400 text-sm w-full text-center">No hay ficha técnica disponible.</div>
                         <div class="border-t border-gray-100 pt-6 mt-6 w-full text-center pb-4">
                             <p class="text-sm text-gray-400 font-bold uppercase tracking-widest">Desarrollado para Deteco IC SA</p>
-                            <p class="text-2xl font-black text-orange-500 mt-1">v6.65</p>
+                            <p class="text-2xl font-black text-orange-500 mt-1">v6.67</p>
                         </div>
                     </div>
 
@@ -667,11 +667,10 @@
                         <h2 class="text-3xl font-black text-indigo-600 mb-2">Dashboard Gerencial</h2>
                         <p class="text-gray-500 mb-4">Análisis y Estado General de Bodega</p>
                         
-                        <!-- NUEVO: Selector de Mes -->
+                        <!-- Filtro de Meses -->
                         <div class="max-w-xs mx-auto">
                             <select id="dashMonthSelector" onchange="renderDashboard()" class="w-full bg-white border-2 border-indigo-200 rounded-xl px-4 py-3 text-sm font-bold text-indigo-900 outline-none focus:border-indigo-500 shadow-sm cursor-pointer">
                                 <option value="ALL">Todo el Historial</option>
-                                <!-- Opciones generadas por JS -->
                             </select>
                         </div>
                     </div>
@@ -758,7 +757,7 @@
         const GOOGLE_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSM3lTLNPOgrglxy22q_iVTguBWEsuuTVfpHQGXMkItgOXKa04h69EfRqQArlgVR7ZvUB-QfpMXjoGr/pub?output=csv';
 
         let dbProducts = [];
-        let dbMovimientos = []; // Nueva base de datos para movimientos
+        let dbMovimientos = []; // Base de datos para el Dashboard
         let hasSeenGeneratorMenuHint = false;
         let hintTimeout = null;
         let html5QrcodeScanner = null;
@@ -904,7 +903,7 @@
             }
         });
 
-        // --- STREAMING_CHUNK: Conectando con bases de datos Excel e historial de movimientos... ---
+        // --- STREAMING_CHUNK: Conectando con bases de datos Excel y procesando Movimientos... ---
         async function loadDB(isManualRefresh = false) {
             const statusEl = document.getElementById('dbStatus');
             const syncIcon = document.getElementById('syncIcon');
@@ -1062,7 +1061,7 @@
             }
         }
 
-        // --- DASHBOARD Y MAPA DE CALOR (V6.65: FILTRO MENSUAL DINÁMICO) ---
+        // --- STREAMING_CHUNK: Procesando y renderizando Dashboard Analítico... ---
         function populateDashboardMonths() {
             const selector = document.getElementById('dashMonthSelector');
             if(!selector) return;
@@ -1276,7 +1275,7 @@
             }
         }
 
-        // --- MANEJO DE VISTAS Y AUTENTICACIÓN ---
+        // --- STREAMING_CHUNK: Eventos de Interfaz y Navegación de Vistas... ---
         function intentarAccesoProtegido(vista) {
             targetAfterAuth = vista;
             if(inventarioDesbloqueado) { 
@@ -1336,7 +1335,7 @@
             else { panel.classList.add('settings-collapsed'); btn.classList.remove('bg-orange-200'); }
         }
 
-        // --- STREAMING_CHUNK: Implementando sistema de búsquedas manuales y visor de estanterías... ---
+        // --- STREAMING_CHUNK: Implementando lógica del Visor y Modal de Ficha Técnica... ---
         function abrirModalFicha() {
             if(!window.currentProd || !window.currentProd.FICHA) return;
             const modal = document.getElementById('modalFichaTecnica'); const iframe = document.getElementById('iframeFicha');
@@ -1457,6 +1456,7 @@
             }
         });
 
+        // --- STREAMING_CHUNK: Creando autocompletado en el generador de etiquetas... ---
         if(els.dbSearch) {
             els.dbSearch.addEventListener('input', (e) => {
                 const val = e.target.value.toLowerCase();
@@ -1485,6 +1485,7 @@
             });
         }
 
+        // --- STREAMING_CHUNK: Procesando fotografías de evidencias y validación de Mermas... ---
         function procesarFotoMerma(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -1576,12 +1577,13 @@
         }
 
         function finalizarMermas() {
-            if(listaMermas.length === 0) { Toast("No hay mermas para borrar."); return; }
+            if(listaMermas.length === 0) { Toast("No hay mermas para borrar.", "error"); return; }
             showConfirm('Vaciar Mermas', '¿Seguro que deseas borrar toda la lista de mermas de este dispositivo? ¡Asegúrate de exportar a Excel primero!', () => {
                 listaMermas = []; saveMermasState(); actualizarUIMermas();
             });
         }
 
+        // --- STREAMING_CHUNK: Gestión de Auditorías de Inventario Físico... ---
         function abrirModalInicioInventario() {
             document.getElementById('invInputNombre').value = ''; document.getElementById('invInputRut').value = ''; document.getElementById('invInputPeriodo').value = '';
             const modal = document.getElementById('modalInicioInventario'); modal.classList.remove('hidden'); modal.classList.add('flex');
@@ -1717,27 +1719,11 @@
             saveInventarioState(); cerrarConteoModal(); renderFullInventoryList(document.getElementById('invFilterInput').value);
         }
 
-        function abrirModalLogs() { 
-            renderLogs(); 
-            const m = document.getElementById('modalLogs'); 
-            if(m){ m.classList.remove('hidden'); m.classList.add('flex');} 
-        }
+        function abrirModalLogs() { renderLogs(); document.getElementById('modalLogs').classList.remove('hidden'); document.getElementById('modalLogs').classList.add('flex'); }
+        function cerrarModalLogs() { document.getElementById('modalLogs').classList.add('hidden'); document.getElementById('modalLogs').classList.remove('flex'); }
+        function renderLogs() { const container = document.getElementById('logsContainer'); if(!container) return; if(inventarioLogs.length === 0) { container.innerHTML = '<p class="text-gray-400 text-center py-4">No hay actividad.</p>'; return; } container.innerHTML = inventarioLogs.map(l => `<div class="border-b border-gray-50 pb-1 mb-1">${l}</div>`).join(''); }
 
-        function cerrarModalLogs() { 
-            const m = document.getElementById('modalLogs'); 
-            if(m){ m.classList.add('hidden'); m.classList.remove('flex');} 
-        }
-
-        function renderLogs() { 
-            const container = document.getElementById('logsContainer'); 
-            if(!container) return; 
-            if(inventarioLogs.length === 0) { 
-                container.innerHTML = '<p class="text-gray-400 text-center py-4">No hay actividad.</p>'; 
-                return; 
-            } 
-            container.innerHTML = inventarioLogs.map(l => `<div class="border-b border-gray-50 pb-1 mb-1">${l}</div>`).join(''); 
-        }
-
+        // --- STREAMING_CHUNK: Generando exportaciones XLSX nativas... ---
         async function procesarDescargaOCompartir(datosExcel, nombreArchivo, nombreHoja, meta = null) {
             if(datosExcel.length === 0) { Toast("No hay datos para exportar.", "error"); return; }
             const workbook = XLSX.utils.book_new();
@@ -1792,11 +1778,12 @@
                         showConfirm('¿Limpiar Datos Locales?', '✅ Reporte de Inventario exportado exitosamente.\n\n¿Deseas borrar los datos del inventario de este dispositivo para dejar limpio el próximo mes?', () => {
                             listaInventarioFisico = []; inventarioLogs = []; inventarioMetadata = null; saveInventarioState(); actualizarUIEstadoInventario();
                         });
-                    } else { inventarioMetadata.fechaTermino = null; saveInventarioState(); Toast("Exportación cancelada."); }
+                    } else { inventarioMetadata.fechaTermino = null; saveInventarioState(); Toast("Exportación cancelada.", "error"); }
                 }, 300);
             });
         }
 
+        // --- STREAMING_CHUNK: Módulo final de Escaneo y Configuración de Etiquetas... ---
         function openScanner(target) {
             scannerTargetView = target; 
             const modal = document.getElementById('modalScanner'); modal.classList.remove('hidden'); modal.classList.add('flex');
@@ -1858,8 +1845,6 @@
             const hasLogoInQR = els.checkLogoInQR ? els.checkLogoInQR.checked : false;
             const hasLogoGrayscale = els.checkLogoGrayscale ? els.checkLogoGrayscale.checked : false;
             const showDrawer = els.checkShowDrawer ? els.checkShowDrawer.checked : true;
-            
-            // NUEVOS VALORES INDIVIDUALES
             const showMin = els.checkShowMin ? els.checkShowMin.checked : true;
             const showMax = els.checkShowMax ? els.checkShowMax.checked : true;
             
@@ -1884,79 +1869,62 @@
                         const card = document.createElement('div'); card.className = 'label-card';
                         
                         let cardContent = '';
-                        const logoSrc = hasLogoGrayscale ? 'LOGO%20NEGRO.jpg' : 'logo.png';
-                        const logoHTML = hasLogoInQR ? `<div class="qr-logo-overlay"><img src="${logoSrc}" class="w-full h-full object-contain" onerror="console.warn('Fallo imagen: ' + this.src); this.style.display='none'"></div>` : '';
                         
-                        // LÓGICA DINÁMICA PARA MIN Y MAX
+                        // CORRECCIÓN EXACTA DE RUTAS BASADA EN GITHUB
+                        // Uso explícito de la codificación URI para el espacio en "LOGO NEGRO.jpg"
+                        const logoSrc = hasLogoGrayscale ? encodeURI('LOGO NEGRO.jpg') : 'logo.png';
+                        
+                        // LOGO DEL QR
+                        const logoHTML = hasLogoInQR ? `<div class="qr-logo-overlay" style="background-image: url('${logoSrc}'); background-size: contain; background-repeat: no-repeat; background-position: center; background-color: white;"></div>` : '';
+                        
+                        // LOGICA MIN MAX INFERIOR
                         let minMaxHTML = '';
-                        let headerHeightClass = 'h-[60%]'; // Altura por defecto si hay sección MIN/MAX
+                        let headerHeightClass = 'h-[60%]'; 
 
-                        if (showMin && showMax) {
-                            // Mostrar AMBOS (Dividido 50% y 50%)
+                        if (showMin || showMax) {
+                            let minHTML = showMin ? `
+                                <div class="${showMax ? 'w-1/2 border-r-[3px] border-r-current-style' : 'w-full'} flex flex-col min_max_border_style">
+                                    <div class="text-[10px] lg:text-xs font-black text-center border-b-[3px] min_max_header_style">MIN</div>
+                                    <div class="flex-1 flex items-center justify-center font-black text-3xl text-gray-900 min_max_bg_style">${item.min}</div>
+                                </div>` : '';
+                                
+                            let maxHTML = showMax ? `
+                                <div class="${showMin ? 'w-1/2' : 'w-full'} flex flex-col">
+                                    <div class="text-[10px] lg:text-xs font-black text-center border-b-[3px] min_max_header_style">MAX</div>
+                                    <div class="flex-1 flex items-center justify-center font-black text-3xl text-gray-900 min_max_bg_style_alt">${item.max}</div>
+                                </div>` : '';
+
+                            // LOGO INFERIOR IZQUIERDO: Se inyecta siempre si se activa MIN o MAX. 
+                            // Uso background-image en lugar de img para evitar fallos de renderizado de html2pdf
                             minMaxHTML = `
                                 <div class="h-[40%] flex w-full">
-                                    <div class="w-[33.333%] border-r-[3px] border-transparent flex items-center justify-center p-2 relative shrink-0">
-                                        <!-- Espacio vacío debajo del consumo -->
+                                    <div class="w-[33.333%] flex items-center justify-center p-2 relative shrink-0">
+                                        <div class="w-full h-full filter-logo" style="background-image: url('logo.png'); background-size: contain; background-repeat: no-repeat; background-position: center;"></div>
                                     </div>
-                                    <div class="w-[66.666%] flex border-l-[3px]">
-                                        <div class="w-1/2 border-r-[3px] flex flex-col min_max_border_style">
-                                            <div class="text-[10px] lg:text-xs font-black text-center border-b-[3px] min_max_header_style">MIN</div>
-                                            <div class="flex-1 flex items-center justify-center font-black text-3xl text-gray-900 min_max_bg_style">${item.min}</div>
-                                        </div>
-                                        <div class="w-1/2 flex flex-col">
-                                            <div class="text-[10px] lg:text-xs font-black text-center border-b-[3px] min_max_header_style">MAX</div>
-                                            <div class="flex-1 flex items-center justify-center font-black text-3xl text-gray-900 min_max_bg_style_alt">${item.max}</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            `;
-                        } else if (showMin && !showMax) {
-                            // Mostrar SOLO MIN (Ocupa el 100%)
-                            minMaxHTML = `
-                                <div class="h-[40%] flex w-full">
-                                    <div class="w-[33.333%] border-r-[3px] border-transparent flex items-center justify-center p-2 relative shrink-0"></div>
-                                    <div class="w-[66.666%] flex border-l-[3px]">
-                                        <div class="w-full flex flex-col min_max_border_style">
-                                            <div class="text-[10px] lg:text-xs font-black text-center border-b-[3px] min_max_header_style">MIN</div>
-                                            <div class="flex-1 flex items-center justify-center font-black text-3xl text-gray-900 min_max_bg_style">${item.min}</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            `;
-                        } else if (!showMin && showMax) {
-                            // Mostrar SOLO MAX (Ocupa el 100%)
-                            minMaxHTML = `
-                                <div class="h-[40%] flex w-full">
-                                    <div class="w-[33.333%] border-r-[3px] border-transparent flex items-center justify-center p-2 relative shrink-0"></div>
-                                    <div class="w-[66.666%] flex border-l-[3px]">
-                                        <div class="w-full flex flex-col min_max_border_style">
-                                            <div class="text-[10px] lg:text-xs font-black text-center border-b-[3px] min_max_header_style">MAX</div>
-                                            <div class="flex-1 flex items-center justify-center font-black text-3xl text-gray-900 min_max_bg_style_alt">${item.max}</div>
-                                        </div>
+                                    <div class="w-[66.666%] flex border-l-[3px] border-l-current-style">
+                                        ${minHTML}
+                                        ${maxHTML}
                                     </div>
                                 </div>
                             `;
                         } else {
-                            // NO MOSTRAR NINGUNO -> El header ocupa el 100% de la altura
                             minMaxHTML = '';
                             headerHeightClass = 'h-full';
                         }
-
-
+                        
                         if (item.estilo === '5s_orange') {
-                            // Reemplazos de estilos específicos para Diseño 2
                             let customMinMaxHTML = minMaxHTML
                                 .replace(/min_max_border_style/g, 'border-[#F26522]')
                                 .replace(/min_max_header_style/g, 'border-[#F26522] text-[#F26522] bg-orange-50')
                                 .replace(/min_max_bg_style_alt/g, '')
                                 .replace(/min_max_bg_style/g, '')
-                                .replace(/border-l-\[3px\]/g, 'border-l-[3px] border-[#F26522]');
-                            
+                                .replace(/border-l-current-style/g, 'border-[#F26522]')
+                                .replace(/border-r-current-style/g, 'border-[#F26522]')
+                                .replace(/filter-logo/g, 'grayscale opacity-80');
+                                
                             cardContent = `
                                 <div class="w-full h-full border-[3px] border-[#F26522] flex bg-white box-border relative">
                                     <div class="${showDrawer || hasQR ? 'w-[75%]' : 'w-full'} flex flex-col ${showDrawer || hasQR ? 'border-r-[3px] border-[#F26522]' : ''}">
-                                        
-                                        <!-- SECCION SUPERIOR (Nombre y Consumo) -->
                                         <div class="${headerHeightClass} flex ${minMaxHTML !== '' ? 'border-b-[3px] border-[#F26522]' : ''}">
                                             <div class="w-[33.333%] border-r-[3px] border-[#F26522] flex flex-col">
                                                 <div class="text-[8px] sm:text-[10px] lg:text-xs font-black text-center border-b-[3px] border-[#F26522] p-1 uppercase text-[#F26522] leading-none bg-orange-50">Consumo<br>Semanal</div>
@@ -1969,10 +1937,7 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        
-                                        <!-- SECCION INFERIOR (MIN/MAX) -->
                                         ${customMinMaxHTML}
-                                        
                                     </div>
                                     ${(showDrawer || hasQR) ? `
                                     <div class="w-[25%] flex flex-col bg-white">
@@ -1995,18 +1960,18 @@
                                 </div>
                             `;
                         } else if (item.estilo === '5s_solid_white') {
-                             // Reemplazos de estilos específicos para Diseño 1
                             let customMinMaxHTML = minMaxHTML
                                 .replace(/min_max_border_style/g, 'border-[#F26522]')
                                 .replace(/min_max_header_style/g, 'border-[#F26522] text-white bg-[#F26522]')
                                 .replace(/min_max_bg_style_alt/g, '')
                                 .replace(/min_max_bg_style/g, '')
-                                .replace(/border-l-\[3px\]/g, 'border-l-[3px] border-[#F26522]');
+                                .replace(/border-l-current-style/g, 'border-[#F26522]')
+                                .replace(/border-r-current-style/g, 'border-[#F26522]')
+                                .replace(/filter-logo/g, '');
                                 
                             cardContent = `
                                 <div class="w-full h-full border-[3px] border-[#F26522] flex bg-white box-border relative">
                                     <div class="${showDrawer || hasQR ? 'w-[75%]' : 'w-full'} flex flex-col ${showDrawer || hasQR ? 'border-r-[3px] border-[#F26522]' : ''}">
-                                        
                                         <div class="${headerHeightClass} flex ${minMaxHTML !== '' ? 'border-b-[3px] border-[#F26522]' : ''}">
                                             <div class="w-[33.333%] border-r-[3px] border-[#F26522] flex flex-col">
                                                 <div class="text-[8px] sm:text-[10px] lg:text-xs font-black text-center border-b-[3px] border-[#F26522] p-1 uppercase text-white bg-[#F26522] leading-none">Consumo<br>Semanal</div>
@@ -2019,9 +1984,7 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        
                                         ${customMinMaxHTML}
-                                        
                                     </div>
                                     ${(showDrawer || hasQR) ? `
                                     <div class="w-[25%] flex flex-col bg-white">
@@ -2044,18 +2007,18 @@
                                 </div>
                             `;
                         } else if (item.estilo === '5s_dark') {
-                            // Reemplazos de estilos específicos para Diseño 3
                             let customMinMaxHTML = minMaxHTML
                                 .replace(/min_max_border_style/g, 'border-gray-900')
                                 .replace(/min_max_header_style/g, 'border-gray-900 text-white bg-gray-900')
                                 .replace(/min_max_bg_style_alt/g, 'bg-gray-100')
                                 .replace(/min_max_bg_style/g, 'bg-gray-50')
-                                .replace(/border-l-\[3px\]/g, 'border-l-[4px] border-gray-900'); // diseño 3 usa bordes más gruesos
+                                .replace(/border-l-current-style/g, 'border-gray-900')
+                                .replace(/border-r-current-style/g, 'border-gray-900')
+                                .replace(/filter-logo/g, 'grayscale opacity-80');
                                 
                             cardContent = `
                                 <div class="w-full h-full border-[4px] border-gray-900 flex bg-white box-border relative">
                                     <div class="${showDrawer || hasQR ? 'w-[75%]' : 'w-full'} flex flex-col ${showDrawer || hasQR ? 'border-r-[4px] border-gray-900' : ''}">
-                                        
                                         <div class="${headerHeightClass} flex ${minMaxHTML !== '' ? 'border-b-[4px] border-gray-900' : ''}">
                                             <div class="w-[33.333%] border-r-[4px] border-gray-900 flex flex-col">
                                                 <div class="text-[8px] sm:text-[10px] lg:text-xs font-black text-center border-b-[4px] border-gray-900 p-1 uppercase text-white bg-gray-900 leading-none">Consumo<br>Semanal</div>
@@ -2068,9 +2031,7 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        
                                         ${customMinMaxHTML}
-                                        
                                     </div>
                                     ${(showDrawer || hasQR) ? `
                                     <div class="w-[25%] flex flex-col bg-white">
@@ -2107,12 +2068,10 @@
                                         <div class="font-bold text-gray-400 uppercase tracking-widest mt-auto" style="font-size: ${sFamily}">${item.familia || 'EPP'}</div>
                                     </div>
                                     ${hasQR ? `
-                                    <div class="w-[30%] border-l border-gray-100 flex-shrink-0 p-2 sm:p-3">
-                                        <div class="qr-container">
-                                            <div class="qr-code-wrapper">
-                                                <div id="${qrId}"></div>
-                                                ${logoHTML}
-                                            </div>
+                                    <div class="w-[30%] border-l border-gray-100 flex items-center justify-center p-2 sm:p-3 flex-shrink-0 relative overflow-hidden">
+                                        <div class="relative max-w-full max-h-full aspect-square flex items-center justify-center">
+                                            <div id="${qrId}" class="w-full h-full mix-blend-multiply flex items-center justify-center"></div>
+                                            ${logoHTML}
                                         </div>
                                     </div>` : ''}
                                 </div>
