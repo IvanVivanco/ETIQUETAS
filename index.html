@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Deteco DTX v6.61</title>
+    <title>Deteco DTX v6.65</title>
 
     <!-- PWA / WEB APP NATIVA META TAGS -->
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -85,11 +85,7 @@
         .qr-code-wrapper { position: relative; height: 100%; width: 100%; max-width: 100%; aspect-ratio: 1 / 1; display: block; }
         
         [id^="qr-code-"] { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; position: relative; }
-        
-        /* Ocultar el canvas inactivo generado por qrcode.js */
         [id^="qr-code-"] canvas { display: none !important; }
-        
-        /* Mostrar y escalar la imagen real generada por qrcode.js */
         [id^="qr-code-"] img { display: block !important; width: 100% !important; height: 100% !important; max-width: 100% !important; max-height: 100% !important; object-fit: contain; }
 
         /* ESTILO ESTRICTO PARA EL LOGO CENTRAL DEL QR */
@@ -127,6 +123,9 @@
         .map-grid-bg { background-color: #f8fafc; background-image: radial-gradient(#cbd5e1 1.5px, transparent 1.5px); background-size: 16px 16px; }
         .rk-block { background-color: #e2e8f0; border-radius: 4px; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); width: 100%; height: 100%; }
         .rk-active { background-color: #F26522 !important; transform: scale(1.15); box-shadow: 0 0 0 4px rgba(242,101,34,0.2), 0 4px 10px rgba(0,0,0,0.15); z-index: 20; position: relative; border: 1px solid #c2410c; }
+        .rk-heatmap-low { background-color: #fca5a5 !important; border-color: #ef4444; }
+        .rk-heatmap-med { background-color: #ef4444 !important; border-color: #b91c1c; }
+        .rk-heatmap-high { background-color: #991b1b !important; border-color: #7f1d1d; transform: scale(1.1); z-index: 10; }
     </style>
 </head>
 <body>
@@ -135,7 +134,7 @@
     <div id="splash-screen" class="fixed inset-0 bg-[#F5F5F7] z-[9999] flex flex-col items-center justify-center transition-opacity duration-700 ease-in-out">
         <div class="flex flex-col items-center animate-pulse">
             <img src="logo.png" class="w-24 sm:w-32 h-auto mb-4 object-contain" onerror="this.style.display='none'">
-            <h1 class="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight">Deteco <span class="text-orange-600">DTX</span> <span class="text-2xl ml-2 text-gray-400">v6.61</span></h1>
+            <h1 class="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight">Deteco <span class="text-orange-600">DTX</span> <span class="text-2xl ml-2 text-gray-400">v6.65</span></h1>
             <div class="text-xs font-bold text-gray-400 tracking-widest mt-3 uppercase">Cargando Sistema...</div>
         </div>
         <div class="absolute bottom-8 text-center px-4 w-full">
@@ -154,11 +153,14 @@
             <div class="flex bg-gray-200/60 p-1 rounded-lg overflow-x-auto hide-scroll gap-1">
                 <button onclick="setView('generator')" id="btn-gen" class="ios-btn btn-ghost shrink-0">Etiquetas 5S</button>
                 <button onclick="setView('visor')" id="btn-vis" class="ios-btn btn-active-tab shrink-0">Visor</button>
-                <button onclick="intentarVerInventario()" id="btn-inv" class="ios-btn btn-ghost shrink-0 text-gray-600">
+                <button onclick="intentarAccesoProtegido('inventario')" id="btn-inv" class="ios-btn btn-ghost shrink-0 text-gray-600">
                     <i class="fa-solid fa-clipboard-check mr-1"></i> Inventario
                 </button>
                 <button onclick="setView('mermas')" id="btn-mermas" class="ios-btn btn-ghost shrink-0 text-red-600 relative">
                     <i class="fa-solid fa-triangle-exclamation mr-1"></i> Mermas <span id="badge-mermas" class="hidden absolute -top-2 -right-2 bg-red-600 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-white shadow-sm">0</span>
+                </button>
+                <button onclick="intentarAccesoProtegido('dashboard')" id="btn-dash" class="ios-btn btn-ghost shrink-0 text-indigo-600 relative">
+                    <i class="fa-solid fa-chart-pie mr-1"></i> Dashboard
                 </button>
             </div>
         </div>
@@ -373,15 +375,15 @@
                         <div class="grid grid-cols-3 gap-2">
                             <div>
                                 <label class="text-[8px] font-black text-gray-500 uppercase text-center block w-full mb-1">Consumo Semanal</label>
-                                <input type="number" id="consumoInput" value="24" class="w-full bg-white border border-gray-200 rounded-lg px-1 py-2 text-sm font-black text-gray-800 text-center outline-none focus:border-orange-500">
+                                <input type="text" id="consumoInput" placeholder="Vacio" class="w-full bg-white border border-gray-200 rounded-lg px-1 py-2 text-sm font-black text-gray-800 text-center outline-none focus:border-orange-500">
                             </div>
                             <div>
                                 <label class="text-[8px] font-black text-gray-500 uppercase text-center block w-full mb-1">Stock MIN</label>
-                                <input type="number" id="minInput" value="48" class="w-full bg-white border border-gray-200 rounded-lg px-1 py-2 text-sm font-black text-gray-800 text-center outline-none focus:border-orange-500">
+                                <input type="text" id="minInput" placeholder="Vacio" class="w-full bg-white border border-gray-200 rounded-lg px-1 py-2 text-sm font-black text-gray-800 text-center outline-none focus:border-orange-500">
                             </div>
                             <div>
                                 <label class="text-[8px] font-black text-gray-500 uppercase text-center block w-full mb-1">Stock MAX</label>
-                                <input type="number" id="maxInput" value="108" class="w-full bg-white border border-gray-200 rounded-lg px-1 py-2 text-sm font-black text-gray-800 text-center outline-none focus:border-orange-500">
+                                <input type="text" id="maxInput" placeholder="Vacio" class="w-full bg-white border border-gray-200 rounded-lg px-1 py-2 text-sm font-black text-gray-800 text-center outline-none focus:border-orange-500">
                             </div>
                         </div>
                     </div>
@@ -430,6 +432,14 @@
                         <div class="flex items-center gap-2 mt-2">
                             <input type="checkbox" id="checkShowDrawer" class="w-4 h-4 accent-orange-500" checked>
                             <label for="checkShowDrawer" class="text-[10px] font-bold text-[#F26522] uppercase tracking-wider cursor-pointer">Mostrar Sección "Nº Cajón"</label>
+                        </div>
+                        <div class="flex items-center gap-2 mt-2">
+                            <input type="checkbox" id="checkShowMin" class="w-4 h-4 accent-orange-500" checked>
+                            <label for="checkShowMin" class="text-[10px] font-bold text-[#F26522] uppercase tracking-wider cursor-pointer">Mostrar Valor MIN</label>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <input type="checkbox" id="checkShowMax" class="w-4 h-4 accent-orange-500" checked>
+                            <label for="checkShowMax" class="text-[10px] font-bold text-[#F26522] uppercase tracking-wider cursor-pointer">Mostrar Valor MAX</label>
                         </div>
                     </div>
                 </div>
@@ -538,16 +548,8 @@
                                     <div class="flex items-center justify-center mb-2">
                                         <h4 class="text-[10px] font-black text-gray-400 uppercase tracking-widest"><i class="fa-solid fa-map-location-dot mr-1"></i> Layout de Bodega</h4>
                                     </div>
-                                    <div class="relative w-full max-w-[340px] aspect-[4/5] mx-auto map-grid-bg rounded-2xl border border-gray-200 shadow-inner overflow-hidden mt-2 mb-6">
-                                        <div id="lbl-pasillo-a" class="absolute left-[20%] top-[20%] bg-white/90 backdrop-blur px-3 py-1 rounded-full font-black text-[12px] text-gray-400 border border-gray-100 shadow-sm transition-all duration-300 z-10">PASILLO A</div>
-                                        <div id="lbl-pasillo-b" class="absolute right-[14%] top-[50%] -translate-y-1/2 rotate-90 bg-white/90 backdrop-blur px-3 py-1 rounded-full font-black text-[12px] text-gray-400 border border-gray-100 shadow-sm transition-all duration-300 z-10 origin-center">PASILLO B</div>
-                                        <div id="lbl-pasillo-c" class="absolute left-[20%] bottom-[20%] bg-white/90 backdrop-blur px-3 py-1 rounded-full font-black text-[12px] text-gray-400 border border-gray-100 shadow-sm transition-all duration-300 z-10">PASILLO C</div>
-
-                                        <div class="absolute top-[4%] left-[4%] w-[80%] h-[12%] grid grid-cols-3 gap-2"><div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-A9" class="rk-block"></div><div id="rk-A10" class="rk-block"></div><div id="rk-A11" class="rk-block"></div><div id="rk-A12" class="rk-block"></div></div><div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-A13" class="rk-block"></div><div id="rk-A14" class="rk-block"></div><div id="rk-A15" class="rk-block"></div><div id="rk-A16" class="rk-block"></div></div><div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-A17" class="rk-block"></div><div id="rk-A18" class="rk-block"></div><div id="rk-A19" class="rk-block"></div><div id="rk-A20" class="rk-block"></div></div></div>
-                                        <div class="absolute top-[32%] left-[4%] w-[58%] h-[12%] grid grid-cols-2 gap-2"><div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-A1" class="rk-block"></div><div id="rk-A2" class="rk-block"></div><div id="rk-A3" class="rk-block"></div><div id="rk-A4" class="rk-block"></div></div><div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-A5" class="rk-block"></div><div id="rk-A6" class="rk-block"></div><div id="rk-A7" class="rk-block"></div><div id="rk-A8" class="rk-block"></div></div></div>
-                                        <div class="absolute bottom-[32%] left-[4%] w-[58%] h-[12%] grid grid-cols-2 gap-2"><div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-C13" class="rk-block"></div><div id="rk-C14" class="rk-block"></div><div id="rk-C15" class="rk-block"></div><div id="rk-C16" class="rk-block"></div></div><div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-C17" class="rk-block"></div><div id="rk-C18" class="rk-block"></div><div id="rk-C19" class="rk-block"></div><div id="rk-C20" class="rk-block"></div></div></div>
-                                        <div class="absolute bottom-[4%] left-[4%] w-[80%] h-[12%] grid grid-cols-3 gap-2"><div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-C1" class="rk-block"></div><div id="rk-C2" class="rk-block"></div><div id="rk-C3" class="rk-block"></div><div id="rk-C4" class="rk-block"></div></div><div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-C5" class="rk-block"></div><div id="rk-C6" class="rk-block"></div><div id="rk-C7" class="rk-block"></div><div id="rk-C8" class="rk-block"></div></div><div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-C9" class="rk-block"></div><div id="rk-C10" class="rk-block"></div><div id="rk-C11" class="rk-block"></div><div id="rk-C12" class="rk-block"></div></div></div>
-                                        <div class="absolute top-[4%] right-[4%] w-[12%] h-[92%] grid grid-rows-3 gap-2"><div class="flex flex-row gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-B4" class="rk-block"></div><div id="rk-B3" class="rk-block"></div><div id="rk-B2" class="rk-block"></div><div id="rk-B1" class="rk-block"></div></div><div class="flex flex-row gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-B8" class="rk-block"></div><div id="rk-B7" class="rk-block"></div><div id="rk-B6" class="rk-block"></div><div id="rk-B5" class="rk-block"></div></div><div class="flex flex-row gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div id="rk-B12" class="rk-block"></div><div id="rk-B11" class="rk-block"></div><div id="rk-B10" class="rk-block"></div><div id="rk-B9" class="rk-block"></div></div></div>
+                                    <div id="mapHTMLContainerVisor" class="relative w-full max-w-[340px] aspect-[4/5] mx-auto map-grid-bg rounded-2xl border border-gray-200 shadow-inner overflow-hidden mt-2 mb-6">
+                                        <!-- Renderizado vía JS -->
                                     </div>
 
                                     <div class="w-full flex justify-center">
@@ -575,7 +577,7 @@
                         <div id="noDataArea" class="hidden mt-4 mb-4 text-gray-400 text-sm w-full text-center">No hay ficha técnica disponible.</div>
                         <div class="border-t border-gray-100 pt-6 mt-6 w-full text-center pb-4">
                             <p class="text-sm text-gray-400 font-bold uppercase tracking-widest">Desarrollado para Deteco IC SA</p>
-                            <p class="text-2xl font-black text-orange-500 mt-1">v6.61</p>
+                            <p class="text-2xl font-black text-orange-500 mt-1">v6.65</p>
                         </div>
                     </div>
 
@@ -616,9 +618,10 @@
                             <button onclick="openScanner('inventario')" class="bg-gray-900 text-white hover:bg-black rounded-xl px-5 flex items-center justify-center shadow-md active:scale-95 transition-all"><i class="fa-solid fa-qrcode text-xl"></i></button>
                         </div>
 
-                        <div class="flex items-center justify-between mb-2 px-1 shrink-0 mt-1">
-                            <button onclick="abrirModalNuevoProducto()" class="bg-white text-green-600 border border-green-200 hover:bg-green-50 px-3 py-1.5 rounded-xl font-bold text-[10px] shadow-sm flex items-center gap-1.5 transition-colors uppercase tracking-wider"><i class="fa-solid fa-plus"></i> Agregar Manual</button>
-                            <label class="flex items-center gap-2 cursor-pointer bg-white px-3 py-1.5 rounded-xl border border-gray-200 shadow-sm hover:bg-gray-50 transition-colors">
+                        <div class="flex items-center justify-between mb-2 px-1 shrink-0 mt-1 overflow-x-auto hide-scroll gap-2">
+                            <button onclick="abrirModalNuevoProducto()" class="bg-white text-green-600 border border-green-200 hover:bg-green-50 px-3 py-1.5 rounded-xl font-bold text-[10px] shadow-sm flex items-center gap-1.5 transition-colors uppercase tracking-wider whitespace-nowrap"><i class="fa-solid fa-plus"></i> Agregar Manual</button>
+                            <button onclick="abrirModalLogs()" class="bg-white text-orange-600 border border-orange-200 hover:bg-orange-50 px-3 py-1.5 rounded-xl font-bold text-[10px] shadow-sm flex items-center gap-1.5 transition-colors uppercase tracking-wider whitespace-nowrap"><i class="fa-solid fa-clock-rotate-left"></i> Actividad</button>
+                            <label class="flex items-center gap-2 cursor-pointer bg-white px-3 py-1.5 rounded-xl border border-gray-200 shadow-sm hover:bg-gray-50 transition-colors whitespace-nowrap">
                                 <input type="checkbox" id="checkOcultarContados" class="w-4 h-4 accent-orange-500" onchange="toggleOcultarContados()">
                                 <span class="text-[10px] font-bold text-gray-600 uppercase tracking-wider">Ocultar contados</span>
                             </label>
@@ -657,6 +660,89 @@
                 </div>
             </div>
 
+            <!-- VISTA 5: DASHBOARD GERENCIAL -->
+            <div class="preview-panel view-section" id="view-dashboard">
+                <div class="w-full max-w-4xl mx-auto px-2 relative h-full flex flex-col">
+                    <div class="text-center mb-6 shrink-0 relative w-full pt-2">
+                        <h2 class="text-3xl font-black text-indigo-600 mb-2">Dashboard Gerencial</h2>
+                        <p class="text-gray-500 mb-4">Análisis y Estado General de Bodega</p>
+                        
+                        <!-- NUEVO: Selector de Mes -->
+                        <div class="max-w-xs mx-auto">
+                            <select id="dashMonthSelector" onchange="renderDashboard()" class="w-full bg-white border-2 border-indigo-200 rounded-xl px-4 py-3 text-sm font-bold text-indigo-900 outline-none focus:border-indigo-500 shadow-sm cursor-pointer">
+                                <option value="ALL">Todo el Historial</option>
+                                <!-- Opciones generadas por JS -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                        <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center">
+                            <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center text-lg mb-2"><i class="fa-solid fa-boxes-stacked"></i></div>
+                            <div class="text-2xl font-black text-gray-900" id="kpi-skus">0</div>
+                            <div class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1">SKUs Activos</div>
+                        </div>
+                        <div class="bg-white rounded-2xl p-4 shadow-sm border border-red-100 flex flex-col items-center justify-center text-center">
+                            <div class="w-10 h-10 rounded-full bg-red-50 text-red-500 flex items-center justify-center text-lg mb-2"><i class="fa-solid fa-battery-empty"></i></div>
+                            <div class="text-2xl font-black text-red-600" id="kpi-quiebres">0</div>
+                            <div class="text-[9px] font-bold text-red-400 uppercase tracking-widest mt-1">Quiebres Stock</div>
+                        </div>
+                        <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center">
+                            <div class="w-10 h-10 rounded-full bg-green-50 text-green-500 flex items-center justify-center text-lg mb-2"><i class="fa-solid fa-arrow-right-arrow-left"></i></div>
+                            <div class="text-2xl font-black text-gray-900" id="kpi-movimientos">0</div>
+                            <div class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1">Total Movimientos</div>
+                        </div>
+                        <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center">
+                            <div class="w-10 h-10 rounded-full bg-orange-50 text-orange-500 flex items-center justify-center text-lg mb-2"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                            <div class="text-2xl font-black text-gray-900" id="kpi-mermas">0</div>
+                            <div class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1">Mermas Mes</div>
+                        </div>
+                    </div>
+
+                    <!-- HEATMAP -->
+                    <div class="bg-white rounded-3xl border border-gray-200 shadow-lg overflow-hidden flex flex-col mb-8 w-full p-4 sm:p-6">
+                        <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
+                            <h3 class="font-black text-gray-800 uppercase tracking-wider text-sm"><i class="fa-solid fa-fire text-orange-500 mr-1"></i> Mapa de Calor</h3>
+                            <div class="flex gap-2 bg-gray-100 p-1 rounded-xl">
+                                <button onclick="renderDashboardMap('quiebres')" id="btn-dash-quiebres" class="text-[10px] font-bold px-3 py-2 rounded-lg bg-white shadow-sm text-red-600 transition-colors uppercase tracking-wider">Quiebres</button>
+                                <button onclick="renderDashboardMap('mermas')" id="btn-dash-mermas" class="text-[10px] font-bold px-3 py-2 rounded-lg text-gray-500 hover:text-gray-800 transition-colors uppercase tracking-wider">Mermas</button>
+                            </div>
+                        </div>
+                        <div class="flex-1 w-full bg-gray-50 rounded-2xl p-4 flex items-center justify-center border border-gray-100">
+                            <div id="mapHTMLContainerDash" class="relative w-full max-w-[340px] aspect-[4/5] mx-auto map-grid-bg rounded-2xl border border-gray-200 shadow-inner overflow-hidden">
+                                <!-- Renderizado vía JS -->
+                            </div>
+                        </div>
+                        <div class="flex justify-center gap-4 mt-4" id="heatmap-legend">
+                            <!-- Leyenda se inserta aquí -->
+                        </div>
+                    </div>
+
+                    <!-- TOP 5 Y FLUJO DETALLADO -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                        
+                        <div class="bg-white rounded-3xl border border-gray-200 shadow-lg overflow-hidden flex flex-col min-h-[300px]">
+                            <div class="bg-indigo-50 p-4 border-b border-indigo-100 shrink-0 w-full text-center">
+                                <span class="font-black text-indigo-700 uppercase tracking-wider text-sm"><i class="fa-solid fa-trophy mr-1 text-yellow-500"></i> Top 5 Mayor Movimiento</span>
+                            </div>
+                            <div class="flex-1 overflow-y-auto p-2 bg-white w-full" id="dash-top5-container">
+                                <!-- Top 5 -->
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-3xl border border-gray-200 shadow-lg overflow-hidden flex flex-col min-h-[300px] max-h-[500px]">
+                            <div class="bg-gray-50 p-4 border-b border-gray-200 flex justify-between items-center shrink-0 w-full">
+                                <span class="font-bold text-gray-700 uppercase tracking-wider text-sm"><i class="fa-solid fa-money-bill-transfer mr-2 text-green-500"></i> Entradas y Salidas</span>
+                            </div>
+                            <div class="flex-1 overflow-y-auto p-2 bg-white w-full" id="dash-flujos-container">
+                                <!-- Lista de Flujos -->
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -667,16 +753,20 @@
             event.preventDefault(); 
         });
 
-        const DROPBOX_EXCEL_URL = 'https://www.dropbox.com/scl/fi/d5wkezasn85r455wr5xgd/Bodega-y-Abastecimiento-de-obras-2025.xlsx?rlkey=wbmr5ln4j6gpzdxp6goj06lbw&st=bba062i3&dl=1'; 
+        // URL DE EXCEL ACTUALIZADA A 2026 (forzando raw download con dl=1 y dl.dropboxusercontent)
+        const DROPBOX_EXCEL_URL = 'https://dl.dropboxusercontent.com/scl/fi/w7jr5zcl1mlu6gotuir52/Bodega-y-Abastecimiento-de-obras-2026.xlsx?rlkey=bjrmq1u2yj9ho48e7dw3p3kbs&st=p3ctczej&dl=1'; 
         const GOOGLE_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSM3lTLNPOgrglxy22q_iVTguBWEsuuTVfpHQGXMkItgOXKa04h69EfRqQArlgVR7ZvUB-QfpMXjoGr/pub?output=csv';
 
         let dbProducts = [];
+        let dbMovimientos = []; // Nueva base de datos para movimientos
         let hasSeenGeneratorMenuHint = false;
         let hintTimeout = null;
         let html5QrcodeScanner = null;
         let scannerTargetView = 'visor'; 
         let colaImpresion = [];
         let currentMermaFotoBase64 = null; 
+        
+        let targetAfterAuth = 'inventario'; 
 
         const PIN_BODEGA = "1234"; 
         let inventarioDesbloqueado = false;
@@ -686,6 +776,24 @@
         let inventarioLogs = JSON.parse(localStorage.getItem('deteco_inv_logs')) || [];
         let invCurrentProd = null;
         let listaMermas = JSON.parse(localStorage.getItem('deteco_mermas')) || [];
+
+        // ESTRUCTURA DEL MAPA HTML REUTILIZABLE
+        const MAP_HTML_STRUCTURE = `
+            <div id="LBL-pasillo-a" class="absolute left-[20%] top-[20%] bg-white/90 backdrop-blur px-3 py-1 rounded-full font-black text-[12px] text-gray-400 border border-gray-100 shadow-sm transition-all duration-300 z-10">PASILLO A</div>
+            <div id="LBL-pasillo-b" class="absolute right-[14%] top-[50%] -translate-y-1/2 rotate-90 bg-white/90 backdrop-blur px-3 py-1 rounded-full font-black text-[12px] text-gray-400 border border-gray-100 shadow-sm transition-all duration-300 z-10 origin-center">PASILLO B</div>
+            <div id="LBL-pasillo-c" class="absolute left-[20%] bottom-[20%] bg-white/90 backdrop-blur px-3 py-1 rounded-full font-black text-[12px] text-gray-400 border border-gray-100 shadow-sm transition-all duration-300 z-10">PASILLO C</div>
+
+            <div class="absolute top-[4%] left-[4%] w-[80%] h-[12%] grid grid-cols-3 gap-2"><div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div data-rack="A9" class="rk-block"></div><div data-rack="A10" class="rk-block"></div><div data-rack="A11" class="rk-block"></div><div data-rack="A12" class="rk-block"></div></div><div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div data-rack="A13" class="rk-block"></div><div data-rack="A14" class="rk-block"></div><div data-rack="A15" class="rk-block"></div><div data-rack="A16" class="rk-block"></div></div><div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div data-rack="A17" class="rk-block"></div><div data-rack="A18" class="rk-block"></div><div data-rack="A19" class="rk-block"></div><div data-rack="A20" class="rk-block"></div></div></div>
+            <div class="absolute top-[32%] left-[4%] w-[58%] h-[12%] grid grid-cols-2 gap-2"><div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div data-rack="A1" class="rk-block"></div><div data-rack="A2" class="rk-block"></div><div data-rack="A3" class="rk-block"></div><div data-rack="A4" class="rk-block"></div></div><div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div data-rack="A5" class="rk-block"></div><div data-rack="A6" class="rk-block"></div><div data-rack="A7" class="rk-block"></div><div data-rack="A8" class="rk-block"></div></div></div>
+            <div class="absolute bottom-[32%] left-[4%] w-[58%] h-[12%] grid grid-cols-2 gap-2"><div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div data-rack="C13" class="rk-block"></div><div data-rack="C14" class="rk-block"></div><div data-rack="C15" class="rk-block"></div><div data-rack="C16" class="rk-block"></div></div><div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div data-rack="C17" class="rk-block"></div><div data-rack="C18" class="rk-block"></div><div data-rack="C19" class="rk-block"></div><div data-rack="C20" class="rk-block"></div></div></div>
+            <div class="absolute bottom-[4%] left-[4%] w-[80%] h-[12%] grid grid-cols-3 gap-2"><div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div data-rack="C1" class="rk-block"></div><div data-rack="C2" class="rk-block"></div><div data-rack="C3" class="rk-block"></div><div data-rack="C4" class="rk-block"></div></div><div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div data-rack="C5" class="rk-block"></div><div data-rack="C6" class="rk-block"></div><div data-rack="C7" class="rk-block"></div><div data-rack="C8" class="rk-block"></div></div><div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div data-rack="C9" class="rk-block"></div><div data-rack="C10" class="rk-block"></div><div data-rack="C11" class="rk-block"></div><div data-rack="C12" class="rk-block"></div></div></div>
+            <div class="absolute top-[4%] right-[4%] w-[12%] h-[92%] grid grid-rows-3 gap-2"><div class="flex flex-row gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div data-rack="B4" class="rk-block"></div><div data-rack="B3" class="rk-block"></div><div data-rack="B2" class="rk-block"></div><div data-rack="B1" class="rk-block"></div></div><div class="flex flex-row gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div data-rack="B8" class="rk-block"></div><div data-rack="B7" class="rk-block"></div><div data-rack="B6" class="rk-block"></div><div data-rack="B5" class="rk-block"></div></div><div class="flex flex-row gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div data-rack="B12" class="rk-block"></div><div data-rack="B11" class="rk-block"></div><div data-rack="B10" class="rk-block"></div><div data-rack="B9" class="rk-block"></div></div></div>
+        `;
+
+        function injectMaps() {
+            document.getElementById('mapHTMLContainerVisor').innerHTML = MAP_HTML_STRUCTURE;
+            document.getElementById('mapHTMLContainerDash').innerHTML = MAP_HTML_STRUCTURE;
+        }
 
         function saveInventarioState() {
             localStorage.setItem('deteco_inventario', JSON.stringify(listaInventarioFisico));
@@ -727,7 +835,9 @@
             get checkQR() { return document.getElementById('checkIncludeQR'); },
             get checkLogoInQR() { return document.getElementById('checkLogoInQR'); },
             get checkLogoGrayscale() { return document.getElementById('checkLogoGrayscale'); },
-            get checkShowDrawer() { return document.getElementById('checkShowDrawer'); }
+            get checkShowDrawer() { return document.getElementById('checkShowDrawer'); },
+            get checkShowMin() { return document.getElementById('checkShowMin'); },
+            get checkShowMax() { return document.getElementById('checkShowMax'); }
         };
 
         function Toast(msg, style='info') {
@@ -761,6 +871,7 @@
 
         window.addEventListener('load', async () => {
             try {
+                injectMaps(); 
                 setView('generator'); 
                 await loadDB();
                 
@@ -781,6 +892,8 @@
                 if(els.checkLogoInQR) els.checkLogoInQR.addEventListener('change', renderLabels);
                 if(els.checkLogoGrayscale) els.checkLogoGrayscale.addEventListener('change', renderLabels);
                 if(els.checkShowDrawer) els.checkShowDrawer.addEventListener('change', renderLabels);
+                if(els.checkShowMin) els.checkShowMin.addEventListener('change', renderLabels);
+                if(els.checkShowMax) els.checkShowMax.addEventListener('change', renderLabels);
 
                 const splash = document.getElementById('splash-screen');
                 setTimeout(() => { splash.style.opacity = '0'; setTimeout(() => { splash.style.display = 'none'; }, 700); }, 500); 
@@ -791,7 +904,7 @@
             }
         });
 
-        // --- STREAMING_CHUNK: Conectando con bases de datos Excel... ---
+        // --- STREAMING_CHUNK: Conectando con bases de datos Excel e historial de movimientos... ---
         async function loadDB(isManualRefresh = false) {
             const statusEl = document.getElementById('dbStatus');
             const syncIcon = document.getElementById('syncIcon');
@@ -805,6 +918,7 @@
                 if (DROPBOX_EXCEL_URL && DROPBOX_EXCEL_URL.length > 10) {
                     let res;
                     const urlsToTry = [
+                        DROPBOX_EXCEL_URL, // Se intenta la url directa preformateada
                         DROPBOX_EXCEL_URL.replace('www.dropbox.com', 'dl.dropboxusercontent.com'),
                         'https://corsproxy.io/?' + encodeURIComponent(DROPBOX_EXCEL_URL),
                         'https://api.allorigins.win/raw?url=' + encodeURIComponent(DROPBOX_EXCEL_URL)
@@ -816,6 +930,7 @@
                     const arrayBuffer = await res.arrayBuffer();
                     const workbook = XLSX.read(arrayBuffer, { type: 'buffer' });
                     
+                    // LECTURA DE STOCK
                     const targetSheetName = workbook.SheetNames.includes('STOCK') ? 'STOCK' : workbook.SheetNames[0];
                     const worksheet = workbook.Sheets[targetSheetName];
                     
@@ -838,11 +953,67 @@
                         }
                         return {
                             CODIGO: nRow['COD'] || nRow['CODIGO'] || '', NOMBRE: nRow['DESCRIPCION'] || nRow['NOMBRE'] || '',
-                            STOCK: nRow['STOCK ACTUAL'] || nRow['STOCK'] || '0', UNIDAD: nRow['UDM'] || nRow['UNIDAD'] || 'UND',
+                            STOCK: parseInt(nRow['STOCK ACTUAL']) || parseInt(nRow['STOCK']) || 0, UNIDAD: nRow['UDM'] || nRow['UNIDAD'] || 'UND',
                             CATEGORIA: nRow['FAMILIA'] || nRow['CATEGORIA'] || '', FICHA: nRow['FICHA'] || nRow['FICHA TECNICA'] || '',
-                            ORGANIZADOR: nRow['UBICACION'] || nRow['ORGANIZADOR'] || nRow['PASILLO'] || ''
+                            ORGANIZADOR: nRow['UBICACION'] || nRow['ORGANIZADOR'] || nRow['PASILLO'] || '',
+                            ENTRADAS: parseInt(nRow['ENTRADAS']) || parseInt(nRow['ENTRADAS ']) || 0,
+                            SALIDAS: parseInt(nRow['SALIDAS']) || parseInt(nRow['SALIDAS ']) || 0
                         };
                     }).filter(p => p.CODIGO);
+
+                    // LECTURA DE MOVIMIENTOS (NUEVO V6.65)
+                    dbMovimientos = [];
+                    
+                    // Procesar ENTRADAS
+                    if(workbook.SheetNames.includes('ENTRADA')) {
+                        const wsEntrada = workbook.Sheets['ENTRADA'];
+                        let rawEntradas = XLSX.utils.sheet_to_json(wsEntrada, { header: 1, defval: "" });
+                        let headIdx = 0;
+                        for(let i = 0; i < Math.min(15, rawEntradas.length); i++) {
+                            const rStr = rawEntradas[i].join('').toUpperCase();
+                            if(rStr.includes('MES') || rStr.includes('FECHA')) { headIdx = i; break; }
+                        }
+                        const jsonEntradas = XLSX.utils.sheet_to_json(wsEntrada, { range: headIdx, defval: "" });
+                        jsonEntradas.forEach(row => {
+                            let nRow = {};
+                            for (let key in row) { nRow[String(key).trim().toUpperCase()] = String(row[key]).trim(); }
+                            const mes = nRow['MES'] || nRow['FECHA'];
+                            const cod = nRow['COD'] || nRow['CODIGO'];
+                            const cant = parseInt(nRow['CAN'] || nRow['CANT'] || nRow['CANTIDAD']) || 0;
+                            if(mes && cod && cant > 0) {
+                                dbMovimientos.push({ mes: mes.toLowerCase(), tipo: 'in', cod: cod, cant: cant });
+                            }
+                        });
+                    }
+
+                    // Procesar SALIDAS (Usamos DESCRIPCION para hacer match si no hay COD)
+                    if(workbook.SheetNames.includes('SALIDA')) {
+                        const wsSalida = workbook.Sheets['SALIDA'];
+                        let rawSalidas = XLSX.utils.sheet_to_json(wsSalida, { header: 1, defval: "" });
+                        let headIdx = 0;
+                        for(let i = 0; i < Math.min(15, rawSalidas.length); i++) {
+                            const rStr = rawSalidas[i].join('').toUpperCase();
+                            if(rStr.includes('FECHA') || rStr.includes('DESCRIPCION')) { headIdx = i; break; }
+                        }
+                        const jsonSalidas = XLSX.utils.sheet_to_json(wsSalida, { range: headIdx, defval: "" });
+                        jsonSalidas.forEach(row => {
+                            let nRow = {};
+                            for (let key in row) { nRow[String(key).trim().toUpperCase()] = String(row[key]).trim(); }
+                            const fechaRaw = nRow['FECHA'] || nRow['MES'];
+                            const desc = nRow['DESCRIPCION'] || nRow['NOMBRE'];
+                            const cant = parseInt(nRow['CANT'] || nRow['CAN'] || nRow['CANTIDAD']) || 0;
+                            
+                            if(fechaRaw && desc && cant > 0) {
+                                // Intentar extraer "mes-año" de la fecha (Ej. 08-06-2026 -> "junio-26")
+                                let mesStr = fechaRaw.toLowerCase();
+                                // Buscar producto para obtener su código
+                                const prodMatch = dbProducts.find(p => p.NOMBRE.toUpperCase() === desc.toUpperCase());
+                                const cod = prodMatch ? prodMatch.CODIGO : 'DESC_NOT_FOUND';
+                                
+                                dbMovimientos.push({ mes: mesStr, tipo: 'out', cod: cod, cant: cant });
+                            }
+                        });
+                    }
 
                 } else {
                     const fetchUrl = isManualRefresh ? `${GOOGLE_CSV_URL}&t=${new Date().getTime()}` : GOOGLE_CSV_URL;
@@ -862,9 +1033,11 @@
                         r.forEach((val, i) => { if(headers[i]) nRow[headers[i]] = val.replace(/"/g,'').trim(); });
                         return {
                             CODIGO: nRow['COD'] || nRow['CODIGO'] || '', NOMBRE: nRow['DESCRIPCION'] || nRow['NOMBRE'] || '',
-                            STOCK: nRow['STOCK ACTUAL'] || nRow['STOCK'] || '0', UNIDAD: nRow['UDM'] || nRow['UNIDAD'] || 'UND',
+                            STOCK: parseInt(nRow['STOCK ACTUAL']) || parseInt(nRow['STOCK']) || 0, UNIDAD: nRow['UDM'] || nRow['UNIDAD'] || 'UND',
                             CATEGORIA: nRow['FAMILIA'] || nRow['CATEGORIA'] || '', FICHA: nRow['FICHA'] || nRow['FICHA TECNICA'] || '',
-                            ORGANIZADOR: nRow['UBICACION'] || nRow['ORGANIZADOR'] || nRow['PASILLO'] || ''
+                            ORGANIZADOR: nRow['UBICACION'] || nRow['ORGANIZADOR'] || nRow['PASILLO'] || '',
+                            ENTRADAS: parseInt(nRow['ENTRADAS']) || parseInt(nRow['ENTRADAS ']) || 0,
+                            SALIDAS: parseInt(nRow['SALIDAS']) || parseInt(nRow['SALIDAS ']) || 0
                         };
                     }).filter(p => p.CODIGO);
                 }
@@ -877,13 +1050,290 @@
                     const currentVisInput = document.getElementById('manualInput').value;
                     if(currentVisInput && document.getElementById('view-visor').classList.contains('active')) manualSearch(currentVisInput);
                     if(document.getElementById('view-inventario').classList.contains('active')) actualizarUIEstadoInventario();
+                    if(document.getElementById('view-dashboard').classList.contains('active')) populateDashboardMonths();
                 }
+                
+                populateDashboardMonths();
 
             } catch (e) {
                 console.error("Error:", e);
                 if(statusEl) { statusEl.innerText = "Error de conexión"; statusEl.className = "text-[10px] text-red-500 text-right font-bold mt-1"; }
                 if(isManualRefresh) syncIcon.classList.remove('fa-spin');
             }
+        }
+
+        // --- DASHBOARD Y MAPA DE CALOR (V6.65: FILTRO MENSUAL DINÁMICO) ---
+        function populateDashboardMonths() {
+            const selector = document.getElementById('dashMonthSelector');
+            if(!selector) return;
+            
+            // Extraer meses únicos de dbMovimientos
+            const mesesSet = new Set();
+            dbMovimientos.forEach(m => {
+                if(m.mes && m.mes !== 'fecha' && m.mes !== 'mes') {
+                    // Limpiar mes si viene formato "08-06-2026"
+                    let cleanMes = m.mes;
+                    if(cleanMes.match(/\d{2}-\d{2}-\d{4}/)) {
+                        const parts = cleanMes.split('-');
+                        const monthIndex = parseInt(parts[1]) - 1;
+                        const year = parts[2].substring(2);
+                        const monthNames = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+                        if(monthNames[monthIndex]) cleanMes = `${monthNames[monthIndex]}-${year}`;
+                    }
+                    mesesSet.add(cleanMes);
+                }
+            });
+            
+            const mesesArray = Array.from(mesesSet).sort();
+            
+            let html = '<option value="ALL">Todo el Historial</option>';
+            mesesArray.forEach(mes => {
+                html += `<option value="${mes}">${mes.toUpperCase()}</option>`;
+            });
+            
+            // Solo reemplazar si hay cambios para no perder la selección actual del usuario
+            if(selector.innerHTML !== html && mesesArray.length > 0) {
+                selector.innerHTML = html;
+            }
+            
+            renderDashboard();
+        }
+
+        function renderDashboard() {
+            const selectedMonth = document.getElementById('dashMonthSelector') ? document.getElementById('dashMonthSelector').value : 'ALL';
+            
+            // 1. Filtrar movimientos
+            let filteredMovs = dbMovimientos;
+            if(selectedMonth !== 'ALL') {
+                filteredMovs = dbMovimientos.filter(m => {
+                    let cleanMes = m.mes;
+                    if(cleanMes.match(/\d{2}-\d{2}-\d{4}/)) {
+                        const parts = cleanMes.split('-');
+                        const monthIndex = parseInt(parts[1]) - 1;
+                        const year = parts[2].substring(2);
+                        const monthNames = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+                        if(monthNames[monthIndex]) cleanMes = `${monthNames[monthIndex]}-${year}`;
+                    }
+                    return cleanMes === selectedMonth;
+                });
+            }
+
+            // 2. Calcular KPIs basados en el filtro
+            document.getElementById('kpi-skus').innerText = dbProducts.length;
+            
+            let totalMov = 0;
+            let productStats = {}; // { '527': { in: 23, out: 0 } }
+            
+            dbProducts.forEach(p => { productStats[p.CODIGO] = { in: 0, out: 0, currentStock: p.STOCK, name: p.NOMBRE }; });
+            
+            if(selectedMonth === 'ALL') {
+                // Usar históricos crudos del Excel
+                dbProducts.forEach(p => { 
+                    totalMov += (p.ENTRADAS + p.SALIDAS); 
+                    productStats[p.CODIGO].in = p.ENTRADAS;
+                    productStats[p.CODIGO].out = p.SALIDAS;
+                });
+            } else {
+                // Usar filtrados
+                filteredMovs.forEach(m => {
+                    totalMov += m.cant;
+                    if(productStats[m.cod]) {
+                        if(m.tipo === 'in') productStats[m.cod].in += m.cant;
+                        if(m.tipo === 'out') productStats[m.cod].out += m.cant;
+                    }
+                });
+            }
+            
+            document.getElementById('kpi-movimientos').innerText = totalMov;
+            
+            // Recalcular Quiebres (Solo si es TODOS, usamos el stock actual. Si es un mes, es más complejo, usaremos el actual igual por simplicidad operativa)
+            const quiebres = dbProducts.filter(p => p.STOCK <= 0).length;
+            document.getElementById('kpi-quiebres').innerText = quiebres;
+            
+            // Mermas (Pendiente filtrar por mes, por ahora usamos total)
+            const mermasCant = listaMermas.reduce((acc, curr) => acc + curr.CANTIDAD, 0);
+            document.getElementById('kpi-mermas').innerText = mermasCant;
+
+            // TOP 5 MOVIMIENTOS
+            const movsArray = Object.keys(productStats).map(cod => ({
+                cod: cod,
+                nombre: productStats[cod].name,
+                total: productStats[cod].in + productStats[cod].out,
+                in: productStats[cod].in,
+                out: productStats[cod].out
+            })).sort((a, b) => b.total - a.total);
+            
+            const top5 = movsArray.slice(0, 5);
+
+            const top5Cont = document.getElementById('dash-top5-container');
+            if (top5.length === 0 || top5[0].total === 0) {
+                top5Cont.innerHTML = '<div class="p-6 text-center text-gray-400 font-medium text-sm">No hay movimientos registrados en este periodo.</div>';
+            } else {
+                top5Cont.innerHTML = '<ul class="divide-y divide-indigo-50 w-full">' + top5.filter(m => m.total > 0).map((m, i) => `
+                    <li class="py-3 flex items-center justify-between gap-3 px-2 hover:bg-indigo-50/30 rounded-lg transition-colors">
+                        <div class="flex items-center gap-3 w-[70%]">
+                            <div class="w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-black text-xs shrink-0">${i+1}</div>
+                            <div class="flex flex-col min-w-0">
+                                <span class="text-[9px] font-black text-indigo-400 mb-0.5">${m.cod}</span>
+                                <span class="text-xs font-bold text-gray-800 truncate">${m.nombre}</span>
+                            </div>
+                        </div>
+                        <div class="bg-indigo-50 border border-indigo-100 px-2 py-1 rounded text-center shrink-0">
+                            <span class="block text-xs font-black text-indigo-700">${m.total}</span>
+                            <span class="block text-[8px] uppercase font-bold text-indigo-400">Total</span>
+                        </div>
+                    </li>
+                `).join('') + '</ul>';
+            }
+
+            // FLUJOS
+            const flujosCont = document.getElementById('dash-flujos-container');
+            const flujosFiltrados = movsArray.filter(m => m.in > 0 || m.out > 0);
+            
+            if (flujosFiltrados.length === 0) {
+                flujosCont.innerHTML = '<div class="p-6 text-center text-gray-400 font-medium text-sm">No hay entradas ni salidas registradas.</div>';
+            } else {
+                flujosCont.innerHTML = '<ul class="divide-y divide-gray-100 w-full">' + flujosFiltrados.map(f => `
+                    <li class="py-3 flex items-center justify-between gap-2 px-2 hover:bg-gray-50/50 rounded-lg transition-colors">
+                        <div class="flex flex-col min-w-0 w-[60%]">
+                            <span class="text-[9px] font-black text-gray-400 mb-0.5">${f.cod}</span>
+                            <span class="text-xs font-bold text-gray-700 truncate">${f.nombre}</span>
+                        </div>
+                        <div class="flex gap-2 shrink-0">
+                            <div class="bg-green-50 border border-green-100 px-2 py-0.5 rounded text-center min-w-[3rem]">
+                                <span class="block text-[8px] uppercase font-bold text-green-600 mb-0.5"><i class="fa-solid fa-arrow-down mr-0.5"></i>IN</span>
+                                <span class="block text-xs font-black text-green-700">${f.in}</span>
+                            </div>
+                            <div class="bg-red-50 border border-red-100 px-2 py-0.5 rounded text-center min-w-[3rem]">
+                                <span class="block text-[8px] uppercase font-bold text-red-600 mb-0.5"><i class="fa-solid fa-arrow-up mr-0.5"></i>OUT</span>
+                                <span class="block text-xs font-black text-red-700">${f.out}</span>
+                            </div>
+                        </div>
+                    </li>
+                `).join('') + '</ul>';
+            }
+
+            renderDashboardMap('quiebres');
+        }
+
+        function renderDashboardMap(filtro) {
+            const container = document.getElementById('mapHTMLContainerDash');
+            const legend = document.getElementById('heatmap-legend');
+            const btnQ = document.getElementById('btn-dash-quiebres');
+            const btnM = document.getElementById('btn-dash-mermas');
+
+            container.querySelectorAll('.rk-block').forEach(el => {
+                el.className = 'rk-block'; 
+            });
+
+            if(filtro === 'quiebres') {
+                btnQ.className = "text-[10px] font-bold px-3 py-2 rounded-lg bg-white shadow-sm text-red-600 transition-colors uppercase tracking-wider";
+                btnM.className = "text-[10px] font-bold px-3 py-2 rounded-lg text-gray-500 hover:text-gray-800 transition-colors uppercase tracking-wider";
+                legend.innerHTML = `
+                    <div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-[#ef4444] border border-[#b91c1c]"></div><span class="text-[9px] font-bold text-gray-500 uppercase">Sin Stock (Quiebre)</span></div>
+                `;
+
+                dbProducts.forEach(p => {
+                    if(p.STOCK <= 0 && p.ORGANIZADOR) {
+                        const match = p.ORGANIZADOR.match(/^(A|B|C)[\s\-]*0*(\d+)?/i);
+                        if(match && match[2]) {
+                            const rack = container.querySelector(`[data-rack="${match[1].toUpperCase()}${parseInt(match[2])}"]`);
+                            if(rack) { rack.classList.add('rk-heatmap-med'); }
+                        }
+                    }
+                });
+            } else if (filtro === 'mermas') {
+                btnM.className = "text-[10px] font-bold px-3 py-2 rounded-lg bg-white shadow-sm text-red-600 transition-colors uppercase tracking-wider";
+                btnQ.className = "text-[10px] font-bold px-3 py-2 rounded-lg text-gray-500 hover:text-gray-800 transition-colors uppercase tracking-wider";
+                legend.innerHTML = `
+                    <div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-[#fca5a5] border border-[#ef4444]"></div><span class="text-[9px] font-bold text-gray-500 uppercase">1-3 Mermas</span></div>
+                    <div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-[#ef4444] border border-[#b91c1c]"></div><span class="text-[9px] font-bold text-gray-500 uppercase">4-9 Mermas</span></div>
+                    <div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-[#991b1b] border border-[#7f1d1d]"></div><span class="text-[9px] font-bold text-gray-500 uppercase">+10 Peligro</span></div>
+                `;
+
+                let conteoPorCajon = {};
+                listaMermas.forEach(m => {
+                    const prod = dbProducts.find(p => p.CODIGO === m['CÓDIGO']);
+                    if(prod && prod.ORGANIZADOR) {
+                        const match = prod.ORGANIZADOR.match(/^(A|B|C)[\s\-]*0*(\d+)?/i);
+                        if(match && match[2]) {
+                            const rId = `${match[1].toUpperCase()}${parseInt(match[2])}`;
+                            if(!conteoPorCajon[rId]) conteoPorCajon[rId] = 0;
+                            conteoPorCajon[rId] += m.CANTIDAD;
+                        }
+                    }
+                });
+
+                for (let rId in conteoPorCajon) {
+                    const cant = conteoPorCajon[rId];
+                    const rack = container.querySelector(`[data-rack="${rId}"]`);
+                    if(rack) {
+                        if(cant >= 10) rack.classList.add('rk-heatmap-high');
+                        else if(cant >= 4) rack.classList.add('rk-heatmap-med');
+                        else rack.classList.add('rk-heatmap-low');
+                    }
+                }
+            }
+        }
+
+        // --- MANEJO DE VISTAS Y AUTENTICACIÓN ---
+        function intentarAccesoProtegido(vista) {
+            targetAfterAuth = vista;
+            if(inventarioDesbloqueado) { 
+                setView(targetAfterAuth); 
+                if(targetAfterAuth === 'inventario') actualizarUIEstadoInventario(); 
+                if(targetAfterAuth === 'dashboard') renderDashboard();
+            } else {
+                document.getElementById('modalAuth').classList.remove('hidden'); document.getElementById('modalAuth').classList.add('flex');
+                document.getElementById('pinError').classList.add('hidden'); document.getElementById('inputPinBodega').value = '';
+                setTimeout(() => document.getElementById('inputPinBodega').focus(), 100);
+            }
+        }
+
+        function cerrarModalAuth() { document.getElementById('modalAuth').classList.add('hidden'); document.getElementById('modalAuth').classList.remove('flex'); }
+
+        function validarPin() {
+            const pinIngresado = document.getElementById('inputPinBodega').value;
+            if(pinIngresado === PIN_BODEGA) { 
+                inventarioDesbloqueado = true; 
+                addLog("Sesión iniciada."); 
+                cerrarModalAuth(); 
+                setView(targetAfterAuth); 
+                if(targetAfterAuth === 'inventario') actualizarUIEstadoInventario(); 
+                if(targetAfterAuth === 'dashboard') renderDashboard();
+            } else { 
+                document.getElementById('pinError').classList.remove('hidden'); 
+                document.getElementById('inputPinBodega').value = ''; 
+            }
+        }
+
+        function setView(view) {
+            if((view === 'inventario' || view === 'dashboard') && !inventarioDesbloqueado) { intentarAccesoProtegido(view); return; }
+            if(view !== 'inventario' && view !== 'dashboard' && inventarioDesbloqueado) { inventarioDesbloqueado = false; document.getElementById('inputPinBodega').value = ''; }
+
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            const targetView = document.getElementById(`view-${view}`);
+            if(targetView) targetView.classList.add('active');
+            
+            const btnToggle = document.getElementById('btn-settings-toggle'); const panel = document.getElementById('panel-settings');
+            
+            if(view === 'generator') {
+                btnToggle.style.display = 'inline-flex'; panel.style.display = 'block';
+                if(!hasSeenGeneratorMenuHint) { hasSeenGeneratorMenuHint = true; panel.classList.remove('settings-collapsed'); btnToggle.classList.add('bg-orange-200'); hintTimeout = setTimeout(() => { panel.classList.add('settings-collapsed'); btnToggle.classList.remove('bg-orange-200'); }, 1200); }
+            } else { btnToggle.style.display = 'none'; panel.style.display = 'none'; }
+
+            const btnGen = document.getElementById('btn-gen'); if(btnGen) btnGen.className = view === 'generator' ? 'ios-btn btn-active-tab shrink-0' : 'ios-btn btn-ghost shrink-0';
+            const btnVis = document.getElementById('btn-vis'); if(btnVis) btnVis.className = view === 'visor' ? 'ios-btn btn-active-tab shrink-0' : 'ios-btn btn-ghost shrink-0';
+            const btnInv = document.getElementById('btn-inv'); if(btnInv) btnInv.className = view === 'inventario' ? 'ios-btn btn-active-tab shrink-0 text-gray-800 border-gray-200 bg-white shadow-sm' : 'ios-btn btn-ghost shrink-0 text-gray-500';
+            const btnMer = document.getElementById('btn-mermas'); if(btnMer) btnMer.className = view === 'mermas' ? 'ios-btn btn-active-tab shrink-0 text-red-600 border-red-200 bg-red-50 relative' : 'ios-btn btn-ghost shrink-0 text-red-600 relative';
+            const btnDash = document.getElementById('btn-dash'); if(btnDash) btnDash.className = view === 'dashboard' ? 'ios-btn btn-active-tab shrink-0 text-indigo-700 border-indigo-200 bg-indigo-50 relative' : 'ios-btn btn-ghost shrink-0 text-indigo-600 relative';
+        }
+
+        function toggleSettings() {
+            const panel = document.getElementById('panel-settings'); const btn = document.getElementById('btn-settings-toggle');
+            if(hintTimeout) { clearTimeout(hintTimeout); hintTimeout = null; }
+            if (panel.classList.contains('settings-collapsed')) { panel.classList.remove('settings-collapsed'); btn.classList.add('bg-orange-200'); } 
+            else { panel.classList.add('settings-collapsed'); btn.classList.remove('bg-orange-200'); }
         }
 
         // --- STREAMING_CHUNK: Implementando sistema de búsquedas manuales y visor de estanterías... ---
@@ -944,8 +1394,9 @@
                     btnShowLoc.innerHTML = '<i class="fa-solid fa-map-location-dot"></i> Ver Ubicación Física';
                     btnShowLoc.disabled = false;
 
-                    document.querySelectorAll('.rk-active').forEach(el => el.classList.remove('rk-active'));
-                    document.querySelectorAll('[id^="lbl-pasillo-"]').forEach(el => { el.classList.remove('text-white', 'bg-orange-500', 'scale-110', 'border-orange-500'); el.classList.add('text-gray-400', 'bg-white/90', 'border-gray-100'); });
+                    const containerVisor = document.getElementById('mapHTMLContainerVisor');
+                    containerVisor.querySelectorAll('.rk-active').forEach(el => el.classList.remove('rk-active'));
+                    containerVisor.querySelectorAll('[id^="LBL-pasillo-"]').forEach(el => { el.classList.remove('text-white', 'bg-orange-500', 'scale-110', 'border-orange-500'); el.classList.add('text-gray-400', 'bg-white/90', 'border-gray-100'); });
 
                     const match = org.match(/^(A|B|C)[\s\-]*0*(\d+)?/i);
 
@@ -957,9 +1408,9 @@
                         document.getElementById('locRaw').innerText = `CÓDIGO EXCEL: ${org}`;
                         document.getElementById('locRaw').classList.remove('text-red-500', 'font-black');
 
-                        const lbl = document.getElementById(`lbl-pasillo-${pasillo.toLowerCase()}`);
+                        const lbl = containerVisor.querySelector(`#LBL-pasillo-${pasillo.toLowerCase()}`);
                         if(lbl) { lbl.classList.remove('text-gray-400', 'bg-white/90', 'border-gray-100'); lbl.classList.add('text-white', 'bg-orange-500', 'scale-110', 'border-orange-500'); }
-                        if (estanteria) { const rkId = `rk-${pasillo}${parseInt(estanteria)}`; const rkEl = document.getElementById(rkId); if(rkEl) { rkEl.classList.add('rk-active'); } }
+                        if (estanteria) { const rkEl = containerVisor.querySelector(`[data-rack="${pasillo}${parseInt(estanteria)}"]`); if(rkEl) { rkEl.classList.add('rk-active'); } }
                     } else {
                         document.getElementById('locModulo').innerText = org.substring(0, 5) || '-';
                         document.getElementById('locRaw').innerText = `CÓDIGO NO RECONOCIDO: ${org}`;
@@ -1006,7 +1457,34 @@
             }
         });
 
-        // --- STREAMING_CHUNK: Implementando lógica para reportar mermas y evidencias de fotos... ---
+        if(els.dbSearch) {
+            els.dbSearch.addEventListener('input', (e) => {
+                const val = e.target.value.toLowerCase();
+                if(val.length < 2) { els.searchResults.classList.add('hidden'); return; }
+                const matches = dbProducts.filter(p => (p.CODIGO && p.CODIGO.toLowerCase().includes(val)) || (p.NOMBRE && p.NOMBRE.toLowerCase().includes(val))).slice(0, 5);
+                els.searchResults.innerHTML = '';
+                if(matches.length) {
+                    els.searchResults.classList.remove('hidden');
+                    matches.forEach(p => {
+                        const div = document.createElement('div'); div.className = "p-3 hover:bg-orange-50 cursor-pointer border-b text-sm flex justify-between";
+                        div.innerHTML = `<span><strong>${p.CODIGO}</strong></span> <span class="text-gray-500 truncate ml-2 text-xs">${p.NOMBRE}</span>`;
+                        div.onclick = () => {
+                            if(els.productCode) els.productCode.value = p.CODIGO || ''; 
+                            if(els.name) els.name.value = p.NOMBRE || ''; 
+                            if(els.family) els.family.value = p.CATEGORIA || '';
+                            if(els.orgInput) els.orgInput.value = '';
+                            if(els.consumo) els.consumo.value = ''; 
+                            if(els.min) els.min.value = '';
+                            if(els.max) els.max.value = '';
+                            els.searchResults.classList.add('hidden'); els.dbSearch.value = '';
+                            renderLabels();
+                        };
+                        els.searchResults.appendChild(div);
+                    });
+                } else { els.searchResults.classList.add('hidden'); }
+            });
+        }
+
         function procesarFotoMerma(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -1102,24 +1580,6 @@
             showConfirm('Vaciar Mermas', '¿Seguro que deseas borrar toda la lista de mermas de este dispositivo? ¡Asegúrate de exportar a Excel primero!', () => {
                 listaMermas = []; saveMermasState(); actualizarUIMermas();
             });
-        }
-
-        // --- STREAMING_CHUNK: Implementando controles de autenticación y auditoría de inventario... ---
-        function intentarVerInventario() {
-            if(inventarioDesbloqueado) { setView('inventario'); actualizarUIEstadoInventario(); } 
-            else {
-                document.getElementById('modalAuth').classList.remove('hidden'); document.getElementById('modalAuth').classList.add('flex');
-                document.getElementById('pinError').classList.add('hidden'); document.getElementById('inputPinBodega').value = '';
-                setTimeout(() => document.getElementById('inputPinBodega').focus(), 100);
-            }
-        }
-
-        function cerrarModalAuth() { document.getElementById('modalAuth').classList.add('hidden'); document.getElementById('modalAuth').classList.remove('flex'); }
-
-        function validarPin() {
-            const pinIngresado = document.getElementById('inputPinBodega').value;
-            if(pinIngresado === PIN_BODEGA) { inventarioDesbloqueado = true; addLog("Sesión iniciada."); cerrarModalAuth(); setView('inventario'); actualizarUIEstadoInventario(); } 
-            else { document.getElementById('pinError').classList.remove('hidden'); document.getElementById('inputPinBodega').value = ''; }
         }
 
         function abrirModalInicioInventario() {
@@ -1257,11 +1717,27 @@
             saveInventarioState(); cerrarConteoModal(); renderFullInventoryList(document.getElementById('invFilterInput').value);
         }
 
-        function abrirModalLogs() { renderLogs(); document.getElementById('modalLogs').classList.remove('hidden'); document.getElementById('modalLogs').classList.add('flex'); }
-        function cerrarModalLogs() { document.getElementById('modalLogs').classList.add('hidden'); document.getElementById('modalLogs').classList.remove('flex'); }
-        function renderLogs() { const container = document.getElementById('logsContainer'); if(inventarioLogs.length === 0) { container.innerHTML = '<p class="text-gray-400 text-center py-4">No hay actividad.</p>'; return; } container.innerHTML = inventarioLogs.map(l => `<div class="border-b border-gray-50 pb-1 mb-1">${l}</div>`).join(''); }
+        function abrirModalLogs() { 
+            renderLogs(); 
+            const m = document.getElementById('modalLogs'); 
+            if(m){ m.classList.remove('hidden'); m.classList.add('flex');} 
+        }
 
-        // --- STREAMING_CHUNK: Configurando exportaciones a Excel comprimidas... ---
+        function cerrarModalLogs() { 
+            const m = document.getElementById('modalLogs'); 
+            if(m){ m.classList.add('hidden'); m.classList.remove('flex');} 
+        }
+
+        function renderLogs() { 
+            const container = document.getElementById('logsContainer'); 
+            if(!container) return; 
+            if(inventarioLogs.length === 0) { 
+                container.innerHTML = '<p class="text-gray-400 text-center py-4">No hay actividad.</p>'; 
+                return; 
+            } 
+            container.innerHTML = inventarioLogs.map(l => `<div class="border-b border-gray-50 pb-1 mb-1">${l}</div>`).join(''); 
+        }
+
         async function procesarDescargaOCompartir(datosExcel, nombreArchivo, nombreHoja, meta = null) {
             if(datosExcel.length === 0) { Toast("No hay datos para exportar.", "error"); return; }
             const workbook = XLSX.utils.book_new();
@@ -1334,64 +1810,6 @@
         }
         function closeScanner() { const modal = document.getElementById('modalScanner'); modal.classList.add('hidden'); modal.classList.remove('flex'); if (html5QrcodeScanner) { html5QrcodeScanner.stop().catch(err => console.warn(err)); } }
 
-        function setView(view) {
-            if(view === 'inventario' && !inventarioDesbloqueado) { intentarVerInventario(); return; }
-            if(view !== 'inventario' && inventarioDesbloqueado) { inventarioDesbloqueado = false; document.getElementById('inputPinBodega').value = ''; }
-
-            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
-            const targetView = document.getElementById(`view-${view}`);
-            if(targetView) targetView.classList.add('active');
-            
-            const btnToggle = document.getElementById('btn-settings-toggle'); const panel = document.getElementById('panel-settings');
-            
-            if(view === 'generator') {
-                btnToggle.style.display = 'inline-flex'; panel.style.display = 'block';
-                if(!hasSeenGeneratorMenuHint) { hasSeenGeneratorMenuHint = true; panel.classList.remove('settings-collapsed'); btnToggle.classList.add('bg-orange-200'); hintTimeout = setTimeout(() => { panel.classList.add('settings-collapsed'); btnToggle.classList.remove('bg-orange-200'); }, 1200); }
-            } else { btnToggle.style.display = 'none'; panel.style.display = 'none'; }
-
-            const btnGen = document.getElementById('btn-gen'); if(btnGen) btnGen.className = view === 'generator' ? 'ios-btn btn-active-tab shrink-0' : 'ios-btn btn-ghost shrink-0';
-            const btnVis = document.getElementById('btn-vis'); if(btnVis) btnVis.className = view === 'visor' ? 'ios-btn btn-active-tab shrink-0' : 'ios-btn btn-ghost shrink-0';
-            const btnInv = document.getElementById('btn-inv'); if(btnInv) btnInv.className = view === 'inventario' ? 'ios-btn btn-active-tab shrink-0 text-gray-800 border-gray-200 bg-white shadow-sm' : 'ios-btn btn-ghost shrink-0 text-gray-500';
-            const btnMer = document.getElementById('btn-mermas'); if(btnMer) btnMer.className = view === 'mermas' ? 'ios-btn btn-active-tab shrink-0 text-red-600 border-red-200 bg-red-50 relative' : 'ios-btn btn-ghost shrink-0 text-red-600 relative';
-        }
-
-        function toggleSettings() {
-            const panel = document.getElementById('panel-settings'); const btn = document.getElementById('btn-settings-toggle');
-            if(hintTimeout) { clearTimeout(hintTimeout); hintTimeout = null; }
-            if (panel.classList.contains('settings-collapsed')) { panel.classList.remove('settings-collapsed'); btn.classList.add('bg-orange-200'); } 
-            else { panel.classList.add('settings-collapsed'); btn.classList.remove('bg-orange-200'); }
-        }
-
-        // --- STREAMING_CHUNK: Creando el buscador de autocompletado en el panel izquierdo... ---
-        if(els.dbSearch) {
-            els.dbSearch.addEventListener('input', (e) => {
-                const val = e.target.value.toLowerCase();
-                if(val.length < 2) { els.searchResults.classList.add('hidden'); return; }
-                const matches = dbProducts.filter(p => (p.CODIGO && p.CODIGO.toLowerCase().includes(val)) || (p.NOMBRE && p.NOMBRE.toLowerCase().includes(val))).slice(0, 5);
-                els.searchResults.innerHTML = '';
-                if(matches.length) {
-                    els.searchResults.classList.remove('hidden');
-                    matches.forEach(p => {
-                        const div = document.createElement('div'); div.className = "p-3 hover:bg-orange-50 cursor-pointer border-b text-sm flex justify-between";
-                        div.innerHTML = `<span><strong>${p.CODIGO}</strong></span> <span class="text-gray-500 truncate ml-2 text-xs">${p.NOMBRE}</span>`;
-                        div.onclick = () => {
-                            if(els.productCode) els.productCode.value = p.CODIGO || ''; 
-                            if(els.name) els.name.value = p.NOMBRE || ''; 
-                            if(els.family) els.family.value = p.CATEGORIA || '';
-                            if(els.orgInput) els.orgInput.value = p.ORGANIZADOR || '';
-                            
-                            if(els.consumo) els.consumo.value = '0'; 
-                            if(els.min) els.min.value = Math.floor(parseInt(p.STOCK || '0') * 0.2);
-                            if(els.max) els.max.value = p.STOCK || '0';
-                            
-                            els.searchResults.classList.add('hidden'); els.dbSearch.value = '';
-                        };
-                        els.searchResults.appendChild(div);
-                    });
-                } else { els.searchResults.classList.add('hidden'); }
-            });
-        }
-
         function incrementarAlfanumerico(str) { return str.replace(/\d+$/, function(n) { return String(parseInt(n, 10) + 1).padStart(n.length, '0'); }); }
 
         function agregarALaHoja() {
@@ -1425,7 +1843,6 @@
         }
         function eliminarEtiqueta(index) { colaImpresion.splice(index, 1); renderLabels(); }
 
-        // --- STREAMING_CHUNK: Motor de renderizado dinámico de etiquetas 5S... ---
         function renderLabels() {
             if(!els.wrapper) return;
             els.wrapper.innerHTML = '';
@@ -1441,6 +1858,10 @@
             const hasLogoInQR = els.checkLogoInQR ? els.checkLogoInQR.checked : false;
             const hasLogoGrayscale = els.checkLogoGrayscale ? els.checkLogoGrayscale.checked : false;
             const showDrawer = els.checkShowDrawer ? els.checkShowDrawer.checked : true;
+            
+            // NUEVOS VALORES INDIVIDUALES
+            const showMin = els.checkShowMin ? els.checkShowMin.checked : true;
+            const showMax = els.checkShowMax ? els.checkShowMax.checked : true;
             
             if(els.valSizeName) els.valSizeName.innerText = sName;
             if(els.valSizeOrg) els.valSizeOrg.innerText = sOrg;
@@ -1463,19 +1884,80 @@
                         const card = document.createElement('div'); card.className = 'label-card';
                         
                         let cardContent = '';
-                        
-                        // CORRECCIÓN V6.61: Quitamos el "_2" que estaba causando el error 404 (Not Found). 
-                        // Utilizamos "LOGO%20NEGRO.jpg" ya que el usuario re-subió el archivo con ese nombre original.
                         const logoSrc = hasLogoGrayscale ? 'LOGO%20NEGRO.jpg' : 'logo.png';
-                        
-                        // SOLUCIÓN DEFINITIVA: Usar la nueva clase estricta .qr-logo-overlay
                         const logoHTML = hasLogoInQR ? `<div class="qr-logo-overlay"><img src="${logoSrc}" class="w-full h-full object-contain" onerror="console.warn('Fallo imagen: ' + this.src); this.style.display='none'"></div>` : '';
                         
+                        // LÓGICA DINÁMICA PARA MIN Y MAX
+                        let minMaxHTML = '';
+                        let headerHeightClass = 'h-[60%]'; // Altura por defecto si hay sección MIN/MAX
+
+                        if (showMin && showMax) {
+                            // Mostrar AMBOS (Dividido 50% y 50%)
+                            minMaxHTML = `
+                                <div class="h-[40%] flex w-full">
+                                    <div class="w-[33.333%] border-r-[3px] border-transparent flex items-center justify-center p-2 relative shrink-0">
+                                        <!-- Espacio vacío debajo del consumo -->
+                                    </div>
+                                    <div class="w-[66.666%] flex border-l-[3px]">
+                                        <div class="w-1/2 border-r-[3px] flex flex-col min_max_border_style">
+                                            <div class="text-[10px] lg:text-xs font-black text-center border-b-[3px] min_max_header_style">MIN</div>
+                                            <div class="flex-1 flex items-center justify-center font-black text-3xl text-gray-900 min_max_bg_style">${item.min}</div>
+                                        </div>
+                                        <div class="w-1/2 flex flex-col">
+                                            <div class="text-[10px] lg:text-xs font-black text-center border-b-[3px] min_max_header_style">MAX</div>
+                                            <div class="flex-1 flex items-center justify-center font-black text-3xl text-gray-900 min_max_bg_style_alt">${item.max}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        } else if (showMin && !showMax) {
+                            // Mostrar SOLO MIN (Ocupa el 100%)
+                            minMaxHTML = `
+                                <div class="h-[40%] flex w-full">
+                                    <div class="w-[33.333%] border-r-[3px] border-transparent flex items-center justify-center p-2 relative shrink-0"></div>
+                                    <div class="w-[66.666%] flex border-l-[3px]">
+                                        <div class="w-full flex flex-col min_max_border_style">
+                                            <div class="text-[10px] lg:text-xs font-black text-center border-b-[3px] min_max_header_style">MIN</div>
+                                            <div class="flex-1 flex items-center justify-center font-black text-3xl text-gray-900 min_max_bg_style">${item.min}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        } else if (!showMin && showMax) {
+                            // Mostrar SOLO MAX (Ocupa el 100%)
+                            minMaxHTML = `
+                                <div class="h-[40%] flex w-full">
+                                    <div class="w-[33.333%] border-r-[3px] border-transparent flex items-center justify-center p-2 relative shrink-0"></div>
+                                    <div class="w-[66.666%] flex border-l-[3px]">
+                                        <div class="w-full flex flex-col min_max_border_style">
+                                            <div class="text-[10px] lg:text-xs font-black text-center border-b-[3px] min_max_header_style">MAX</div>
+                                            <div class="flex-1 flex items-center justify-center font-black text-3xl text-gray-900 min_max_bg_style_alt">${item.max}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        } else {
+                            // NO MOSTRAR NINGUNO -> El header ocupa el 100% de la altura
+                            minMaxHTML = '';
+                            headerHeightClass = 'h-full';
+                        }
+
+
                         if (item.estilo === '5s_orange') {
+                            // Reemplazos de estilos específicos para Diseño 2
+                            let customMinMaxHTML = minMaxHTML
+                                .replace(/min_max_border_style/g, 'border-[#F26522]')
+                                .replace(/min_max_header_style/g, 'border-[#F26522] text-[#F26522] bg-orange-50')
+                                .replace(/min_max_bg_style_alt/g, '')
+                                .replace(/min_max_bg_style/g, '')
+                                .replace(/border-l-\[3px\]/g, 'border-l-[3px] border-[#F26522]');
+                            
                             cardContent = `
                                 <div class="w-full h-full border-[3px] border-[#F26522] flex bg-white box-border relative">
                                     <div class="${showDrawer || hasQR ? 'w-[75%]' : 'w-full'} flex flex-col ${showDrawer || hasQR ? 'border-r-[3px] border-[#F26522]' : ''}">
-                                        <div class="h-[60%] flex border-b-[3px] border-[#F26522]">
+                                        
+                                        <!-- SECCION SUPERIOR (Nombre y Consumo) -->
+                                        <div class="${headerHeightClass} flex ${minMaxHTML !== '' ? 'border-b-[3px] border-[#F26522]' : ''}">
                                             <div class="w-[33.333%] border-r-[3px] border-[#F26522] flex flex-col">
                                                 <div class="text-[8px] sm:text-[10px] lg:text-xs font-black text-center border-b-[3px] border-[#F26522] p-1 uppercase text-[#F26522] leading-none bg-orange-50">Consumo<br>Semanal</div>
                                                 <div class="flex-1 flex items-center justify-center font-black text-4xl text-gray-900">${item.consumo}</div>
@@ -1487,21 +1969,10 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="h-[40%] flex">
-                                            <div class="w-[33.333%] border-r-[3px] border-[#F26522] flex items-center justify-center p-2 relative">
-                                                <img src="logo.png" class="max-h-full max-w-full object-contain grayscale" onerror="this.style.display='none'">
-                                            </div>
-                                            <div class="w-[66.666%] flex">
-                                                <div class="w-1/2 border-r-[3px] border-[#F26522] flex flex-col">
-                                                    <div class="text-[10px] lg:text-xs font-black text-center border-b-[3px] border-[#F26522] text-[#F26522] bg-orange-50">MIN</div>
-                                                    <div class="flex-1 flex items-center justify-center font-black text-3xl text-gray-900">${item.min}</div>
-                                                </div>
-                                                <div class="w-1/2 flex flex-col">
-                                                    <div class="text-[10px] lg:text-xs font-black text-center border-b-[3px] border-[#F26522] text-[#F26522] bg-orange-50">MAX</div>
-                                                    <div class="flex-1 flex items-center justify-center font-black text-3xl text-gray-900">${item.max}</div>
-                                                </div>
-                                            </div>
-                                        </div>
+                                        
+                                        <!-- SECCION INFERIOR (MIN/MAX) -->
+                                        ${customMinMaxHTML}
+                                        
                                     </div>
                                     ${(showDrawer || hasQR) ? `
                                     <div class="w-[25%] flex flex-col bg-white">
@@ -1524,10 +1995,19 @@
                                 </div>
                             `;
                         } else if (item.estilo === '5s_solid_white') {
+                             // Reemplazos de estilos específicos para Diseño 1
+                            let customMinMaxHTML = minMaxHTML
+                                .replace(/min_max_border_style/g, 'border-[#F26522]')
+                                .replace(/min_max_header_style/g, 'border-[#F26522] text-white bg-[#F26522]')
+                                .replace(/min_max_bg_style_alt/g, '')
+                                .replace(/min_max_bg_style/g, '')
+                                .replace(/border-l-\[3px\]/g, 'border-l-[3px] border-[#F26522]');
+                                
                             cardContent = `
                                 <div class="w-full h-full border-[3px] border-[#F26522] flex bg-white box-border relative">
                                     <div class="${showDrawer || hasQR ? 'w-[75%]' : 'w-full'} flex flex-col ${showDrawer || hasQR ? 'border-r-[3px] border-[#F26522]' : ''}">
-                                        <div class="h-[60%] flex border-b-[3px] border-[#F26522]">
+                                        
+                                        <div class="${headerHeightClass} flex ${minMaxHTML !== '' ? 'border-b-[3px] border-[#F26522]' : ''}">
                                             <div class="w-[33.333%] border-r-[3px] border-[#F26522] flex flex-col">
                                                 <div class="text-[8px] sm:text-[10px] lg:text-xs font-black text-center border-b-[3px] border-[#F26522] p-1 uppercase text-white bg-[#F26522] leading-none">Consumo<br>Semanal</div>
                                                 <div class="flex-1 flex items-center justify-center font-black text-4xl text-gray-900">${item.consumo}</div>
@@ -1539,21 +2019,9 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="h-[40%] flex">
-                                            <div class="w-[33.333%] border-r-[3px] border-[#F26522] flex items-center justify-center p-2 relative">
-                                                <img src="logo.png" class="max-h-full max-w-full object-contain" onerror="this.style.display='none'">
-                                            </div>
-                                            <div class="w-[66.666%] flex">
-                                                <div class="w-1/2 border-r-[3px] border-[#F26522] flex flex-col">
-                                                    <div class="text-[10px] lg:text-xs font-black text-center border-b-[3px] border-[#F26522] text-white bg-[#F26522]">MIN</div>
-                                                    <div class="flex-1 flex items-center justify-center font-black text-3xl text-gray-900">${item.min}</div>
-                                                </div>
-                                                <div class="w-1/2 flex flex-col">
-                                                    <div class="text-[10px] lg:text-xs font-black text-center border-b-[3px] border-[#F26522] text-white bg-[#F26522]">MAX</div>
-                                                    <div class="flex-1 flex items-center justify-center font-black text-3xl text-gray-900">${item.max}</div>
-                                                </div>
-                                            </div>
-                                        </div>
+                                        
+                                        ${customMinMaxHTML}
+                                        
                                     </div>
                                     ${(showDrawer || hasQR) ? `
                                     <div class="w-[25%] flex flex-col bg-white">
@@ -1576,10 +2044,19 @@
                                 </div>
                             `;
                         } else if (item.estilo === '5s_dark') {
+                            // Reemplazos de estilos específicos para Diseño 3
+                            let customMinMaxHTML = minMaxHTML
+                                .replace(/min_max_border_style/g, 'border-gray-900')
+                                .replace(/min_max_header_style/g, 'border-gray-900 text-white bg-gray-900')
+                                .replace(/min_max_bg_style_alt/g, 'bg-gray-100')
+                                .replace(/min_max_bg_style/g, 'bg-gray-50')
+                                .replace(/border-l-\[3px\]/g, 'border-l-[4px] border-gray-900'); // diseño 3 usa bordes más gruesos
+                                
                             cardContent = `
                                 <div class="w-full h-full border-[4px] border-gray-900 flex bg-white box-border relative">
                                     <div class="${showDrawer || hasQR ? 'w-[75%]' : 'w-full'} flex flex-col ${showDrawer || hasQR ? 'border-r-[4px] border-gray-900' : ''}">
-                                        <div class="h-[60%] flex border-b-[4px] border-gray-900">
+                                        
+                                        <div class="${headerHeightClass} flex ${minMaxHTML !== '' ? 'border-b-[4px] border-gray-900' : ''}">
                                             <div class="w-[33.333%] border-r-[4px] border-gray-900 flex flex-col">
                                                 <div class="text-[8px] sm:text-[10px] lg:text-xs font-black text-center border-b-[4px] border-gray-900 p-1 uppercase text-white bg-gray-900 leading-none">Consumo<br>Semanal</div>
                                                 <div class="flex-1 flex items-center justify-center font-black text-4xl text-gray-900">${item.consumo}</div>
@@ -1591,21 +2068,9 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="h-[40%] flex">
-                                            <div class="w-[33.333%] border-r-[4px] border-gray-900 flex items-center justify-center p-2 relative">
-                                                <img src="logo.png" class="max-h-full max-w-full object-contain grayscale" onerror="this.style.display='none'">
-                                            </div>
-                                            <div class="w-[66.666%] flex">
-                                                <div class="w-1/2 border-r-[4px] border-gray-900 flex flex-col">
-                                                    <div class="text-[10px] lg:text-xs font-black text-center border-b-[4px] border-gray-900 text-white bg-gray-900">MIN</div>
-                                                    <div class="flex-1 flex items-center justify-center font-black text-3xl text-gray-900 bg-gray-50">${item.min}</div>
-                                                </div>
-                                                <div class="w-1/2 flex flex-col">
-                                                    <div class="text-[10px] lg:text-xs font-black text-center border-b-[4px] border-gray-900 text-white bg-gray-900">MAX</div>
-                                                    <div class="flex-1 flex items-center justify-center font-black text-3xl text-gray-900 bg-gray-100">${item.max}</div>
-                                                </div>
-                                            </div>
-                                        </div>
+                                        
+                                        ${customMinMaxHTML}
+                                        
                                     </div>
                                     ${(showDrawer || hasQR) ? `
                                     <div class="w-[25%] flex flex-col bg-white">
@@ -1656,7 +2121,6 @@
 
                         card.innerHTML = `<button onclick="eliminarEtiqueta(${itemIndex})" class="btn-delete-label no-print absolute top-1 right-1 bg-red-500 text-white hover:bg-red-700 w-6 h-6 rounded-full flex items-center justify-center transition-colors z-30 shadow-md"><i class="fa-solid fa-xmark text-xs"></i></button>${cardContent}`;
                         page.appendChild(card);
-                        // Asegurar el renderizado del QR de forma robusta
                         if (hasQR) { 
                             setTimeout(() => {
                                 const qrContainer = card.querySelector(`#${qrId}`);
