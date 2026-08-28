@@ -504,6 +504,21 @@
                     </div>
 
                     <div class="w-full flex flex-col gap-3 mb-8 px-2">
+                        <div class="relative w-full mb-2">
+                            <select id="selectMaterialVisor" class="w-full bg-white border-2 border-orange-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-800 outline-none focus:border-orange-500 shadow-sm cursor-pointer appearance-none">
+                                <option value="">Seleccionar material del listado...</option>
+                                <!-- Las opciones se inyectarán aquí mediante JS -->
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-orange-500">
+                                <i class="fa-solid fa-chevron-down"></i>
+                            </div>
+                        </div>
+                        <div class="flex items-center w-full my-2">
+                            <hr class="flex-grow border-gray-200">
+                            <span class="px-3 text-xs font-bold text-gray-400 uppercase tracking-widest">O Buscar</span>
+                            <hr class="flex-grow border-gray-200">
+                        </div>
+                        
                         <div class="relative w-full">
                             <input type="text" id="manualInput" placeholder="Ingresa CÓDIGO o NOMBRE..." class="w-full text-center py-4 px-4 rounded-2xl border-2 border-gray-200 text-xl font-black text-gray-800 outline-none focus:border-orange-500 shadow-sm transition-colors bg-white" autocomplete="off" onkeypress="handleEnter(event)">
                             <div id="visorSearchResults" class="hidden absolute top-full left-0 w-full bg-white shadow-2xl border border-gray-100 rounded-xl mt-2 z-50 max-h-60 overflow-y-auto text-left"></div>
@@ -882,6 +897,20 @@
                 actualizarUIMermas();
                 actualizarUIEstadoInventario();
 
+                // Setup del nuevo selector de materiales
+                const selectMaterial = document.getElementById('selectMaterialVisor');
+                if (selectMaterial) {
+                    selectMaterial.addEventListener('change', (e) => {
+                        const selectedCode = e.target.value;
+                        if (selectedCode) {
+                            document.getElementById('manualInput').value = selectedCode;
+                            manualSearch(selectedCode);
+                            // Opcional: resetear el select después de buscar
+                            // e.target.selectedIndex = 0; 
+                        }
+                    });
+                }
+
                 let timeout;
                 [els.rows, els.cols, els.orientation, els.sizeName, els.sizeOrg, els.sizeFamily, els.style].forEach(el => { 
                     if (el) { el.addEventListener('input', () => { clearTimeout(timeout); timeout = setTimeout(renderLabels, 150); }); }
@@ -1044,6 +1073,18 @@
                 dbProducts.sort((a, b) => a.NOMBRE.localeCompare(b.NOMBRE));
                 if(statusEl) { statusEl.innerText = `Online: ${dbProducts.length} productos`; statusEl.className = "text-[10px] text-green-600 text-right font-bold mt-1"; }
                 
+                // Poblar el selector desplegable del Visor
+                const selectMaterial = document.getElementById('selectMaterialVisor');
+                if (selectMaterial) {
+                    // Guardar la opción por defecto
+                    let optionsHTML = '<option value="">Seleccionar material del listado...</option>';
+                    // Generar las opciones ordenadas (ya están ordenadas por nombre arriba)
+                    dbProducts.forEach(p => {
+                        optionsHTML += `<option value="${p.CODIGO}">${p.NOMBRE} (Stock: ${p.STOCK})</option>`;
+                    });
+                    selectMaterial.innerHTML = optionsHTML;
+                }
+
                 if(isManualRefresh) {
                     setTimeout(() => { syncIcon.classList.remove('fa-spin'); }, 500);
                     const currentVisInput = document.getElementById('manualInput').value;
@@ -1808,7 +1849,14 @@
                 consumo: els.consumo ? els.consumo.value : '-',
                 min: els.min ? els.min.value : '-',
                 max: els.max ? els.max.value : '-',
-                estilo: els.style ? els.style.value : 'traditional_orange'
+                estilo: els.style ? els.style.value : 'traditional_orange',
+                // Guardar la configuración visual ESPECÍFICA para esta etiqueta
+                hasQR: els.checkQR ? els.checkQR.checked : true,
+                hasLogoInQR: els.checkLogoInQR ? els.checkLogoInQR.checked : false,
+                hasLogoGrayscale: els.checkLogoGrayscale ? els.checkLogoGrayscale.checked : false,
+                showDrawer: els.checkShowDrawer ? els.checkShowDrawer.checked : true,
+                showMin: els.checkShowMin ? els.checkShowMin.checked : true,
+                showMax: els.checkShowMax ? els.checkShowMax.checked : true
             });
             if (els.checkNum && els.checkNum.checked && els.orgInput) { 
                 let actualOrg = els.orgInput.value.trim(); 
@@ -1841,13 +1889,6 @@
             const sOrg = (els.sizeOrg ? els.sizeOrg.value : '28') + 'px';
             const sFamily = (els.sizeFamily ? els.sizeFamily.value : '14') + 'px';
             
-            const hasQR = els.checkQR ? els.checkQR.checked : true;
-            const hasLogoInQR = els.checkLogoInQR ? els.checkLogoInQR.checked : false;
-            const hasLogoGrayscale = els.checkLogoGrayscale ? els.checkLogoGrayscale.checked : false;
-            const showDrawer = els.checkShowDrawer ? els.checkShowDrawer.checked : true;
-            const showMin = els.checkShowMin ? els.checkShowMin.checked : true;
-            const showMax = els.checkShowMax ? els.checkShowMax.checked : true;
-            
             if(els.valSizeName) els.valSizeName.innerText = sName;
             if(els.valSizeOrg) els.valSizeOrg.innerText = sOrg;
             if(els.valSizeFamily) els.valSizeFamily.innerText = sFamily;
@@ -1868,6 +1909,14 @@
                         const smartLink = `${baseUrl}?id=${item.sku}`; const qrId = `qr-code-${count}`;
                         const card = document.createElement('div'); card.className = 'label-card';
                         
+                        // Leer la configuración guardada ESPECÍFICA para esta etiqueta
+                        const hasQR = item.hasQR !== undefined ? item.hasQR : true;
+                        const hasLogoInQR = item.hasLogoInQR !== undefined ? item.hasLogoInQR : false;
+                        const hasLogoGrayscale = item.hasLogoGrayscale !== undefined ? item.hasLogoGrayscale : false;
+                        const showDrawer = item.showDrawer !== undefined ? item.showDrawer : true;
+                        const showMin = item.showMin !== undefined ? item.showMin : true;
+                        const showMax = item.showMax !== undefined ? item.showMax : true;
+
                         let cardContent = '';
                         
                         // CORRECCIÓN EXACTA DE RUTAS BASADA EN GITHUB
