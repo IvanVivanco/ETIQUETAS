@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Deteco DTX v6.74</title>
+    <title>Deteco DTX v6.67</title>
 
     <!-- PWA / WEB APP NATIVA META TAGS -->
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -30,20 +30,14 @@
             --primary-hover: #d14d10;
             --page-width: 210mm;
             --page-height: 297mm;
-            --bottom-nav-height: 70px;
         }
 
-        html, body { width: 100%; height: 100%; font-family: 'Inter', sans-serif; background-color: var(--ios-bg); color: #1d1d1f; margin: 0; padding: 0; overflow: hidden; overscroll-behavior-y: none; display: flex; flex-direction: column; }
+        html, body { width: 100%; height: 100%; font-family: 'Inter', sans-serif; background-color: var(--ios-bg); color: #1d1d1f; margin: 0; padding: 0; overflow-x: hidden; overscroll-behavior-y: none; display: flex; flex-direction: column; }
 
-        /* SCROLLBARS OCULTOS */
-        .hide-scroll::-webkit-scrollbar { display: none; }
-        .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
-
-        /* HEADER DESKTOP */
         .app-header { background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(20px); border-bottom: 1px solid #e5e5e5; height: 60px; flex: 0 0 60px; padding: 0 16px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; width: 100%; }
+        
         .app-title { font-weight: 800; font-size: 1.1rem; color: #000; letter-spacing: -0.5px; }
         
-        /* BOTONES NAVEGACION */
         .ios-btn { padding: 8px 12px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; border: none; white-space: nowrap; }
         .btn-ghost { background: transparent; color: #86868b; }
         .btn-ghost:hover { background: #e5e5e5; color: #1d1d1f; }
@@ -52,61 +46,73 @@
         .btn-primary:hover { background: #333; }
         .btn-secondary { background: #e5e5e5; color: #000; }
 
-        /* LAYOUT PRINCIPAL */
-        .main-layout { display: flex; flex: 1 1 auto; flex-direction: column; overflow: hidden; width: 100%; position: relative; }
-        
-        .settings-panel { background: #fff; border-bottom: 1px solid #e5e5e5; flex-shrink: 0; overflow-y: auto; overflow-x: hidden; transition: all 0.3s ease-in-out; }
-        .settings-inner { width: 100%; max-width: 360px; padding: 20px; margin: 0 auto; padding-bottom: calc(var(--bottom-nav-height) + 20px); }
+        .hide-scroll::-webkit-scrollbar { display: none; }
+        .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
 
-        .right-content { flex: 1 1 auto; height: 100%; overflow-y: auto; overflow-x: hidden; background-color: var(--ios-bg); width: 100%; padding-bottom: var(--bottom-nav-height); }
-        .preview-panel { background-color: var(--ios-bg); display: flex; flex-direction: column; align-items: center; width: 100%; min-height: 100%; }
+        .main-layout { display: flex; flex: 1 1 auto; flex-direction: column; overflow: hidden; width: 100%; }
+
+        .settings-panel { background: #fff; border-bottom: 1px solid #e5e5e5; flex-shrink: 0; overflow-y: auto; overflow-x: hidden; transition: all 0.3s ease-in-out; }
+        .settings-inner { width: 100%; max-width: 360px; padding: 20px; margin: 0 auto; }
+
+        .right-content { flex: 1 1 auto; height: 100%; overflow-y: auto; overflow-x: hidden; background-color: var(--ios-bg); width: 100%; }
+        .preview-panel { background-color: var(--ios-bg); padding: 20px 10px; display: flex; flex-direction: column; align-items: center; width: 100%; min-height: 100%; }
         .view-section { display: none; width: 100%; justify-content: flex-start; align-items: center; flex-direction: column;}
         .view-section.active { display: flex; }
 
         @media (max-width: 1023px) {
-            .app-header { display: none; } /* Ocultar Header superior en móviles */
-            .settings-panel { width: 100%; max-height: 1200px; border-right: none; position: absolute; z-index: 100; height: 100%; }
-            .settings-inner { padding: 16px; padding-bottom: 100px; }
-            .settings-collapsed { display: none !important; }
+            .settings-panel { width: 100%; max-height: 1200px; border-right: none; }
+            .settings-inner { padding: 16px; }
+            .settings-collapsed { max-height: 0 !important; border: none !important; margin: 0 !important; padding: 0 !important; }
         }
 
         @media (min-width: 1024px) {
             .main-layout { flex-direction: row; height: calc(100vh - 60px); }
-            .settings-panel { height: 100%; flex: 0 0 340px; width: 340px; border-right: 1px solid #e5e5e5; border-bottom: none; display: block !important; }
+            .settings-panel { height: 100%; flex: 0 0 340px; width: 340px; border-right: 1px solid #e5e5e5; border-bottom: none; }
             .settings-collapsed { flex: 0 0 0px !important; width: 0px !important; border: none !important; }
-            .right-content { padding-bottom: 0; }
-            .app-header { padding: 0 24px; display: flex; }
-            .bottom-nav-bar { display: none !important; } /* Ocultar nav inferior en Desktop */
+            .app-header { padding: 0 24px; }
+            .preview-panel { padding: 40px; }
         }
 
-        /* DIRECTORIO SCRUBBER */
-        .directory-scrubber { position: sticky; right: 0; top: 0; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 24px; background: rgba(255,255,255,0.8); backdrop-filter: blur(10px); z-index: 10; border-left: 1px solid #f3f4f6; }
-        .scrubber-letter { font-size: 10px; font-weight: 800; color: var(--primary-color); padding: 1.5px 0; cursor: pointer; width: 100%; text-align: center; }
-        .scrubber-letter:hover, .scrubber-letter:active { background: var(--primary-color); color: white; border-radius: 4px; transform: scale(1.2); }
-
-        /* RANGOS UI */
         input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
         input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%; background: var(--primary-color); cursor: pointer; margin-top: -6px; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
         input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: #e5e5e5; border-radius: 2px; }
 
-        /* ETIQUETAS A4 */
-        .page { background: white; width: var(--page-width); height: var(--page-height); padding: 5mm; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); display: grid; box-sizing: border-box; position: relative; transition: width 0.3s, height 0.3s; max-width: 100%; margin-top: 20px;}
+        .page { background: white; width: var(--page-width); height: var(--page-height); padding: 5mm; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); display: grid; box-sizing: border-box; position: relative; transition: width 0.3s, height 0.3s; max-width: 100%; }
+        
         .label-card { background: white; display: flex; flex-direction: row; overflow: hidden; position: relative; width: 100%; height: 100%; box-sizing: border-box; }
+        
         .qr-container { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 4px; }
         .qr-code-wrapper { position: relative; height: 100%; width: 100%; max-width: 100%; aspect-ratio: 1 / 1; display: block; }
+        
         [id^="qr-code-"] { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; position: relative; }
         [id^="qr-code-"] canvas { display: none !important; }
         [id^="qr-code-"] img { display: block !important; width: 100% !important; height: 100% !important; max-width: 100% !important; max-height: 100% !important; object-fit: contain; }
 
-        .qr-logo-overlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 25%; aspect-ratio: 1 / 1; background-color: white; display: flex; align-items: center; justify-content: center; padding: 4px; box-shadow: 0 0 0 2px white; z-index: 10; border-radius: 2px; pointer-events: none; }
-        
-        .hidden { display: none !important; }
+        /* ESTILO ESTRICTO PARA EL LOGO CENTRAL DEL QR */
+        .qr-logo-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 25%;           /* Porcentaje fijo del ancho del QR */
+            aspect-ratio: 1 / 1;  /* FUERZA que sea un cuadrado perfecto siempre */
+            background-color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px;
+            box-shadow: 0 0 0 2px white; /* Borde blanco falso para separar del QR */
+            z-index: 10;
+            border-radius: 2px;
+            pointer-events: none;
+        }
 
+        .hidden { display: none !important; }
         @media print {
             html, body { overflow: visible; height: auto; background: white; }
-            .app-header, .settings-panel, .no-print, .bottom-nav-bar { display: none !important; }
+            .app-header, .settings-panel, .no-print { display: none !important; }
             .preview-panel { padding: 0; background: white; overflow: visible; height: auto; display: block; }
-            .right-content { overflow: visible; height: auto; background: white; padding-bottom: 0;}
+            .right-content { overflow: visible; height: auto; background: white; }
             .page { box-shadow: none; margin: 0; break-after: page; }
             .view-section { display: none !important; }
             #view-generator { display: flex !important; }
@@ -120,20 +126,15 @@
         .rk-heatmap-low { background-color: #fca5a5 !important; border-color: #ef4444; }
         .rk-heatmap-med { background-color: #ef4444 !important; border-color: #b91c1c; }
         .rk-heatmap-high { background-color: #991b1b !important; border-color: #7f1d1d; transform: scale(1.1); z-index: 10; }
-        
-        /* Animacion Modal Detail */
-        .modal-slide-up { animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     </style>
 </head>
 <body>
 
+    <!-- PANTALLA DE CARGA -->
     <div id="splash-screen" class="fixed inset-0 bg-[#F5F5F7] z-[9999] flex flex-col items-center justify-center transition-opacity duration-700 ease-in-out">
         <div class="flex flex-col items-center animate-pulse">
-            <div class="w-24 h-24 bg-orange-500 rounded-2xl flex items-center justify-center text-white mb-4 shadow-xl">
-                <i class="fa-solid fa-box-open text-5xl"></i>
-            </div>
-            <h1 class="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight">Deteco <span class="text-orange-600">DTX</span> <span class="text-2xl ml-2 text-gray-400">v6.74</span></h1>
+            <img src="logo.png" class="w-24 sm:w-32 h-auto mb-4 object-contain" onerror="this.style.display='none'">
+            <h1 class="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight">Deteco <span class="text-orange-600">DTX</span> <span class="text-2xl ml-2 text-gray-400">v6.67</span></h1>
             <div class="text-xs font-bold text-gray-400 tracking-widest mt-3 uppercase">Cargando Sistema...</div>
         </div>
         <div class="absolute bottom-8 text-center px-4 w-full">
@@ -141,28 +142,29 @@
         </div>
     </div>
 
+    <!-- HEADER -->
     <div class="app-header no-print">
         <div class="flex items-center gap-2 sm:gap-4 flex-1">
-            <button onclick="toggleSettings()" id="btn-settings-toggle-desktop" class="ios-btn bg-orange-50 text-orange-600 border border-orange-200 hover:bg-orange-100 mr-1 sm:mr-3" title="Mostrar/Ocultar Ajustes">
-                <i class="fa-solid fa-sliders"></i> <span class="hidden md:inline">Panel Ajustes</span>
+            <button onclick="toggleSettings()" id="btn-settings-toggle" class="ios-btn bg-orange-50 text-orange-600 border border-orange-200 hover:bg-orange-100 mr-1 sm:mr-3" title="Mostrar/Ocultar Ajustes" style="display: none;">
+                <i class="fa-solid fa-sliders"></i> <span class="hidden md:inline">Ajustes</span>
             </button>
             <div class="app-title hidden sm:block mr-2 shrink-0">Deteco <span class="text-orange-600">DTX</span></div>
             
             <div class="flex bg-gray-200/60 p-1 rounded-lg overflow-x-auto hide-scroll gap-1">
-                <button onclick="setView('generator')" id="btn-gen-desktop" class="ios-btn btn-ghost shrink-0"><i class="fa-solid fa-tags mr-1"></i> Etiquetas 5S</button>
-                <button onclick="setView('visor')" id="btn-vis-desktop" class="ios-btn btn-active-tab shrink-0"><i class="fa-solid fa-book-open mr-1"></i> Visor Materiales</button>
-                <div class="w-px h-6 bg-gray-300 mx-2 self-center"></div>
-                <!-- Modulos ocultos inicialmente -->
-                <div id="gerencia-tabs-desktop" class="hidden flex gap-1">
-                    <button onclick="setView('inventario')" id="btn-inv-desktop" class="ios-btn btn-ghost shrink-0 text-gray-600"><i class="fa-solid fa-clipboard-check mr-1"></i> Auditoría</button>
-                    <button onclick="setView('mermas')" id="btn-mermas-desktop" class="ios-btn btn-ghost shrink-0 text-red-600"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Mermas</button>
-                    <button onclick="setView('dashboard')" id="btn-dash-desktop" class="ios-btn btn-ghost shrink-0 text-indigo-600"><i class="fa-solid fa-chart-pie mr-1"></i> Dashboard</button>
-                </div>
-                <button onclick="intentarVerGerencia()" id="btn-auth-desktop" class="ios-btn btn-ghost shrink-0 text-gray-400 hover:text-orange-500"><i class="fa-solid fa-lock"></i> <span class="text-xs ml-1">Gerencia</span></button>
+                <button onclick="setView('generator')" id="btn-gen" class="ios-btn btn-ghost shrink-0">Etiquetas 5S</button>
+                <button onclick="setView('visor')" id="btn-vis" class="ios-btn btn-active-tab shrink-0">Visor</button>
+                <button onclick="intentarAccesoProtegido('inventario')" id="btn-inv" class="ios-btn btn-ghost shrink-0 text-gray-600">
+                    <i class="fa-solid fa-clipboard-check mr-1"></i> Inventario
+                </button>
+                <button onclick="setView('mermas')" id="btn-mermas" class="ios-btn btn-ghost shrink-0 text-red-600 relative">
+                    <i class="fa-solid fa-triangle-exclamation mr-1"></i> Mermas <span id="badge-mermas" class="hidden absolute -top-2 -right-2 bg-red-600 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-white shadow-sm">0</span>
+                </button>
+                <button onclick="intentarAccesoProtegido('dashboard')" id="btn-dash" class="ios-btn btn-ghost shrink-0 text-indigo-600 relative">
+                    <i class="fa-solid fa-chart-pie mr-1"></i> Dashboard
+                </button>
             </div>
         </div>
         <div class="flex gap-2 ml-2 shrink-0">
-            <button onclick="loadDB(true)" class="ios-btn btn-secondary" title="Sincronizar Datos"><i class="fa-solid fa-rotate" id="syncIconTop"></i></button>
             <button onclick="downloadPDF()" class="ios-btn btn-secondary"><span class="hidden lg:inline">PDF</span> <i class="fa-regular fa-file-pdf lg:ml-1"></i></button>
             <button onclick="window.print()" class="ios-btn btn-primary"><span class="hidden lg:inline">Imprimir</span> <i class="fa-solid fa-print lg:ml-1"></i></button>
         </div>
@@ -180,12 +182,13 @@
         </div>
     </div>
 
+    <!-- MODALES GENERALES (Contraseña, Inventario, Merma, Ficha) -->
     <div id="modalAuth" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[4000] p-4 backdrop-blur-md">
         <div class="bg-white rounded-3xl p-8 w-full max-w-sm shadow-2xl flex flex-col items-center">
             <div class="w-16 h-16 bg-orange-50 text-orange-500 border border-orange-100 rounded-full flex items-center justify-center text-3xl mb-4"><i class="fa-solid fa-lock"></i></div>
-            <h3 class="text-2xl font-black text-gray-900 mb-2">Gerencia</h3>
-            <p class="text-sm text-gray-500 text-center mb-6">Ingresa el PIN de seguridad para acceder a los módulos de Auditoría y Dashboard.</p>
-            <input type="password" id="inputPinBodega" placeholder="PIN" class="w-full text-center tracking-[0.5em] text-3xl font-black py-4 px-4 rounded-2xl border-2 border-gray-200 text-gray-800 outline-none focus:border-orange-500 shadow-sm transition-colors bg-gray-50 mb-4" autocomplete="off" onkeypress="if(event.key === 'Enter') validarPin()">
+            <h3 class="text-2xl font-black text-gray-900 mb-2">Acceso Restringido</h3>
+            <p class="text-sm text-gray-500 text-center mb-6">Módulo exclusivo de Auditoría de Bodega. Ingresa tu PIN de acceso.</p>
+            <input type="password" id="inputPinBodega" placeholder="PIN de 4 dígitos" class="w-full text-center tracking-[0.5em] text-3xl font-black py-4 px-4 rounded-2xl border-2 border-gray-200 text-gray-800 outline-none focus:border-orange-500 shadow-sm transition-colors bg-gray-50 mb-4" autocomplete="off" onkeypress="if(event.key === 'Enter') validarPin()">
             <div id="pinError" class="hidden text-red-500 text-sm font-bold mb-4">PIN Incorrecto.</div>
             <div class="flex gap-3 w-full">
                 <button onclick="cerrarModalAuth()" class="flex-1 bg-gray-100 text-gray-600 hover:bg-gray-200 py-4 rounded-xl font-bold transition-colors">Cancelar</button>
@@ -194,100 +197,154 @@
         </div>
     </div>
 
-    <!-- MODAL DETALLE PRODUCTO -->
-    <div id="modalProductDetail" class="fixed inset-0 bg-black/60 hidden items-end sm:items-center justify-center z-[3000] sm:p-4 backdrop-blur-sm">
-        <div class="bg-white w-full sm:max-w-md h-[90vh] sm:h-auto sm:max-h-[90vh] rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col relative modal-slide-up overflow-hidden">
-            <!-- Header Modal -->
-            <div class="flex justify-between items-center w-full px-6 py-4 border-b border-gray-100 bg-gray-50 shrink-0 rounded-t-3xl sm:rounded-t-3xl">
-                <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center"><i class="fa-solid fa-box"></i></div>
-                    <span class="font-black text-gray-800 uppercase tracking-widest text-[10px]">Detalle de Material</span>
-                </div>
-                <button onclick="cerrarModalProducto()" class="w-8 h-8 bg-gray-200 text-gray-600 hover:bg-gray-300 rounded-full flex items-center justify-center transition-colors"><i class="fa-solid fa-xmark"></i></button>
+    <div id="modalInicioInventario" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[4000] p-4 backdrop-blur-md">
+        <div class="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl flex flex-col transform transition-all relative border border-gray-100">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-orange-100 text-orange-500 rounded-full flex items-center justify-center text-3xl mx-auto mb-3 shadow-sm border border-orange-200"><i class="fa-solid fa-clipboard-user"></i></div>
+                <h3 class="text-2xl font-black text-gray-900 mb-1">Nueva Auditoría</h3>
+                <p class="text-sm text-gray-500">Ingresa los datos para registrar el inicio del conteo.</p>
             </div>
-
-            <!-- Cuerpo Modal -->
-            <div class="flex-1 overflow-y-auto px-6 py-6 pb-20 bg-white">
-                <div class="flex flex-col items-center justify-center mb-6 w-full text-center">
-                    <div class="text-[10px] font-black text-orange-500 uppercase tracking-widest mb-1 border border-orange-200 bg-orange-50 px-2 py-0.5 rounded-md">CÓDIGO: <span id="mdlCode" class="text-orange-700 ml-1">...</span></div>
-                    <div id="mdlName" class="text-2xl text-gray-900 font-black leading-tight uppercase w-full break-words mt-2">...</div>
-                    <div id="mdlFamily" class="text-xs font-bold text-gray-400 mt-1 uppercase tracking-widest">...</div>
-                </div>
-
-                <div class="w-full flex justify-center mb-6">
-                    <div class="flex flex-col items-center bg-gray-50 border border-gray-200 rounded-3xl w-full p-6 shadow-inner">
-                        <div class="text-sm text-gray-400 uppercase font-black tracking-widest mb-1">Stock Actual</div>
-                        <div class="flex items-baseline justify-center gap-2 w-full">
-                            <div id="mdlStock" class="text-[5rem] font-black leading-none tracking-tighter transition-colors truncate max-w-[80%] text-gray-900">0</div>
-                            <div id="mdlUnidad" class="text-2xl font-bold text-gray-400 uppercase">UND</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Boton Movimientos -->
-                <button onclick="toggleMovimientos()" id="btnToggleMovs" class="w-full bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 py-4 rounded-xl font-black transition-colors flex items-center justify-between px-6 mb-4 shadow-sm">
-                    <span class="flex items-center gap-2"><i class="fa-solid fa-money-bill-transfer"></i> Ver Movimientos de Stock</span>
-                    <i class="fa-solid fa-chevron-down transition-transform duration-300" id="iconMovs"></i>
-                </button>
-
-                <!-- Panel Movimientos -->
-                <div id="panelMovimientos" class="hidden w-full bg-white border border-gray-200 rounded-xl mb-6 overflow-hidden shadow-inner flex flex-col p-4">
-                    <div id="lblResumenMes" class="text-[10px] font-black text-gray-400 uppercase tracking-widest text-center mb-4 border-b border-gray-100 pb-2">Resumen Mes en Curso</div>
-                    <div class="flex gap-4 w-full">
-                        <div class="flex-1 bg-green-50 border border-green-200 rounded-xl p-4 flex flex-col items-center justify-center">
-                            <div class="text-green-500 mb-1"><i class="fa-solid fa-arrow-down text-xl"></i></div>
-                            <div class="text-3xl font-black text-green-600 leading-none mb-1" id="mdlTotalIn">0</div>
-                            <div class="text-[8px] font-black text-green-500 uppercase tracking-widest">Entradas</div>
-                        </div>
-                        <div class="flex-1 bg-red-50 border border-red-200 rounded-xl p-4 flex flex-col items-center justify-center">
-                            <div class="text-red-500 mb-1"><i class="fa-solid fa-arrow-up text-xl"></i></div>
-                            <div class="text-3xl font-black text-red-600 leading-none mb-1" id="mdlTotalOut">0</div>
-                            <div class="text-[8px] font-black text-red-500 uppercase tracking-widest">Salidas</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Ubicacion Fija -->
-                <div class="w-full mb-6">
-                    <div class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2"><i class="fa-solid fa-map-location-dot mr-1"></i> Ubicación Fija</div>
-                    <div class="bg-orange-50 border border-orange-200 rounded-xl px-4 py-3 flex justify-between items-center">
-                        <span class="font-black text-orange-600 text-lg" id="mdlOrg">A1</span>
-                        <button onclick="verUbicacionMapa()" class="bg-white border border-orange-200 text-orange-500 text-[10px] font-black px-3 py-1.5 rounded-lg shadow-sm hover:bg-orange-100 uppercase tracking-wider">Ver Mapa</button>
-                    </div>
-                </div>
-
-                <div id="mdlMapContainer" class="hidden relative w-full max-w-[280px] aspect-[4/5] mx-auto map-grid-bg rounded-2xl border border-gray-200 shadow-inner overflow-hidden mb-6">
-                    <!-- Mapa renderizado JS -->
-                </div>
-
-                <div class="flex gap-2 w-full mt-4 border-t border-gray-100 pt-6">
-                    <button id="btnDatasheet" onclick="abrirFichaActual()" class="w-full bg-white border-2 border-gray-200 text-gray-700 hover:bg-gray-50 py-3.5 rounded-xl font-bold transition-colors flex justify-center items-center gap-2 text-sm">
-                        <i class="fa-solid fa-file-pdf"></i> Ficha Técnica
-                    </button>
-                </div>
-                <div id="noFichaAlert" class="text-center text-xs text-gray-400 mt-2 hidden">Ficha técnica no disponible</div>
+            <div class="space-y-4 mb-8">
+                <div><input type="text" id="invInputNombre" placeholder="Nombre Responsable" class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-3 font-bold mt-1 focus:outline-none focus:border-orange-500"></div>
+                <div><input type="text" id="invInputRut" placeholder="RUT" class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-3 font-bold mt-1 focus:outline-none focus:border-orange-500"></div>
+                <div><input type="month" id="invInputPeriodo" class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-3 font-bold mt-1 focus:outline-none focus:border-orange-500 uppercase"></div>
+            </div>
+            <div class="flex gap-3 w-full mt-auto">
+                <button onclick="cerrarModalInicioInventario()" class="flex-1 bg-gray-100 text-gray-600 hover:bg-gray-200 py-4 rounded-xl font-bold transition-colors">Cancelar</button>
+                <button onclick="confirmarInicioInventario()" class="flex-1 bg-orange-500 text-white hover:bg-orange-600 py-4 rounded-xl font-black transition-colors shadow-md">Comenzar</button>
             </div>
         </div>
     </div>
 
-    <!-- MAIN LAYOUT -->
+    <div id="modalIngresarNuevo" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[4500] p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl transform transition-all relative border border-gray-100">
+            <button onclick="cerrarModalNuevoProducto()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500"><i class="fa-solid fa-xmark text-xl"></i></button>
+            <div class="text-center mt-2 mb-4">
+                <div class="w-12 h-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-2xl mx-auto mb-2 shadow-sm border border-green-200"><i class="fa-solid fa-plus"></i></div>
+                <h3 class="text-xl font-black text-gray-900">Agregar Manual</h3>
+                <p class="text-xs text-gray-500">Material no registrado en sistema</p>
+            </div>
+            <div class="space-y-4 mb-6">
+                <input type="text" id="nuevoProdCode" placeholder="Código (Opcional)" class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-3 font-bold text-gray-900">
+                <input type="text" id="nuevoProdName" placeholder="Nombre Material" class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-3 font-bold text-gray-900 uppercase">
+                <div class="flex gap-3">
+                    <input type="number" id="nuevoProdQty" placeholder="Cantidad" class="flex-[2] bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-3 font-black text-green-600 text-2xl text-center">
+                    <input type="text" id="nuevoProdUdm" value="UND" class="flex-[1] bg-gray-50 border-2 border-gray-200 rounded-xl px-2 py-3 font-bold text-gray-700 text-center uppercase">
+                </div>
+            </div>
+            <button onclick="guardarNuevoProductoManual()" class="w-full bg-green-600 text-white hover:bg-green-700 py-4 rounded-xl font-black text-lg transition-colors shadow-md">Guardar Material</button>
+        </div>
+    </div>
+
+    <!-- Modal Ingreso Conteo Físico -->
+    <div id="modalConteo" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[3500] p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl transform transition-all relative border border-gray-100">
+            <button onclick="cerrarConteoModal()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500"><i class="fa-solid fa-xmark text-xl"></i></button>
+            <div class="text-center mt-2 mb-4">
+                <div class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Cód: <span id="modalConteoCode" class="font-bold text-orange-500 ml-1">...</span></div>
+                <div id="modalConteoName" class="text-xl text-gray-900 font-black px-2 leading-tight uppercase w-full break-words">...</div>
+            </div>
+            <div class="flex flex-col justify-center items-center gap-2 mb-6 bg-orange-50/50 p-6 rounded-2xl w-full border border-orange-100">
+                <div class="text-[10px] text-orange-600 font-bold uppercase tracking-widest mb-2 text-center w-full">Ingresa el Conteo Físico Real</div>
+                <input type="number" id="inputConteoFisico" class="w-full text-center text-5xl font-black text-gray-900 border-b-4 border-orange-200 focus:outline-none bg-transparent hide-scroll" placeholder="0" onkeypress="if(event.key === 'Enter') guardarConteoFisico()">
+            </div>
+            <div class="flex gap-2 w-full">
+                <button onclick="guardarConteoFisico()" class="flex-[3] bg-orange-500 text-white py-4 rounded-xl font-black text-lg shadow-md"><i class="fa-solid fa-floppy-disk"></i> Guardar Conteo</button>
+                <button onclick="abrirMermaDesdeInventario()" class="flex-[1] bg-white text-red-600 border-2 border-red-200 py-2 rounded-xl font-bold shadow-sm flex flex-col items-center justify-center"><i class="fa-solid fa-triangle-exclamation text-xl mb-1"></i><span class="text-[9px] uppercase tracking-wider mt-1">Merma</span></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Reporte de MERMAS -->
+    <div id="modalMerma" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[3500] p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl transform transition-all relative flex flex-col max-h-[90vh]">
+            <button onclick="cerrarModalMerma()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 z-10"><i class="fa-solid fa-xmark text-xl"></i></button>
+            <h3 class="text-xl font-black text-red-600 mb-2 mt-2"><i class="fa-solid fa-triangle-exclamation mr-2"></i> Reportar Merma</h3>
+            <div class="overflow-y-auto w-full hide-scroll pb-4 flex-1">
+                <div class="bg-red-50 p-3 rounded-xl border border-red-100 mb-4 text-center mt-2">
+                    <span id="modalMermaCode" class="text-xs font-bold text-red-500 block mb-1">...</span>
+                    <p id="modalMermaName" class="text-sm font-bold text-gray-700 leading-tight">...</p>
+                </div>
+                <div class="mb-4 flex items-center justify-center gap-4">
+                    <button onclick="cambiarCantMerma(-1)" class="w-12 h-12 rounded-full bg-gray-100 text-gray-600 font-black text-xl hover:bg-gray-200 transition-colors">-</button>
+                    <input type="number" id="inputModalMermaQty" value="1" min="1" class="w-24 border-0 bg-transparent text-4xl font-black text-center text-gray-900 focus:outline-none p-0 hide-scroll">
+                    <button onclick="cambiarCantMerma(1)" class="w-12 h-12 rounded-full bg-red-100 text-red-600 font-black text-xl hover:bg-red-200 transition-colors">+</button>
+                </div>
+                <select id="inputMotivoMerma" class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-3 font-bold text-gray-700 mb-3"><option value="Daño Físico / Roto">Daño Físico / Roto</option><option value="Material Defectuoso">Material Defectuoso</option><option value="Extraviado / Perdido">Extraviado / Perdido</option><option value="Vencido">Vencido</option><option value="Otro">Otro...</option></select>
+                <button onclick="document.getElementById('inputMermaFoto').click()" class="w-full bg-gray-100 text-gray-700 py-3 rounded-xl font-bold border border-gray-200 mb-3"><i class="fa-solid fa-camera"></i> Tomar Foto Evidencia</button>
+                <input type="file" id="inputMermaFoto" accept="image/*" capture="environment" class="hidden" onchange="procesarFotoMerma(event)">
+                <div id="previewMermaFotoContainer" class="hidden mb-3 relative w-full h-32 bg-gray-100 rounded-xl overflow-hidden border border-gray-200"><img id="previewMermaFoto" src="" class="w-full h-full object-cover"><button onclick="removerFotoMerma()" class="absolute top-2 right-2 bg-red-500 text-white w-8 h-8 rounded-full shadow-md flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button></div>
+                <input type="text" id="inputObsMerma" placeholder="Observación (Ej: Cayó de grúa)" class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 mb-2">
+            </div>
+            <button onclick="confirmarMerma()" class="w-full bg-red-600 text-white py-4 rounded-xl font-black text-lg shadow-md mt-2 shrink-0">Registrar Merma</button>
+        </div>
+    </div>
+
+    <!-- Modal para ver foto ampliada -->
+    <div id="modalVerFoto" class="fixed inset-0 bg-black/95 hidden items-center justify-center z-[5000] p-4 flex-col backdrop-blur-sm">
+        <div class="w-full flex justify-end mb-4 max-w-lg">
+            <button onclick="cerrarModalVerFoto()" class="bg-gray-800 text-white hover:text-red-500 rounded-full w-10 h-10 flex items-center justify-center"><i class="fa-solid fa-xmark text-xl"></i></button>
+        </div>
+        <img id="verFotoGrande" src="" class="max-w-full max-h-[75vh] object-contain rounded-xl border-2 border-gray-800 shadow-2xl">
+        <p id="verFotoTitulo" class="text-white mt-4 font-bold text-center text-sm uppercase tracking-wider"></p>
+    </div>
+
+    <!-- Modal Ficha Técnica PDF -->
+    <div id="modalFichaTecnica" class="fixed inset-0 bg-black/90 hidden items-center justify-center z-[5000] p-4 flex-col backdrop-blur-sm transition-opacity">
+        <div class="w-full max-w-4xl h-[85vh] bg-white rounded-3xl overflow-hidden flex flex-col shadow-2xl relative">
+            <div class="flex justify-between items-center p-4 border-b border-gray-200 bg-gray-50 shrink-0">
+                <h3 class="text-lg font-black text-gray-800 truncate pr-4" id="modalFichaTitle">Ficha Técnica</h3>
+                <button onclick="cerrarModalFicha()" class="text-gray-400 hover:text-red-500 w-8 h-8 flex items-center justify-center rounded-full bg-white shadow-sm border border-gray-200 transition-colors"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div class="flex-1 w-full bg-gray-200 relative overflow-hidden">
+                <div class="absolute inset-0 flex items-center justify-center -z-10 text-gray-400 text-sm flex-col gap-2"><i class="fa-solid fa-spinner fa-spin text-3xl"></i><span class="font-bold uppercase tracking-widest text-[10px]">Cargando documento...</span></div>
+                <iframe id="iframeFicha" src="" class="w-full h-full border-0 z-10 relative" title="Ficha Técnica"></iframe>
+            </div>
+            <div class="p-4 bg-white border-t border-gray-200 shrink-0 flex gap-3">
+                <a id="btnDescargarFicha" href="#" target="_blank" download class="flex-1 bg-orange-500 text-white hover:bg-orange-600 py-4 rounded-xl font-black text-center transition-colors shadow-md flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-download"></i> Descargar Archivo Original
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Logs de Inventario -->
+    <div id="modalLogs" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[3500] p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl flex flex-col max-h-[80vh]">
+            <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-100">
+                <h3 class="text-lg font-black text-gray-900"><i class="fa-solid fa-clock-rotate-left text-orange-500 mr-2"></i> Registro de Actividad</h3>
+                <button onclick="cerrarModalLogs()" class="text-gray-400 hover:text-red-500"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div id="logsContainer" class="flex-1 overflow-y-auto w-full text-sm text-gray-600 space-y-2 pr-2"></div>
+            <button onclick="cerrarModalLogs()" class="w-full mt-4 bg-gray-100 text-gray-700 hover:bg-gray-200 py-3 rounded-xl font-bold transition-colors">Cerrar</button>
+        </div>
+    </div>
+
+    <!-- Modal Scanner -->
+    <div id="modalScanner" class="fixed inset-0 bg-black/95 hidden items-center justify-center z-[3000] p-4 flex-col backdrop-blur-md">
+        <div class="bg-white rounded-3xl p-6 w-full max-w-sm flex flex-col items-center shadow-2xl">
+            <div class="flex justify-between items-center w-full mb-4 border-b border-gray-100 pb-2">
+                <h3 class="text-lg font-black text-gray-900"><i class="fa-solid fa-qrcode mr-2 text-orange-500"></i> Escanear Etiqueta</h3>
+                <button onclick="closeScanner()" class="text-gray-400 hover:text-red-500 transition-colors"><i class="fa-solid fa-xmark text-2xl"></i></button>
+            </div>
+            <div id="reader" class="w-full rounded-2xl overflow-hidden bg-gray-900 border-2 border-dashed border-gray-300 min-h-[250px] flex items-center justify-center shadow-inner"></div>
+            <p class="text-sm font-medium text-gray-500 mt-6 text-center leading-tight">Apunta la cámara al código.<br>La lectura será automática.</p>
+        </div>
+    </div>
+
+    <!-- PANEL PRINCIPAL -->
     <div class="main-layout">
-        
-        <!-- BARRA LATERAL AJUSTES ETIQUETAS (Se oculta y muestra) -->
-        <div class="settings-panel no-print settings-collapsed" id="panel-settings">
+        <!-- BARRA LATERAL IZQUIERDA (CONFIGURACIÓN DE ETIQUETAS) -->
+        <div class="settings-panel no-print settings-collapsed" id="panel-settings" style="display: none;">
             <div class="settings-inner">
                 
-                <div class="flex items-center justify-between lg:hidden mb-6 pb-4 border-b border-gray-100">
-                    <h2 class="text-lg font-black text-gray-900"><i class="fa-solid fa-sliders text-orange-500 mr-2"></i> Ajustes Etiquetas</h2>
-                    <button onclick="toggleSettings()" class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-600"><i class="fa-solid fa-xmark"></i></button>
-                </div>
-
-                <div class="control-group mb-4">
+                <div class="control-group">
                     <div class="relative w-full">
-                        <i class="fa-solid fa-search absolute left-3 top-3.5 text-gray-400 text-sm"></i>
-                        <input type="text" id="dbSearch" placeholder="Buscar en BD para autocompletar..." class="w-full bg-white border-2 border-gray-200 rounded-xl pl-10 pr-3 py-3 text-sm font-bold text-gray-900 outline-none focus:border-orange-500 shadow-sm transition-colors">
-                        <div id="searchResults" class="hidden absolute top-full left-0 w-full bg-white shadow-2xl border border-gray-100 rounded-xl mt-1 z-50 max-h-48 overflow-y-auto"></div>
+                        <i class="fa-solid fa-search absolute left-3 top-3 text-gray-400 text-xs"></i>
+                        <input type="text" id="dbSearch" placeholder="Buscar en BD para autocompletar..." class="w-full bg-white border-2 border-gray-200 rounded-xl pl-8 pr-3 py-2 text-sm font-bold text-gray-900 outline-none focus:border-orange-500">
+                        <div id="searchResults" class="hidden absolute top-full left-0 w-full bg-white shadow-xl border border-gray-100 rounded-lg mt-1 z-50 max-h-48 overflow-y-auto"></div>
                     </div>
+                    <div id="dbStatus" class="text-[9px] text-gray-400 text-right mt-1 font-bold">CONECTANDO...</div>
                 </div>
 
                 <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm mb-4">
@@ -309,24 +366,24 @@
                 </div>
 
                 <div class="bg-orange-50/50 p-4 rounded-2xl border border-orange-100 shadow-sm mb-4">
-                    <div class="text-[10px] font-black text-orange-600 uppercase tracking-widest mb-3 flex items-center gap-1 border-b border-orange-200/50 pb-2"><i class="fa-solid fa-layer-group"></i> Kanban 5S</div>
+                    <div class="text-[10px] font-black text-orange-600 uppercase tracking-widest mb-3 flex items-center gap-1 border-b border-orange-200/50 pb-2"><i class="fa-solid fa-layer-group"></i> Ubicación y Kanban 5S</div>
                     <div class="flex flex-col gap-3">
                         <div>
-                            <label class="text-[9px] font-bold text-orange-600 uppercase ml-1">Nº de Estante</label>
+                            <label class="text-[9px] font-bold text-orange-600 uppercase ml-1">Nº de Estante (Formatos: C1, A5, etc)</label>
                             <input type="text" id="orgInput" placeholder="Ej: C1" class="w-full bg-white border-2 border-orange-200 rounded-lg px-3 py-2 text-base font-black text-orange-600 text-center outline-none focus:border-orange-500 uppercase">
                         </div>
                         <div class="grid grid-cols-3 gap-2">
                             <div>
-                                <label class="text-[8px] font-black text-gray-500 uppercase text-center block w-full mb-1">Consumo Sem.</label>
-                                <input type="number" id="consumoInput" class="w-full bg-white border border-gray-200 rounded-lg px-1 py-2 text-sm font-black text-gray-800 text-center outline-none focus:border-orange-500" placeholder="0">
+                                <label class="text-[8px] font-black text-gray-500 uppercase text-center block w-full mb-1">Consumo Semanal</label>
+                                <input type="number" id="consumoInput" class="w-full bg-white border border-gray-200 rounded-lg px-1 py-2 text-sm font-black text-gray-800 text-center outline-none focus:border-orange-500" placeholder="Vacio">
                             </div>
                             <div>
                                 <label class="text-[8px] font-black text-gray-500 uppercase text-center block w-full mb-1">Stock MIN</label>
-                                <input type="number" id="minInput" class="w-full bg-white border border-gray-200 rounded-lg px-1 py-2 text-sm font-black text-gray-800 text-center outline-none focus:border-orange-500" placeholder="0">
+                                <input type="number" id="minInput" class="w-full bg-white border border-gray-200 rounded-lg px-1 py-2 text-sm font-black text-gray-800 text-center outline-none focus:border-orange-500" placeholder="Vacio">
                             </div>
                             <div>
                                 <label class="text-[8px] font-black text-gray-500 uppercase text-center block w-full mb-1">Stock MAX</label>
-                                <input type="number" id="maxInput" class="w-full bg-white border border-gray-200 rounded-lg px-1 py-2 text-sm font-black text-gray-800 text-center outline-none focus:border-orange-500" placeholder="0">
+                                <input type="number" id="maxInput" class="w-full bg-white border border-gray-200 rounded-lg px-1 py-2 text-sm font-black text-gray-800 text-center outline-none focus:border-orange-500" placeholder="Vacio">
                             </div>
                         </div>
                     </div>
@@ -360,16 +417,34 @@
                     </div>
 
                     <div class="flex flex-col gap-2 pt-3 border-t border-gray-200">
-                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" id="checkIncludeQR" class="w-4 h-4 accent-orange-500" checked> <span class="text-[10px] font-bold text-gray-700 uppercase tracking-wider">Incluir Código QR</span></label>
-                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" id="checkLogoInQR" class="w-4 h-4 accent-orange-500" checked> <span class="text-[10px] font-bold text-gray-700 uppercase tracking-wider">Logo al Centro del QR</span></label>
-                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" id="checkLogoGrayscale" class="w-4 h-4 accent-orange-500" checked> <span class="text-[10px] font-bold text-gray-700 uppercase tracking-wider">Logo B/N (Ahorro Tinta)</span></label>
-                        <label class="flex items-center gap-2 cursor-pointer mt-2"><input type="checkbox" id="checkShowDrawer" class="w-4 h-4 accent-orange-500" checked> <span class="text-[10px] font-black text-orange-600 uppercase tracking-wider">Mostrar Sección "Nº Cajón"</span></label>
-                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" id="checkShowMin" class="w-4 h-4 accent-orange-500" checked> <span class="text-[10px] font-black text-orange-600 uppercase tracking-wider">Mostrar Valor MIN</span></label>
-                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" id="checkShowMax" class="w-4 h-4 accent-orange-500" checked> <span class="text-[10px] font-black text-orange-600 uppercase tracking-wider">Mostrar Valor MAX</span></label>
+                        <div class="flex items-center gap-2">
+                            <input type="checkbox" id="checkIncludeQR" class="w-4 h-4 accent-orange-500" checked>
+                            <label for="checkIncludeQR" class="text-[10px] font-bold text-gray-700 uppercase tracking-wider cursor-pointer">Incluir Código QR en Etiqueta</label>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <input type="checkbox" id="checkLogoInQR" class="w-4 h-4 accent-orange-500" checked>
+                            <label for="checkLogoInQR" class="text-[10px] font-bold text-gray-700 uppercase tracking-wider cursor-pointer">Logo de Empresa al Centro del QR</label>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <input type="checkbox" id="checkLogoGrayscale" class="w-4 h-4 accent-orange-500" checked>
+                            <label for="checkLogoGrayscale" class="text-[10px] font-bold text-gray-700 uppercase tracking-wider cursor-pointer">Logo del QR en Blanco y Negro</label>
+                        </div>
+                        <div class="flex items-center gap-2 mt-2">
+                            <input type="checkbox" id="checkShowDrawer" class="w-4 h-4 accent-orange-500" checked>
+                            <label for="checkShowDrawer" class="text-[10px] font-bold text-[#F26522] uppercase tracking-wider cursor-pointer">Mostrar Sección "Nº Cajón"</label>
+                        </div>
+                        <div class="flex items-center gap-2 mt-2">
+                            <input type="checkbox" id="checkShowMin" class="w-4 h-4 accent-orange-500" checked>
+                            <label for="checkShowMin" class="text-[10px] font-bold text-[#F26522] uppercase tracking-wider cursor-pointer">Mostrar Valor MIN</label>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <input type="checkbox" id="checkShowMax" class="w-4 h-4 accent-orange-500" checked>
+                            <label for="checkShowMax" class="text-[10px] font-bold text-[#F26522] uppercase tracking-wider cursor-pointer">Mostrar Valor MAX</label>
+                        </div>
                     </div>
                 </div>
 
-                <button id="btnAgregarHoja" onclick="agregarALaHoja()" class="w-full bg-orange-500 text-white font-black py-4 rounded-xl shadow-md hover:bg-orange-600 transition-colors flex justify-center items-center gap-2 text-lg active:scale-95">
+                <button id="btnAgregarHoja" onclick="agregarALaHoja()" class="w-full bg-orange-500 text-white font-black py-4 rounded-xl shadow-md hover:bg-orange-600 transition-colors flex justify-center items-center gap-2 text-lg">
                     <i class="fa-solid fa-plus"></i> Añadir a la Hoja
                 </button>
 
@@ -402,61 +477,133 @@
                         </div>
                     </div>
                 </div>
+                
+                <div class="mt-6 text-center pb-6">
+                     <button onclick="location.reload()" class="text-[10px] font-bold text-gray-400 hover:text-gray-600 underline">Reiniciar App Completa</button>
+                </div>
             </div>
         </div>
 
-        <!-- RIGHT CONTENT (VIEWS) -->
+        <!-- CONTENEDOR DERECHO -->
         <div class="right-content">
             
-            <!-- VISTA 1: GENERADOR -->
             <div class="preview-panel view-section active" id="view-generator">
-                <div class="w-full flex justify-between items-center p-4 lg:hidden bg-white border-b border-gray-100 mb-2 rounded-xl shadow-sm">
-                    <h2 class="font-black text-gray-800 text-lg"><i class="fa-solid fa-tags text-orange-500 mr-1"></i> Generador 5S</h2>
-                    <button onclick="toggleSettings()" class="bg-orange-50 text-orange-600 px-4 py-2 rounded-lg text-xs font-bold border border-orange-200"><i class="fa-solid fa-sliders"></i> Ajustes</button>
-                </div>
-                
-                <div class="w-full text-center mb-4 opacity-50 no-print flex flex-col items-center justify-center mt-2">
+                <div class="w-full text-center mb-4 opacity-50 no-print flex flex-col items-center justify-center">
                     <p class="text-xs font-bold uppercase tracking-widest"><i class="fa-solid fa-print"></i> Previsualización A4</p>
                     <p class="text-[10px] max-w-sm mt-1">Fondo de la App en blanco para no gastar tinta gris.</p>
                 </div>
-                <div id="pages-wrapper" class="w-full flex flex-col items-center bg-white py-4 shadow-sm rounded-xl"></div>
+                <div id="pages-wrapper" class="w-full flex flex-col items-center bg-white py-4"></div>
             </div>
 
-            <!-- VISTA 2: NUEVO DIRECTORIO / VISOR -->
-            <div class="preview-panel view-section h-full" id="view-visor">
-                <div class="w-full max-w-2xl mx-auto flex flex-col h-full bg-white lg:bg-transparent rounded-2xl lg:shadow-none shadow-xl border border-gray-100 lg:border-none overflow-hidden">
-                    
-                    <!-- Top Search Bar Sticky -->
-                    <div class="bg-white px-4 py-4 border-b border-gray-100 shrink-0 z-20 shadow-sm relative">
-                        <div class="text-center mb-4">
-                            <h2 class="text-2xl font-black text-gray-900 tracking-tight">Visor Materiales</h2>
-                            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">Bodega Deteco</p>
-                            <div id="dbStatusVisor" class="text-[9px] text-orange-500 font-bold mt-1">Conectando...</div>
+            <!-- VISTA 2: VISOR PRINCIPAL -->
+            <div class="preview-panel view-section" id="view-visor">
+                <div class="w-full max-w-xl mx-auto flex flex-col items-center">
+                    <div class="text-center mb-6 shrink-0 text-center">
+                        <h2 class="text-3xl font-black text-gray-900 mb-2">Visor de Inventario</h2>
+                        <p class="text-gray-500 text-sm">Búsqueda manual o escaneo de código</p>
+                    </div>
+
+                    <div class="w-full flex flex-col gap-3 mb-8 px-2">
+                        <div class="relative w-full mb-2">
+                            <select id="selectMaterialVisor" class="w-full bg-white border-2 border-orange-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-800 outline-none focus:border-orange-500 shadow-sm cursor-pointer appearance-none">
+                                <option value="">Seleccionar material del listado...</option>
+                                <!-- Las opciones se inyectarán aquí mediante JS -->
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-orange-500">
+                                <i class="fa-solid fa-chevron-down"></i>
+                            </div>
                         </div>
+                        <div class="flex items-center w-full my-2">
+                            <hr class="flex-grow border-gray-200">
+                            <span class="px-3 text-xs font-bold text-gray-400 uppercase tracking-widest">O Buscar</span>
+                            <hr class="flex-grow border-gray-200">
+                        </div>
+                        
                         <div class="relative w-full">
-                            <i class="fa-solid fa-search absolute left-4 top-4 text-gray-400 text-lg"></i>
-                            <input type="text" id="dirSearchInput" placeholder="Buscar material o SKU..." class="w-full text-left py-4 pl-12 pr-4 rounded-2xl border-2 border-gray-200 text-sm font-bold text-gray-800 outline-none focus:border-orange-500 shadow-sm transition-colors bg-gray-50" autocomplete="off" oninput="filterDirectory()">
+                            <input type="text" id="manualInput" placeholder="Ingresa CÓDIGO o NOMBRE..." class="w-full text-center py-4 px-4 rounded-2xl border-2 border-gray-200 text-xl font-black text-gray-800 outline-none focus:border-orange-500 shadow-sm transition-colors bg-white" autocomplete="off" onkeypress="handleEnter(event)">
+                            <div id="visorSearchResults" class="hidden absolute top-full left-0 w-full bg-white shadow-2xl border border-gray-100 rounded-xl mt-2 z-50 max-h-60 overflow-y-auto text-left"></div>
+                        </div>
+                        
+                        <div class="grid grid-cols-4 gap-2 w-full">
+                            <button onclick="openScanner('visor')" class="col-span-1 bg-gray-800 text-white hover:bg-black rounded-2xl py-4 flex items-center justify-center shadow-md active:scale-95 transition-all">
+                                <i class="fa-solid fa-camera text-2xl"></i>
+                            </button>
+                            <button onclick="loadDB(true)" class="col-span-1 bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-2xl py-4 flex items-center justify-center shadow-sm active:scale-95 transition-all">
+                                <i class="fa-solid fa-arrows-rotate text-2xl" id="syncIcon"></i>
+                            </button>
+                            <button onclick="manualSearch()" class="col-span-2 bg-orange-500 text-white hover:bg-orange-600 rounded-2xl py-4 flex items-center justify-center shadow-md active:scale-95 transition-all gap-2">
+                                <i class="fa-solid fa-search text-xl"></i>
+                                <span class="font-bold text-lg hidden sm:block">Buscar</span>
+                            </button>
                         </div>
                     </div>
 
-                    <!-- Layout: Directory List + Scrubber -->
-                    <div class="flex-1 w-full relative flex overflow-hidden bg-white">
-                        <!-- List Container -->
-                        <div id="directory-list" class="flex-1 overflow-y-auto hide-scroll pb-24 relative scroll-smooth">
-                            <!-- JS inyecta letras y tarjetas aqui -->
+                    <div id="scanResult" class="hidden bg-white w-full px-4 py-8 sm:p-8 rounded-3xl border border-gray-100 shadow-xl text-center relative mx-2">
+                        <img src="logo.png" class="absolute top-4 left-4 w-12 sm:w-16 h-auto object-contain opacity-100" onerror="this.style.display='none'">
+                        <div class="flex flex-col items-center justify-center mt-8 sm:mt-4 mb-2 w-full">
+                            <div class="text-xs sm:text-sm font-bold text-gray-400 uppercase tracking-wider mb-1">Cód. Producto: <span id="resCode" class="text-base sm:text-lg font-bold text-gray-600 ml-1">CODE</span></div>
+                            <div id="resName" class="text-2xl sm:text-3xl text-gray-900 font-black px-2 leading-tight uppercase w-full break-words">Nombre del producto</div>
                         </div>
+                        <div class="w-full h-1.5 bg-[#F26522] rounded-full my-4 sm:my-6 opacity-90"></div>
+                        <div class="flex flex-col items-center justify-center border-b border-gray-100 pb-8 mb-6 gap-2 w-full">
+                            <div class="text-center w-full">
+                                <div class="text-sm text-gray-400 uppercase font-black tracking-widest mb-0">Stock Actual</div>
+                                <div class="flex items-baseline justify-center gap-2 w-full">
+                                    <div id="resStock" class="text-[6rem] sm:text-[9rem] font-black text-green-500 leading-none tracking-tighter transition-colors truncate max-w-[80%]">0</div>
+                                    <div id="resUnidad" class="text-2xl sm:text-4xl font-bold text-gray-400 uppercase">UND</div>
+                                </div>
+                            </div>
+                            <button id="btnShowLocation" onclick="toggleLocationArea()" class="mt-4 bg-orange-50 text-orange-600 border border-orange-200 hover:bg-orange-100 px-6 py-3 rounded-xl font-bold text-sm transition-colors shadow-sm hidden mx-auto items-center justify-center gap-2">
+                                <i class="fa-solid fa-map-location-dot"></i> Ver Ubicación Física
+                            </button>
 
-                        <!-- Scrubber Vertical Derecho -->
-                        <div id="directory-scrubber" class="directory-scrubber no-print">
-                            <!-- JS inyecta A-Z aqui -->
+                            <!-- MAPA BODEGA 2D DISEÑO MODERNO -->
+                            <div id="locationArea" class="hidden w-full mt-4 mb-4 transition-all duration-300">
+                                <div class="bg-white rounded-3xl p-4 sm:p-6 w-full border border-gray-200 shadow-sm">
+                                    <div class="flex items-center justify-center mb-2">
+                                        <h4 class="text-[10px] font-black text-gray-400 uppercase tracking-widest"><i class="fa-solid fa-map-location-dot mr-1"></i> Layout de Bodega</h4>
+                                    </div>
+                                    <div id="mapHTMLContainerVisor" class="relative w-full max-w-[340px] aspect-[4/5] mx-auto map-grid-bg rounded-2xl border border-gray-200 shadow-inner overflow-hidden mt-2 mb-6">
+                                        <!-- Renderizado vía JS -->
+                                    </div>
+
+                                    <div class="w-full flex justify-center">
+                                        <div class="bg-gray-50 px-6 py-4 rounded-xl border border-gray-200 w-full max-w-sm text-center shadow-sm">
+                                            <span class="block text-[10px] text-gray-400 uppercase font-black tracking-wider">Ubicación Fija</span>
+                                            <span id="locModulo" class="text-4xl sm:text-5xl font-black text-orange-500 leading-none mt-2 block">-</span>
+                                        </div>
+                                    </div>
+                                    <p id="locRaw" class="text-[9px] font-medium text-gray-400 mt-4 text-center tracking-widest uppercase"></p>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-4 w-full px-2">
+                                <button onclick="abrirModalMerma()" class="w-full bg-white text-red-600 border-2 border-red-500 hover:bg-red-50 px-4 py-4 rounded-xl font-bold text-base transition-colors shadow-sm flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-triangle-exclamation text-lg"></i> Reportar Merma o Daño
+                                </button>
+                            </div>
                         </div>
+                        
+                        <div id="datasheetArea" class="hidden w-full">
+                            <button id="btnDatasheet" onclick="abrirModalFicha()" class="w-full bg-orange-50 text-orange-700 hover:bg-orange-100 py-4 rounded-xl font-bold transition-colors flex justify-center items-center gap-2 border border-orange-200 mt-4">
+                                <i class="fa-solid fa-file-pdf text-xl"></i> Ver Ficha Técnica
+                            </button>
+                        </div>
+                        <div id="noDataArea" class="hidden mt-4 mb-4 text-gray-400 text-sm w-full text-center">No hay ficha técnica disponible.</div>
+                        <div class="border-t border-gray-100 pt-6 mt-6 w-full text-center pb-4">
+                            <p class="text-sm text-gray-400 font-bold uppercase tracking-widest">Desarrollado para Deteco IC SA</p>
+                            <p class="text-2xl font-black text-orange-500 mt-1">v6.67</p>
+                        </div>
+                    </div>
+
+                    <div id="scanError" class="hidden bg-red-50 text-red-600 p-4 rounded-xl text-center mt-4 border border-red-100 font-medium w-full mx-2 shadow-sm">
+                        <i class="fa-solid fa-circle-exclamation text-xl mb-2 block"></i> Producto no encontrado en el inventario actual.
                     </div>
                 </div>
             </div>
 
-            <!-- VISTA 3: INVENTARIO (Oculta) -->
+            <!-- VISTA 3: INVENTARIO -->
             <div class="preview-panel view-section" id="view-inventario">
-                <!-- Mismo código interno de inventario que v6.67 -->
                 <div class="w-full max-w-2xl mx-auto px-2 h-full flex flex-col">
                     <div id="invStartContainer" class="flex-1 flex flex-col items-center justify-center p-6 text-center h-full">
                         <div class="w-24 h-24 bg-orange-100 text-orange-500 rounded-full flex items-center justify-center text-4xl mb-4 shadow-sm"><i class="fa-solid fa-clipboard-list"></i></div>
@@ -483,11 +630,13 @@
                                 <i class="fa-solid fa-search absolute left-4 top-3.5 text-gray-400"></i>
                                 <input type="text" id="invFilterInput" placeholder="Filtrar nombre o código..." class="w-full py-3 pl-10 pr-4 rounded-xl border-2 border-gray-200 text-sm font-bold text-gray-900 outline-none focus:border-orange-500 shadow-sm bg-white" autocomplete="off" oninput="toggleOcultarContados()">
                             </div>
+                            <button onclick="openScanner('inventario')" class="bg-gray-900 text-white hover:bg-black rounded-xl px-5 flex items-center justify-center shadow-md active:scale-95 transition-all"><i class="fa-solid fa-qrcode text-xl"></i></button>
                         </div>
 
-                        <div class="flex items-center justify-between mb-2 px-1 shrink-0 mt-1">
-                            <button onclick="abrirModalNuevoProducto()" class="bg-white text-green-600 border border-green-200 hover:bg-green-50 px-3 py-1.5 rounded-xl font-bold text-[10px] shadow-sm flex items-center gap-1.5 transition-colors uppercase tracking-wider"><i class="fa-solid fa-plus"></i> Manual</button>
-                            <label class="flex items-center gap-2 cursor-pointer bg-white px-3 py-1.5 rounded-xl border border-gray-200 shadow-sm hover:bg-gray-50 transition-colors">
+                        <div class="flex items-center justify-between mb-2 px-1 shrink-0 mt-1 overflow-x-auto hide-scroll gap-2">
+                            <button onclick="abrirModalNuevoProducto()" class="bg-white text-green-600 border border-green-200 hover:bg-green-50 px-3 py-1.5 rounded-xl font-bold text-[10px] shadow-sm flex items-center gap-1.5 transition-colors uppercase tracking-wider whitespace-nowrap"><i class="fa-solid fa-plus"></i> Agregar Manual</button>
+                            <button onclick="abrirModalLogs()" class="bg-white text-orange-600 border border-orange-200 hover:bg-orange-50 px-3 py-1.5 rounded-xl font-bold text-[10px] shadow-sm flex items-center gap-1.5 transition-colors uppercase tracking-wider whitespace-nowrap"><i class="fa-solid fa-clock-rotate-left"></i> Actividad</button>
+                            <label class="flex items-center gap-2 cursor-pointer bg-white px-3 py-1.5 rounded-xl border border-gray-200 shadow-sm hover:bg-gray-50 transition-colors whitespace-nowrap">
                                 <input type="checkbox" id="checkOcultarContados" class="w-4 h-4 accent-orange-500" onchange="toggleOcultarContados()">
                                 <span class="text-[10px] font-bold text-gray-600 uppercase tracking-wider">Ocultar contados</span>
                             </label>
@@ -497,167 +646,133 @@
 
                         <div class="flex gap-2 shrink-0 mb-4 w-full px-1">
                             <button onclick="exportarInventarioExcelSolo()" id="btnExcelSolo" class="bg-white text-green-700 hover:bg-green-50 border border-green-200 py-3 rounded-xl font-bold text-[10px] sm:text-xs transition-colors shadow-sm flex flex-col items-center justify-center shrink-0 w-16" title="Bajar Excel Parcial"><i class="fa-solid fa-download mb-1 text-lg"></i> Bajar</button>
-                            <button onclick="finalizarInventario()" id="btnCerrarInv" class="flex-1 bg-red-600 text-white hover:bg-red-700 py-3 rounded-xl font-black text-sm transition-colors shadow-md flex items-center justify-center gap-2"><i class="fa-solid fa-lock text-xl"></i> Cerrar Inventario</button>
+                            <button onclick="finalizarInventario()" id="btnCerrarInv" class="flex-1 bg-red-600 text-white hover:bg-red-700 py-3 rounded-xl font-black text-sm transition-colors shadow-md flex items-center justify-center gap-2"><i class="fa-solid fa-lock text-xl"></i> Compartir Inventario Cerrado</button>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- VISTA 4: MERMAS (Oculta) -->
+            <!-- VISTA 4: MERMAS -->
             <div class="preview-panel view-section" id="view-mermas">
                 <div class="w-full max-w-2xl mx-auto px-2 relative h-full flex flex-col">
                     <div class="text-center mb-6 shrink-0 relative w-full pt-2">
                         <h2 class="text-3xl font-black text-red-600 mb-2">Registro de Mermas</h2>
                         <button onclick="finalizarMermas()" class="absolute top-0 right-0 text-gray-300 hover:text-red-500 bg-white p-2 sm:p-3 rounded-full shadow-sm border border-gray-100 transition-colors z-10" title="Borrar toda la lista de mermas"><i class="fa-solid fa-trash-can"></i></button>
-                        <p class="text-gray-500 text-sm">Pérdidas, daños o material defectuoso</p>
+                        <p class="text-gray-500">Pérdidas, daños o material defectuoso</p>
                     </div>
+
                     <div class="bg-white rounded-3xl border border-gray-200 shadow-lg overflow-hidden flex flex-col flex-1 min-h-[300px] mb-4 w-full">
                         <div class="bg-gray-50 p-4 border-b border-gray-200 flex justify-between items-center shrink-0 w-full">
                             <span class="font-bold text-gray-700 uppercase tracking-wider text-sm"><i class="fa-solid fa-triangle-exclamation mr-2 text-red-500"></i> Resumen de Mermas</span>
                             <span class="bg-red-100 text-red-800 text-xs font-black px-3 py-1 rounded-full border border-red-200" id="totalMermasText">0 REPORTES</span>
                         </div>
-                        <div class="flex-1 overflow-y-auto p-4 bg-white w-full hide-scroll" id="listaMermasContenedor"></div>
+                        <div class="flex-1 overflow-y-auto p-4 bg-white w-full" id="listaMermasContenedor"></div>
                     </div>
+
                     <div class="flex gap-2 shrink-0 mb-4 w-full px-1">
                         <button onclick="exportarMermasExcel()" id="btnExcelMermas" class="flex-1 bg-[#107c41] text-white hover:bg-[#0b5e31] py-4 rounded-xl font-black text-sm transition-colors shadow-md flex items-center justify-center gap-2"><i class="fa-solid fa-share-nodes text-xl"></i> Compartir Reporte de Mermas</button>
                     </div>
                 </div>
             </div>
 
-            <!-- VISTA 5: DASHBOARD (Oculto) -->
+            <!-- VISTA 5: DASHBOARD GERENCIAL -->
             <div class="preview-panel view-section" id="view-dashboard">
-                <div class="w-full max-w-4xl mx-auto px-2 relative h-full flex flex-col text-center mt-10">
-                    <h2 class="text-3xl font-black text-indigo-600 mb-2"><i class="fa-solid fa-chart-pie mr-2"></i> Dashboard</h2>
-                    <p class="text-gray-500 mb-6">Módulo en optimización para lectura masiva.</p>
-                    <button onclick="loadDB(true)" class="mx-auto bg-indigo-50 text-indigo-600 border border-indigo-200 px-6 py-3 rounded-xl font-bold hover:bg-indigo-100"><i class="fa-solid fa-arrows-rotate mr-2" id="syncIconDash"></i> Refrescar BD</button>
+                <div class="w-full max-w-4xl mx-auto px-2 relative h-full flex flex-col">
+                    <div class="text-center mb-6 shrink-0 relative w-full pt-2">
+                        <h2 class="text-3xl font-black text-indigo-600 mb-2">Dashboard Gerencial</h2>
+                        <p class="text-gray-500 mb-4">Análisis y Estado General de Bodega</p>
+                        
+                        <!-- Filtro de Meses -->
+                        <div class="max-w-xs mx-auto">
+                            <select id="dashMonthSelector" onchange="renderDashboard()" class="w-full bg-white border-2 border-indigo-200 rounded-xl px-4 py-3 text-sm font-bold text-indigo-900 outline-none focus:border-indigo-500 shadow-sm cursor-pointer">
+                                <option value="ALL">Todo el Historial</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                        <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center">
+                            <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center text-lg mb-2"><i class="fa-solid fa-boxes-stacked"></i></div>
+                            <div class="text-2xl font-black text-gray-900" id="kpi-skus">0</div>
+                            <div class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1">SKUs Activos</div>
+                        </div>
+                        <div class="bg-white rounded-2xl p-4 shadow-sm border border-red-100 flex flex-col items-center justify-center text-center">
+                            <div class="w-10 h-10 rounded-full bg-red-50 text-red-500 flex items-center justify-center text-lg mb-2"><i class="fa-solid fa-battery-empty"></i></div>
+                            <div class="text-2xl font-black text-red-600" id="kpi-quiebres">0</div>
+                            <div class="text-[9px] font-bold text-red-400 uppercase tracking-widest mt-1">Quiebres Stock</div>
+                        </div>
+                        <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center">
+                            <div class="w-10 h-10 rounded-full bg-green-50 text-green-500 flex items-center justify-center text-lg mb-2"><i class="fa-solid fa-arrow-right-arrow-left"></i></div>
+                            <div class="text-2xl font-black text-gray-900" id="kpi-movimientos">0</div>
+                            <div class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1">Total Movimientos</div>
+                        </div>
+                        <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center">
+                            <div class="w-10 h-10 rounded-full bg-orange-50 text-orange-500 flex items-center justify-center text-lg mb-2"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                            <div class="text-2xl font-black text-gray-900" id="kpi-mermas">0</div>
+                            <div class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1">Mermas Mes</div>
+                        </div>
+                    </div>
+
+                    <!-- HEATMAP -->
+                    <div class="bg-white rounded-3xl border border-gray-200 shadow-lg overflow-hidden flex flex-col mb-8 w-full p-4 sm:p-6">
+                        <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
+                            <h3 class="font-black text-gray-800 uppercase tracking-wider text-sm"><i class="fa-solid fa-fire text-orange-500 mr-1"></i> Mapa de Calor</h3>
+                            <div class="flex gap-2 bg-gray-100 p-1 rounded-xl">
+                                <button onclick="renderDashboardMap('quiebres')" id="btn-dash-quiebres" class="text-[10px] font-bold px-3 py-2 rounded-lg bg-white shadow-sm text-red-600 transition-colors uppercase tracking-wider">Quiebres</button>
+                                <button onclick="renderDashboardMap('mermas')" id="btn-dash-mermas" class="text-[10px] font-bold px-3 py-2 rounded-lg text-gray-500 hover:text-gray-800 transition-colors uppercase tracking-wider">Mermas</button>
+                            </div>
+                        </div>
+                        <div class="flex-1 w-full bg-gray-50 rounded-2xl p-4 flex items-center justify-center border border-gray-100">
+                            <div id="mapHTMLContainerDash" class="relative w-full max-w-[340px] aspect-[4/5] mx-auto map-grid-bg rounded-2xl border border-gray-200 shadow-inner overflow-hidden">
+                                <!-- Renderizado vía JS -->
+                            </div>
+                        </div>
+                        <div class="flex justify-center gap-4 mt-4" id="heatmap-legend">
+                            <!-- Leyenda se inserta aquí -->
+                        </div>
+                    </div>
+
+                    <!-- TOP 5 Y FLUJO DETALLADO -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                        
+                        <div class="bg-white rounded-3xl border border-gray-200 shadow-lg overflow-hidden flex flex-col min-h-[300px]">
+                            <div class="bg-indigo-50 p-4 border-b border-indigo-100 shrink-0 w-full text-center">
+                                <span class="font-black text-indigo-700 uppercase tracking-wider text-sm"><i class="fa-solid fa-trophy mr-1 text-yellow-500"></i> Top 5 Mayor Movimiento</span>
+                            </div>
+                            <div class="flex-1 overflow-y-auto p-2 bg-white w-full" id="dash-top5-container">
+                                <!-- Top 5 -->
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-3xl border border-gray-200 shadow-lg overflow-hidden flex flex-col min-h-[300px] max-h-[500px]">
+                            <div class="bg-gray-50 p-4 border-b border-gray-200 flex justify-between items-center shrink-0 w-full">
+                                <span class="font-bold text-gray-700 uppercase tracking-wider text-sm"><i class="fa-solid fa-money-bill-transfer mr-2 text-green-500"></i> Entradas y Salidas</span>
+                            </div>
+                            <div class="flex-1 overflow-y-auto p-2 bg-white w-full" id="dash-flujos-container">
+                                <!-- Lista de Flujos -->
+                            </div>
+                        </div>
+
+                    </div>
                 </div>
             </div>
 
-        </div> <!-- Fin Right Content -->
-    </div> <!-- Fin Main Layout -->
-
-    <!-- BARRA NAVEGACION INFERIOR (MOVIL) -->
-    <div class="bottom-nav-bar fixed bottom-0 left-0 w-full bg-white/95 backdrop-blur-xl border-t border-gray-200 flex justify-around items-end pb-3 pt-2 lg:hidden z-[2000] shadow-[0_-10px_20px_rgba(0,0,0,0.05)] h-[var(--bottom-nav-height)]">
-        
-        <button onclick="setView('generator')" id="btn-nav-gen" class="flex-1 flex flex-col items-center justify-end text-gray-400 hover:text-orange-500 transition-colors h-full pb-1">
-            <i class="fa-solid fa-tags text-xl mb-1 transition-transform"></i>
-            <span class="text-[9px] font-bold uppercase tracking-wider">Etiquetas</span>
-        </button>
-
-        <button onclick="setView('visor')" id="btn-nav-vis" class="flex-1 flex flex-col items-center justify-end text-orange-500 transition-colors h-full pb-1">
-            <i class="fa-solid fa-book-open text-xl mb-1 transition-transform scale-110"></i>
-            <span class="text-[9px] font-bold uppercase tracking-wider">Visor Mat.</span>
-        </button>
-
-        <!-- Boton SCANNER Central Gigante -->
-        <div class="flex-1 flex justify-center h-full relative">
-            <button onclick="openScanner('visor')" class="absolute bottom-2 w-16 h-16 bg-[#000] rounded-full flex items-center justify-center text-white shadow-[0_10px_25px_rgba(0,0,0,0.3)] border-[5px] border-[#F5F5F7] hover:bg-[#333] transition-all active:scale-95 z-50">
-                <i class="fa-solid fa-camera text-2xl"></i>
-            </button>
-        </div>
-
-        <button onclick="intentarVerGerencia()" id="btn-nav-ger" class="flex-1 flex flex-col items-center justify-end text-gray-400 hover:text-orange-500 transition-colors h-full pb-1 relative">
-            <i class="fa-solid fa-lock text-xl mb-1 transition-transform" id="icon-ger-mobile"></i>
-            <span class="text-[9px] font-bold uppercase tracking-wider">Gerencia</span>
-        </button>
-
-        <!-- Estos botones aparecen en el bottom nav solo si Auth es true -->
-        <div id="gerencia-tabs-mobile" class="hidden absolute bottom-full left-0 w-full bg-white border-t border-gray-100 flex justify-around p-2 shadow-lg mb-1 rounded-t-2xl pb-4">
-             <button onclick="setView('inventario')" class="flex-1 flex flex-col items-center text-gray-600"><i class="fa-solid fa-clipboard-check text-lg mb-1"></i><span class="text-[8px] font-bold uppercase">Auditoría</span></button>
-             <button onclick="setView('mermas')" class="flex-1 flex flex-col items-center text-red-600"><i class="fa-solid fa-triangle-exclamation text-lg mb-1"></i><span class="text-[8px] font-bold uppercase">Mermas</span></button>
-             <button onclick="cerrarGerenciaTabs()" class="flex-1 flex flex-col items-center text-gray-400"><i class="fa-solid fa-chevron-down text-lg mb-1"></i><span class="text-[8px] font-bold uppercase">Cerrar</span></button>
         </div>
     </div>
 
-    <!-- Modales Adicionales: Ficha, Conteo, Merma, Scanner, VerFoto -->
-    <div id="modalConteo" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[3500] p-4 backdrop-blur-sm">
-        <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl transform transition-all relative border border-gray-100">
-            <button onclick="cerrarConteoModal()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500"><i class="fa-solid fa-xmark text-xl"></i></button>
-            <div class="text-center mt-2 mb-4">
-                <div class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Cód: <span id="modalConteoCode" class="font-bold text-orange-500 ml-1">...</span></div>
-                <div id="modalConteoName" class="text-xl text-gray-900 font-black px-2 leading-tight uppercase w-full break-words">...</div>
-            </div>
-            <div class="flex flex-col justify-center items-center gap-2 mb-6 bg-orange-50/50 p-6 rounded-2xl w-full border border-orange-100">
-                <div class="text-[10px] text-orange-600 font-bold uppercase tracking-widest mb-2 text-center w-full">Ingresa el Conteo Físico Real</div>
-                <input type="number" id="inputConteoFisico" class="w-full text-center text-5xl font-black text-gray-900 border-b-4 border-orange-200 focus:outline-none bg-transparent hide-scroll" placeholder="0">
-            </div>
-            <div class="flex gap-2 w-full">
-                <button onclick="guardarConteoFisico()" class="w-full bg-orange-500 text-white py-4 rounded-xl font-black text-lg shadow-md"><i class="fa-solid fa-floppy-disk mr-2"></i> Guardar Conteo</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="modalMerma" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[5000] p-4 backdrop-blur-sm">
-        <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl transform transition-all relative flex flex-col max-h-[90vh]">
-            <button onclick="cerrarModalMerma()" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 z-10"><i class="fa-solid fa-xmark text-xl"></i></button>
-            <h3 class="text-xl font-black text-red-600 mb-2 mt-2"><i class="fa-solid fa-triangle-exclamation mr-2"></i> Reportar Merma</h3>
-            <div class="overflow-y-auto w-full hide-scroll pb-4 flex-1">
-                <div class="bg-red-50 p-3 rounded-xl border border-red-100 mb-4 text-center mt-2">
-                    <span id="modalMermaCode" class="text-xs font-bold text-red-500 block mb-1">...</span>
-                    <p id="modalMermaName" class="text-sm font-bold text-gray-700 leading-tight">...</p>
-                </div>
-                <div class="mb-4 flex items-center justify-center gap-4">
-                    <button onclick="cambiarCantMerma(-1)" class="w-12 h-12 rounded-full bg-gray-100 text-gray-600 font-black text-xl hover:bg-gray-200 transition-colors">-</button>
-                    <input type="number" id="inputModalMermaQty" value="1" min="1" class="w-24 border-0 bg-transparent text-4xl font-black text-center text-gray-900 focus:outline-none p-0 hide-scroll">
-                    <button onclick="cambiarCantMerma(1)" class="w-12 h-12 rounded-full bg-red-100 text-red-600 font-black text-xl hover:bg-red-200 transition-colors">+</button>
-                </div>
-                <select id="inputMotivoMerma" class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-3 font-bold text-gray-700 mb-3"><option value="Daño Físico / Roto">Daño Físico / Roto</option><option value="Material Defectuoso">Material Defectuoso</option><option value="Extraviado / Perdido">Extraviado / Perdido</option><option value="Vencido">Vencido</option><option value="Otro">Otro...</option></select>
-                <button onclick="document.getElementById('inputMermaFoto').click()" class="w-full bg-gray-100 text-gray-700 py-3 rounded-xl font-bold border border-gray-200 mb-3"><i class="fa-solid fa-camera"></i> Tomar Foto Evidencia</button>
-                <input type="file" id="inputMermaFoto" accept="image/*" capture="environment" class="hidden" onchange="procesarFotoMerma(event)">
-                <div id="previewMermaFotoContainer" class="hidden mb-3 relative w-full h-32 bg-gray-100 rounded-xl overflow-hidden border border-gray-200"><img id="previewMermaFoto" src="" class="w-full h-full object-cover"><button onclick="removerFotoMerma()" class="absolute top-2 right-2 bg-red-500 text-white w-8 h-8 rounded-full shadow-md flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button></div>
-                <input type="text" id="inputObsMerma" placeholder="Observación (Opcional)" class="w-full bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 mb-2">
-            </div>
-            <button onclick="confirmarMerma()" class="w-full bg-red-600 text-white py-4 rounded-xl font-black text-lg shadow-md mt-2 shrink-0">Registrar Merma</button>
-        </div>
-    </div>
-
-    <div id="modalFichaTecnica" class="fixed inset-0 bg-black/90 hidden items-center justify-center z-[6000] p-4 flex-col backdrop-blur-sm transition-opacity">
-        <div class="w-full max-w-4xl h-[85vh] bg-white rounded-3xl overflow-hidden flex flex-col shadow-2xl relative">
-            <div class="flex justify-between items-center p-4 border-b border-gray-200 bg-gray-50 shrink-0">
-                <h3 class="text-lg font-black text-gray-800 truncate pr-4" id="modalFichaTitle">Ficha Técnica</h3>
-                <button onclick="cerrarModalFicha()" class="text-gray-400 hover:text-red-500 w-8 h-8 flex items-center justify-center rounded-full bg-white shadow-sm border border-gray-200 transition-colors"><i class="fa-solid fa-xmark text-xl"></i></button>
-            </div>
-            <div class="flex-1 w-full bg-gray-200 relative overflow-hidden">
-                <div class="absolute inset-0 flex items-center justify-center -z-10 text-gray-400 text-sm flex-col gap-2"><i class="fa-solid fa-spinner fa-spin text-3xl"></i><span class="font-bold uppercase tracking-widest text-[10px]">Cargando documento...</span></div>
-                <iframe id="iframeFicha" src="" class="w-full h-full border-0 z-10 relative" title="Ficha Técnica"></iframe>
-            </div>
-            <div class="p-4 bg-white border-t border-gray-200 shrink-0 flex gap-3">
-                <a id="btnDescargarFicha" href="#" target="_blank" download class="flex-1 bg-orange-500 text-white hover:bg-orange-600 py-3.5 rounded-xl font-black text-center transition-colors shadow-md flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-download"></i> Descargar Archivo Original
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <div id="modalScanner" class="fixed inset-0 bg-black/95 hidden items-center justify-center z-[5000] p-4 flex-col backdrop-blur-md">
-        <div class="bg-white rounded-3xl p-6 w-full max-w-sm flex flex-col items-center shadow-2xl">
-            <div class="flex justify-between items-center w-full mb-4 border-b border-gray-100 pb-2">
-                <h3 class="text-lg font-black text-gray-900"><i class="fa-solid fa-qrcode mr-2 text-orange-500"></i> Escanear Etiqueta</h3>
-                <button onclick="closeScanner()" class="text-gray-400 hover:text-red-500 transition-colors"><i class="fa-solid fa-xmark text-2xl"></i></button>
-            </div>
-            <div id="reader" class="w-full rounded-2xl overflow-hidden bg-gray-900 border-2 border-dashed border-gray-300 min-h-[250px] flex items-center justify-center shadow-inner"></div>
-            <p class="text-sm font-medium text-gray-500 mt-6 text-center leading-tight">Apunta la cámara al código.<br>La lectura será automática.</p>
-        </div>
-    </div>
-
-    <div id="modalVerFoto" class="fixed inset-0 bg-black/95 hidden items-center justify-center z-[6000] p-4 flex-col backdrop-blur-sm">
-        <div class="w-full flex justify-end mb-4 max-w-lg">
-            <button onclick="cerrarModalVerFoto()" class="bg-gray-800 text-white hover:text-red-500 rounded-full w-10 h-10 flex items-center justify-center"><i class="fa-solid fa-xmark text-xl"></i></button>
-        </div>
-        <img id="verFotoGrande" src="" class="max-w-full max-h-[75vh] object-contain rounded-xl border-2 border-gray-800 shadow-2xl">
-        <p id="verFotoTitulo" class="text-white mt-4 font-bold text-center text-sm uppercase tracking-wider"></p>
-    </div>
-
+    <!-- LOGICA JAVASCRIPT -->
     <script>
         window.addEventListener('unhandledrejection', function(event) {
-            console.warn("Promesa rechazada capturada:", event.reason);
+            console.warn("Promesa rechazada capturada globalmente:", event.reason);
             event.preventDefault(); 
         });
 
-        // URL ACTUALIZADA Y CORREGIDA PARA DESCARGA CRUDA
+        // URL DE EXCEL ACTUALIZADA A 2026 (forzando raw download con dl=1 y dl.dropboxusercontent)
         const DROPBOX_EXCEL_URL = 'https://dl.dropboxusercontent.com/scl/fi/w7jr5zcl1mlu6gotuir52/Bodega-y-Abastecimiento-de-obras-2026.xlsx?rlkey=bjrmq1u2yj9ho48e7dw3p3kbs&st=p3ctczej&dl=1'; 
+        const GOOGLE_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSM3lTLNPOgrglxy22q_iVTguBWEsuuTVfpHQGXMkItgOXKa04h69EfRqQArlgVR7ZvUB-QfpMXjoGr/pub?output=csv';
 
         let dbProducts = [];
+        let dbMovimientos = []; // Base de datos para el Dashboard
         let hasSeenGeneratorMenuHint = false;
         let hintTimeout = null;
         let html5QrcodeScanner = null;
@@ -665,14 +780,18 @@
         let colaImpresion = [];
         let currentMermaFotoBase64 = null; 
         
+        let targetAfterAuth = 'inventario'; 
+
+        const PIN_BODEGA = "1234"; 
         let inventarioDesbloqueado = false;
+        
         let inventarioMetadata = JSON.parse(localStorage.getItem('deteco_inv_meta')) || null;
         let listaInventarioFisico = JSON.parse(localStorage.getItem('deteco_inventario')) || [];
         let inventarioLogs = JSON.parse(localStorage.getItem('deteco_inv_logs')) || [];
+        let invCurrentProd = null;
         let listaMermas = JSON.parse(localStorage.getItem('deteco_mermas')) || [];
-        
-        window.currentProd = null;
 
+        // ESTRUCTURA DEL MAPA HTML REUTILIZABLE
         const MAP_HTML_STRUCTURE = `
             <div id="LBL-pasillo-a" class="absolute left-[20%] top-[20%] bg-white/90 backdrop-blur px-3 py-1 rounded-full font-black text-[12px] text-gray-400 border border-gray-100 shadow-sm transition-all duration-300 z-10">PASILLO A</div>
             <div id="LBL-pasillo-b" class="absolute right-[14%] top-[50%] -translate-y-1/2 rotate-90 bg-white/90 backdrop-blur px-3 py-1 rounded-full font-black text-[12px] text-gray-400 border border-gray-100 shadow-sm transition-all duration-300 z-10 origin-center">PASILLO B</div>
@@ -685,6 +804,11 @@
             <div class="absolute top-[4%] right-[4%] w-[12%] h-[92%] grid grid-rows-3 gap-2"><div class="flex flex-row gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div data-rack="B4" class="rk-block"></div><div data-rack="B3" class="rk-block"></div><div data-rack="B2" class="rk-block"></div><div data-rack="B1" class="rk-block"></div></div><div class="flex flex-row gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div data-rack="B8" class="rk-block"></div><div data-rack="B7" class="rk-block"></div><div data-rack="B6" class="rk-block"></div><div data-rack="B5" class="rk-block"></div></div><div class="flex flex-row gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div data-rack="B12" class="rk-block"></div><div data-rack="B11" class="rk-block"></div><div data-rack="B10" class="rk-block"></div><div data-rack="B9" class="rk-block"></div></div></div>
         `;
 
+        function injectMaps() {
+            document.getElementById('mapHTMLContainerVisor').innerHTML = MAP_HTML_STRUCTURE;
+            document.getElementById('mapHTMLContainerDash').innerHTML = MAP_HTML_STRUCTURE;
+        }
+
         function saveInventarioState() {
             localStorage.setItem('deteco_inventario', JSON.stringify(listaInventarioFisico));
             localStorage.setItem('deteco_inv_logs', JSON.stringify(inventarioLogs));
@@ -692,6 +816,13 @@
         }
 
         function saveMermasState() { localStorage.setItem('deteco_mermas', JSON.stringify(listaMermas)); }
+
+        function addLog(msg) {
+            const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
+            inventarioLogs.unshift(`[${time}] ${msg}`);
+            if(inventarioLogs.length > 50) inventarioLogs.pop(); 
+            saveInventarioState(); renderLogs();
+        }
 
         const els = {
             get wrapper() { return document.getElementById('pages-wrapper'); },
@@ -728,7 +859,7 @@
             if(existing) existing.remove();
             const toast = document.createElement('div');
             toast.id = 'app-toast';
-            toast.className = `fixed bottom-24 lg:bottom-10 left-1/2 transform -translate-x-1/2 z-[9999] px-6 py-3 rounded-full text-white font-bold shadow-lg transition-all duration-300 text-sm tracking-wider uppercase ${style === 'error' ? 'bg-red-600' : 'bg-[#000]'}`;
+            toast.className = `fixed bottom-24 left-1/2 transform -translate-x-1/2 z-[9999] px-6 py-3 rounded-full text-white font-bold shadow-lg transition-all duration-300 text-sm tracking-wider uppercase ${style === 'error' ? 'bg-red-600' : 'bg-orange-600'}`;
             toast.innerText = msg;
             document.body.appendChild(toast);
             setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 2500);
@@ -738,27 +869,59 @@
             const modal = document.getElementById('modalConfirm');
             document.getElementById('confirmTitle').innerText = title;
             document.getElementById('confirmMessage').innerText = message;
-            modal.classList.remove('hidden'); modal.classList.add('flex');
-            document.getElementById('btnConfirmCancel').onclick = () => { modal.classList.add('hidden'); modal.classList.remove('flex'); };
-            document.getElementById('btnConfirmAccept').onclick = () => { modal.classList.add('hidden'); modal.classList.remove('flex'); if (onAccept) onAccept(); };
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            document.getElementById('btnConfirmCancel').onclick = () => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            };
+            document.getElementById('btnConfirmAccept').onclick = () => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                if (onAccept) onAccept();
+            };
         }
 
         window.addEventListener('load', async () => {
             try {
-                setView('visor'); 
+                injectMaps(); 
+                setView('generator'); 
                 await loadDB();
                 
                 const urlParams = new URLSearchParams(window.location.search);
                 const searchId = urlParams.get('id');
-                if (searchId) { document.getElementById('dirSearchInput').value = searchId; abrirModalProducto(searchId); }
+                if (searchId) { setView('visor'); document.getElementById('manualInput').value = searchId; manualSearch(searchId); }
                 
                 renderLabels();
                 actualizarUIMermas();
-                
+                actualizarUIEstadoInventario();
+
+                // Setup del nuevo selector de materiales
+                const selectMaterial = document.getElementById('selectMaterialVisor');
+                if (selectMaterial) {
+                    selectMaterial.addEventListener('change', (e) => {
+                        const selectedCode = e.target.value;
+                        if (selectedCode) {
+                            document.getElementById('manualInput').value = selectedCode;
+                            manualSearch(selectedCode);
+                            // Opcional: resetear el select después de buscar
+                            // e.target.selectedIndex = 0; 
+                        }
+                    });
+                }
+
                 let timeout;
                 [els.rows, els.cols, els.orientation, els.sizeName, els.sizeOrg, els.sizeFamily, els.style].forEach(el => { 
                     if (el) { el.addEventListener('input', () => { clearTimeout(timeout); timeout = setTimeout(renderLabels, 150); }); }
                 });
+                
+                if(els.checkQR) els.checkQR.addEventListener('change', renderLabels);
+                if(els.checkLogoInQR) els.checkLogoInQR.addEventListener('change', renderLabels);
+                if(els.checkLogoGrayscale) els.checkLogoGrayscale.addEventListener('change', renderLabels);
+                if(els.checkShowDrawer) els.checkShowDrawer.addEventListener('change', renderLabels);
+                if(els.checkShowMin) els.checkShowMin.addEventListener('change', renderLabels);
+                if(els.checkShowMax) els.checkShowMax.addEventListener('change', renderLabels);
 
                 const splash = document.getElementById('splash-screen');
                 setTimeout(() => { splash.style.opacity = '0'; setTimeout(() => { splash.style.display = 'none'; }, 700); }, 500); 
@@ -766,253 +929,400 @@
             } catch (err) {
                 console.error("Error cargando la app: ", err);
                 document.getElementById('splash-screen').style.display = 'none';
-                Toast("Error de conexión. Revisa consola.", "error");
             }
         });
 
-        // --- STREAMING_CHUNK: Conectando con bases de datos Excel y extrayendo movimientos... ---
+        // --- STREAMING_CHUNK: Conectando con bases de datos Excel y procesando Movimientos... ---
         async function loadDB(isManualRefresh = false) {
-            const statusEl = document.getElementById('dbStatusVisor');
-            const syncIcon = document.getElementById('syncIconTop');
+            const statusEl = document.getElementById('dbStatus');
+            const syncIcon = document.getElementById('syncIcon');
             
-            if(isManualRefresh && syncIcon) { syncIcon.classList.add('fa-spin'); }
-            if(statusEl) { statusEl.innerText = "Sincronizando..."; statusEl.className = "text-[9px] text-orange-500 font-bold mt-1 uppercase tracking-widest"; }
+            if(isManualRefresh) {
+                syncIcon.classList.add('fa-spin');
+                if(statusEl) { statusEl.innerText = "Sincronizando..."; statusEl.className = "text-[10px] text-orange-500 text-right font-bold mt-1"; }
+            }
 
             try {
-                const res = await fetch(DROPBOX_EXCEL_URL);
-                if (!res.ok) throw new Error("Fallo HTTP: " + res.status);
+                if (DROPBOX_EXCEL_URL && DROPBOX_EXCEL_URL.length > 10) {
+                    let res;
+                    const urlsToTry = [
+                        DROPBOX_EXCEL_URL, // Se intenta la url directa preformateada
+                        DROPBOX_EXCEL_URL.replace('www.dropbox.com', 'dl.dropboxusercontent.com'),
+                        'https://corsproxy.io/?' + encodeURIComponent(DROPBOX_EXCEL_URL),
+                        'https://api.allorigins.win/raw?url=' + encodeURIComponent(DROPBOX_EXCEL_URL)
+                    ];
 
-                const arrayBuffer = await res.arrayBuffer();
-                const workbook = XLSX.read(arrayBuffer, { type: 'buffer' });
-                
-                // LEER HOJA STOCK
-                const sheetStockName = workbook.SheetNames.includes('STOCK') ? 'STOCK' : workbook.SheetNames[0];
-                const wsStock = workbook.Sheets[sheetStockName];
-                const rawStock = XLSX.utils.sheet_to_json(wsStock, { header: 1, defval: "" });
-                let headerIdx = 0;
-                for(let i=0; i<Math.min(15, rawStock.length); i++){
-                    const rowStr = rawStock[i].join('').toUpperCase();
-                    if(rowStr.includes('COD') && rowStr.includes('DESCRIPCION')){ headerIdx = i; break; }
+                    for (const url of urlsToTry) { try { res = await fetch(url); if (res.ok) break; } catch (err) {} }
+                    if (!res || !res.ok) throw new Error("Imposible descargar de Dropbox");
+
+                    const arrayBuffer = await res.arrayBuffer();
+                    const workbook = XLSX.read(arrayBuffer, { type: 'buffer' });
+                    
+                    // LECTURA DE STOCK
+                    const targetSheetName = workbook.SheetNames.includes('STOCK') ? 'STOCK' : workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[targetSheetName];
+                    
+                    const rawData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" });
+                    let headerRowIndex = 0;
+                    for(let i = 0; i < Math.min(15, rawData.length); i++) {
+                        const rowStr = rawData[i].join('').toUpperCase();
+                        if(rowStr.includes('COD') && (rowStr.includes('DESCRIPCION') || rowStr.includes('NOMBRE'))) {
+                            headerRowIndex = i; break;
+                        }
+                    }
+
+                    const json = XLSX.utils.sheet_to_json(worksheet, { range: headerRowIndex, defval: "" });
+                    
+                    dbProducts = json.map(row => {
+                        let nRow = {};
+                        for (let key in row) { 
+                            let cleanKey = String(key).trim().toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                            nRow[cleanKey] = String(row[key]).trim(); 
+                        }
+                        return {
+                            CODIGO: nRow['COD'] || nRow['CODIGO'] || '', NOMBRE: nRow['DESCRIPCION'] || nRow['NOMBRE'] || '',
+                            STOCK: parseInt(nRow['STOCK ACTUAL']) || parseInt(nRow['STOCK']) || 0, UNIDAD: nRow['UDM'] || nRow['UNIDAD'] || 'UND',
+                            CATEGORIA: nRow['FAMILIA'] || nRow['CATEGORIA'] || '', FICHA: nRow['FICHA'] || nRow['FICHA TECNICA'] || '',
+                            ORGANIZADOR: nRow['UBICACION'] || nRow['ORGANIZADOR'] || nRow['PASILLO'] || '',
+                            ENTRADAS: parseInt(nRow['ENTRADAS']) || parseInt(nRow['ENTRADAS ']) || 0,
+                            SALIDAS: parseInt(nRow['SALIDAS']) || parseInt(nRow['SALIDAS ']) || 0
+                        };
+                    }).filter(p => p.CODIGO);
+
+                    // LECTURA DE MOVIMIENTOS (NUEVO V6.65)
+                    dbMovimientos = [];
+                    
+                    // Procesar ENTRADAS
+                    if(workbook.SheetNames.includes('ENTRADA')) {
+                        const wsEntrada = workbook.Sheets['ENTRADA'];
+                        let rawEntradas = XLSX.utils.sheet_to_json(wsEntrada, { header: 1, defval: "" });
+                        let headIdx = 0;
+                        for(let i = 0; i < Math.min(15, rawEntradas.length); i++) {
+                            const rStr = rawEntradas[i].join('').toUpperCase();
+                            if(rStr.includes('MES') || rStr.includes('FECHA')) { headIdx = i; break; }
+                        }
+                        const jsonEntradas = XLSX.utils.sheet_to_json(wsEntrada, { range: headIdx, defval: "" });
+                        jsonEntradas.forEach(row => {
+                            let nRow = {};
+                            for (let key in row) { nRow[String(key).trim().toUpperCase()] = String(row[key]).trim(); }
+                            const mes = nRow['MES'] || nRow['FECHA'];
+                            const cod = nRow['COD'] || nRow['CODIGO'];
+                            const cant = parseInt(nRow['CAN'] || nRow['CANT'] || nRow['CANTIDAD']) || 0;
+                            if(mes && cod && cant > 0) {
+                                dbMovimientos.push({ mes: mes.toLowerCase(), tipo: 'in', cod: cod, cant: cant });
+                            }
+                        });
+                    }
+
+                    // Procesar SALIDAS (Usamos DESCRIPCION para hacer match si no hay COD)
+                    if(workbook.SheetNames.includes('SALIDA')) {
+                        const wsSalida = workbook.Sheets['SALIDA'];
+                        let rawSalidas = XLSX.utils.sheet_to_json(wsSalida, { header: 1, defval: "" });
+                        let headIdx = 0;
+                        for(let i = 0; i < Math.min(15, rawSalidas.length); i++) {
+                            const rStr = rawSalidas[i].join('').toUpperCase();
+                            if(rStr.includes('FECHA') || rStr.includes('DESCRIPCION')) { headIdx = i; break; }
+                        }
+                        const jsonSalidas = XLSX.utils.sheet_to_json(wsSalida, { range: headIdx, defval: "" });
+                        jsonSalidas.forEach(row => {
+                            let nRow = {};
+                            for (let key in row) { nRow[String(key).trim().toUpperCase()] = String(row[key]).trim(); }
+                            const fechaRaw = nRow['FECHA'] || nRow['MES'];
+                            const desc = nRow['DESCRIPCION'] || nRow['NOMBRE'];
+                            const cant = parseInt(nRow['CANT'] || nRow['CAN'] || nRow['CANTIDAD']) || 0;
+                            
+                            if(fechaRaw && desc && cant > 0) {
+                                // Intentar extraer "mes-año" de la fecha (Ej. 08-06-2026 -> "junio-26")
+                                let mesStr = fechaRaw.toLowerCase();
+                                // Buscar producto para obtener su código
+                                const prodMatch = dbProducts.find(p => p.NOMBRE.toUpperCase() === desc.toUpperCase());
+                                const cod = prodMatch ? prodMatch.CODIGO : 'DESC_NOT_FOUND';
+                                
+                                dbMovimientos.push({ mes: mesStr, tipo: 'out', cod: cod, cant: cant });
+                            }
+                        });
+                    }
+
+                } else {
+                    const fetchUrl = isManualRefresh ? `${GOOGLE_CSV_URL}&t=${new Date().getTime()}` : GOOGLE_CSV_URL;
+                    const res = await fetch(fetchUrl); const text = await res.text();
+                    const rows = text.split('\n').map(r => r.split(','));
+
+                    let headerRowIndex = 0;
+                    for(let i = 0; i < Math.min(15, rows.length); i++) {
+                        const rowStr = rows[i].join('').toUpperCase();
+                        if(rowStr.includes('COD') && (rowStr.includes('DESCRIPCION') || rowStr.includes('NOMBRE'))) { headerRowIndex = i; break; }
+                    }
+
+                    const headers = rows[headerRowIndex].map(h => h.trim().toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/"/g,''));
+                    
+                    dbProducts = rows.slice(headerRowIndex + 1).map(r => {
+                        let nRow = {};
+                        r.forEach((val, i) => { if(headers[i]) nRow[headers[i]] = val.replace(/"/g,'').trim(); });
+                        return {
+                            CODIGO: nRow['COD'] || nRow['CODIGO'] || '', NOMBRE: nRow['DESCRIPCION'] || nRow['NOMBRE'] || '',
+                            STOCK: parseInt(nRow['STOCK ACTUAL']) || parseInt(nRow['STOCK']) || 0, UNIDAD: nRow['UDM'] || nRow['UNIDAD'] || 'UND',
+                            CATEGORIA: nRow['FAMILIA'] || nRow['CATEGORIA'] || '', FICHA: nRow['FICHA'] || nRow['FICHA TECNICA'] || '',
+                            ORGANIZADOR: nRow['UBICACION'] || nRow['ORGANIZADOR'] || nRow['PASILLO'] || '',
+                            ENTRADAS: parseInt(nRow['ENTRADAS']) || parseInt(nRow['ENTRADAS ']) || 0,
+                            SALIDAS: parseInt(nRow['SALIDAS']) || parseInt(nRow['SALIDAS ']) || 0
+                        };
+                    }).filter(p => p.CODIGO);
                 }
-                const jsonStock = XLSX.utils.sheet_to_json(wsStock, { range: headerIdx, defval: "" });
-                
-                dbProducts = jsonStock.map(row => {
-                    let nRow = {};
-                    for (let key in row) { nRow[String(key).trim().toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")] = String(row[key]).trim(); }
-                    
-                    let stockNum = 0;
-                    if(nRow['STOCK ACTUAL']) stockNum = parseFloat(nRow['STOCK ACTUAL'].replace(',','.'));
-                    else if(nRow['STOCK']) stockNum = parseFloat(nRow['STOCK'].replace(',','.'));
-                    
-                    return {
-                        CODIGO: nRow['COD'] || nRow['CODIGO'] || '', 
-                        NOMBRE: nRow['DESCRIPCION'] || nRow['NOMBRE'] || '',
-                        STOCK: isNaN(stockNum) ? 0 : Math.round(stockNum), 
-                        UNIDAD: nRow['UDM'] || nRow['UNIDAD'] || 'UND',
-                        CATEGORIA: nRow['FAMILIA'] || nRow['CATEGORIA'] || '', 
-                        FICHA: nRow['FICHA'] || nRow['FICHA TECNICA'] || '',
-                        ORGANIZADOR: nRow['UBICACION'] || nRow['ORGANIZADOR'] || nRow['PASILLO'] || '',
-                        ENTRADAS_MES: parseInt(nRow['ENTRADAS']) || 0,
-                        SALIDAS_MES: parseInt(nRow['SALIDAS']) || 0
-                    };
-                }).filter(p => p.CODIGO);
-                dbProducts.sort((a, b) => a.NOMBRE.localeCompare(b.NOMBRE));
 
-                if(statusEl) { statusEl.innerText = `Online: ${dbProducts.length} ítems`; statusEl.className = "text-[9px] text-green-600 font-black mt-1 uppercase tracking-widest"; }
-                if(isManualRefresh && syncIcon) { setTimeout(() => { syncIcon.classList.remove('fa-spin'); }, 500); }
+                dbProducts.sort((a, b) => a.NOMBRE.localeCompare(b.NOMBRE));
+                if(statusEl) { statusEl.innerText = `Online: ${dbProducts.length} productos`; statusEl.className = "text-[10px] text-green-600 text-right font-bold mt-1"; }
                 
-                renderDirectoryList('');
+                // Poblar el selector desplegable del Visor
+                const selectMaterial = document.getElementById('selectMaterialVisor');
+                if (selectMaterial) {
+                    // Guardar la opción por defecto
+                    let optionsHTML = '<option value="">Seleccionar material del listado...</option>';
+                    // Generar las opciones ordenadas (ya están ordenadas por nombre arriba)
+                    dbProducts.forEach(p => {
+                        optionsHTML += `<option value="${p.CODIGO}">${p.NOMBRE} (Stock: ${p.STOCK})</option>`;
+                    });
+                    selectMaterial.innerHTML = optionsHTML;
+                }
+
+                if(isManualRefresh) {
+                    setTimeout(() => { syncIcon.classList.remove('fa-spin'); }, 500);
+                    const currentVisInput = document.getElementById('manualInput').value;
+                    if(currentVisInput && document.getElementById('view-visor').classList.contains('active')) manualSearch(currentVisInput);
+                    if(document.getElementById('view-inventario').classList.contains('active')) actualizarUIEstadoInventario();
+                    if(document.getElementById('view-dashboard').classList.contains('active')) populateDashboardMonths();
+                }
+                
+                populateDashboardMonths();
 
             } catch (e) {
-                console.error("Error BD:", e);
-                if(statusEl) { statusEl.innerText = "Error de conexión"; statusEl.className = "text-[9px] text-red-500 font-bold mt-1 uppercase"; }
-                if(isManualRefresh && syncIcon) syncIcon.classList.remove('fa-spin');
+                console.error("Error:", e);
+                if(statusEl) { statusEl.innerText = "Error de conexión"; statusEl.className = "text-[10px] text-red-500 text-right font-bold mt-1"; }
+                if(isManualRefresh) syncIcon.classList.remove('fa-spin');
             }
         }
 
-        // --- STREAMING_CHUNK: Generando Directorio Alfabético y Scrubber... ---
-        function filterDirectory() {
-            const val = document.getElementById('dirSearchInput').value.trim().toLowerCase();
-            renderDirectoryList(val);
-        }
-
-        function renderDirectoryList(filterText) {
-            const listEl = document.getElementById('directory-list');
-            const scrubEl = document.getElementById('directory-scrubber');
-            listEl.innerHTML = ''; scrubEl.innerHTML = '';
+        // --- STREAMING_CHUNK: Procesando y renderizando Dashboard Analítico... ---
+        function populateDashboardMonths() {
+            const selector = document.getElementById('dashMonthSelector');
+            if(!selector) return;
             
-            let filtered = dbProducts;
-            if(filterText.length > 0) {
-                filtered = dbProducts.filter(p => p.CODIGO.toLowerCase().includes(filterText) || p.NOMBRE.toLowerCase().includes(filterText));
-            }
-
-            if(filtered.length === 0) {
-                listEl.innerHTML = '<div class="p-8 text-center text-gray-400 font-medium mt-10"><i class="fa-solid fa-box-open text-4xl mb-4 opacity-50 block"></i>No se encontraron resultados.</div>';
-                return;
-            }
-
-            let currentLetter = '';
-            let htmlList = '';
-            let htmlScrubber = '';
-            let lettersPresent = new Set();
-
-            filtered.forEach(p => {
-                const firstChar = p.NOMBRE.charAt(0).toUpperCase();
-                const letterGroup = /[A-Z]/.test(firstChar) ? firstChar : '#';
-
-                if(letterGroup !== currentLetter) {
-                    currentLetter = letterGroup;
-                    lettersPresent.add(currentLetter);
-                    htmlList += `<div id="letter-${currentLetter}" class="bg-gray-100 text-orange-600 font-black px-4 py-1.5 text-sm sticky top-0 z-10 border-y border-gray-200">${currentLetter}</div>`;
+            // Extraer meses únicos de dbMovimientos
+            const mesesSet = new Set();
+            dbMovimientos.forEach(m => {
+                if(m.mes && m.mes !== 'fecha' && m.mes !== 'mes') {
+                    // Limpiar mes si viene formato "08-06-2026"
+                    let cleanMes = m.mes;
+                    if(cleanMes.match(/\d{2}-\d{2}-\d{4}/)) {
+                        const parts = cleanMes.split('-');
+                        const monthIndex = parseInt(parts[1]) - 1;
+                        const year = parts[2].substring(2);
+                        const monthNames = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+                        if(monthNames[monthIndex]) cleanMes = `${monthNames[monthIndex]}-${year}`;
+                    }
+                    mesesSet.add(cleanMes);
                 }
-
-                let badgeClass = 'bg-gray-100 text-gray-600 border-gray-200';
-                if(p.STOCK <= 0) badgeClass = 'bg-red-50 text-red-600 border-red-200';
-                else if(p.STOCK > 0 && p.STOCK <= 10) badgeClass = 'bg-orange-50 text-orange-600 border-orange-200';
-                else if(p.STOCK > 10) badgeClass = 'bg-green-50 text-green-700 border-green-200';
-
-                htmlList += `
-                    <div class="px-4 py-3 border-b border-gray-50 flex items-center justify-between cursor-pointer hover:bg-orange-50/50 transition-colors bg-white active:bg-gray-100" onclick="abrirModalProducto('${p.CODIGO}')">
-                        <div class="flex-1 min-w-0 pr-3">
-                            <p class="text-sm font-bold text-gray-900 leading-tight uppercase truncate" title="${p.NOMBRE}">${p.NOMBRE}</p>
-                            <p class="text-[10px] font-black text-gray-400 mt-0.5 uppercase tracking-widest"><i class="fa-solid fa-circle text-[6px] mr-1 text-orange-400 align-middle"></i>${p.CODIGO}</p>
-                        </div>
-                        <div class="shrink-0 flex items-center">
-                            <div class="${badgeClass} border px-2.5 py-1 rounded text-xs font-black min-w-[3rem] text-center shadow-sm">
-                                ${p.STOCK}
-                            </div>
-                        </div>
-                    </div>
-                `;
             });
+            
+            const mesesArray = Array.from(mesesSet).sort();
+            
+            let html = '<option value="ALL">Todo el Historial</option>';
+            mesesArray.forEach(mes => {
+                html += `<option value="${mes}">${mes.toUpperCase()}</option>`;
+            });
+            
+            // Solo reemplazar si hay cambios para no perder la selección actual del usuario
+            if(selector.innerHTML !== html && mesesArray.length > 0) {
+                selector.innerHTML = html;
+            }
+            
+            renderDashboard();
+        }
 
-            listEl.innerHTML = htmlList;
+        function renderDashboard() {
+            const selectedMonth = document.getElementById('dashMonthSelector') ? document.getElementById('dashMonthSelector').value : 'ALL';
+            
+            // 1. Filtrar movimientos
+            let filteredMovs = dbMovimientos;
+            if(selectedMonth !== 'ALL') {
+                filteredMovs = dbMovimientos.filter(m => {
+                    let cleanMes = m.mes;
+                    if(cleanMes.match(/\d{2}-\d{2}-\d{4}/)) {
+                        const parts = cleanMes.split('-');
+                        const monthIndex = parseInt(parts[1]) - 1;
+                        const year = parts[2].substring(2);
+                        const monthNames = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+                        if(monthNames[monthIndex]) cleanMes = `${monthNames[monthIndex]}-${year}`;
+                    }
+                    return cleanMes === selectedMonth;
+                });
+            }
 
-            if(filterText === '' && lettersPresent.size > 5) {
-                const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ#".split('');
-                alphabet.forEach(l => {
-                    if(lettersPresent.has(l)) {
-                        htmlScrubber += `<div class="scrubber-letter" onclick="document.getElementById('letter-${l}').scrollIntoView({behavior:'auto'})">${l}</div>`;
-                    } else {
-                        htmlScrubber += `<div class="scrubber-letter opacity-30 cursor-default">${l}</div>`;
+            // 2. Calcular KPIs basados en el filtro
+            document.getElementById('kpi-skus').innerText = dbProducts.length;
+            
+            let totalMov = 0;
+            let productStats = {}; // { '527': { in: 23, out: 0 } }
+            
+            dbProducts.forEach(p => { productStats[p.CODIGO] = { in: 0, out: 0, currentStock: p.STOCK, name: p.NOMBRE }; });
+            
+            if(selectedMonth === 'ALL') {
+                // Usar históricos crudos del Excel
+                dbProducts.forEach(p => { 
+                    totalMov += (p.ENTRADAS + p.SALIDAS); 
+                    productStats[p.CODIGO].in = p.ENTRADAS;
+                    productStats[p.CODIGO].out = p.SALIDAS;
+                });
+            } else {
+                // Usar filtrados
+                filteredMovs.forEach(m => {
+                    totalMov += m.cant;
+                    if(productStats[m.cod]) {
+                        if(m.tipo === 'in') productStats[m.cod].in += m.cant;
+                        if(m.tipo === 'out') productStats[m.cod].out += m.cant;
                     }
                 });
-                scrubEl.innerHTML = htmlScrubber;
-                scrubEl.classList.remove('hidden');
+            }
+            
+            document.getElementById('kpi-movimientos').innerText = totalMov;
+            
+            // Recalcular Quiebres (Solo si es TODOS, usamos el stock actual. Si es un mes, es más complejo, usaremos el actual igual por simplicidad operativa)
+            const quiebres = dbProducts.filter(p => p.STOCK <= 0).length;
+            document.getElementById('kpi-quiebres').innerText = quiebres;
+            
+            // Mermas (Pendiente filtrar por mes, por ahora usamos total)
+            const mermasCant = listaMermas.reduce((acc, curr) => acc + curr.CANTIDAD, 0);
+            document.getElementById('kpi-mermas').innerText = mermasCant;
+
+            // TOP 5 MOVIMIENTOS
+            const movsArray = Object.keys(productStats).map(cod => ({
+                cod: cod,
+                nombre: productStats[cod].name,
+                total: productStats[cod].in + productStats[cod].out,
+                in: productStats[cod].in,
+                out: productStats[cod].out
+            })).sort((a, b) => b.total - a.total);
+            
+            const top5 = movsArray.slice(0, 5);
+
+            const top5Cont = document.getElementById('dash-top5-container');
+            if (top5.length === 0 || top5[0].total === 0) {
+                top5Cont.innerHTML = '<div class="p-6 text-center text-gray-400 font-medium text-sm">No hay movimientos registrados en este periodo.</div>';
             } else {
-                scrubEl.classList.add('hidden');
+                top5Cont.innerHTML = '<ul class="divide-y divide-indigo-50 w-full">' + top5.filter(m => m.total > 0).map((m, i) => `
+                    <li class="py-3 flex items-center justify-between gap-3 px-2 hover:bg-indigo-50/30 rounded-lg transition-colors">
+                        <div class="flex items-center gap-3 w-[70%]">
+                            <div class="w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-black text-xs shrink-0">${i+1}</div>
+                            <div class="flex flex-col min-w-0">
+                                <span class="text-[9px] font-black text-indigo-400 mb-0.5">${m.cod}</span>
+                                <span class="text-xs font-bold text-gray-800 truncate">${m.nombre}</span>
+                            </div>
+                        </div>
+                        <div class="bg-indigo-50 border border-indigo-100 px-2 py-1 rounded text-center shrink-0">
+                            <span class="block text-xs font-black text-indigo-700">${m.total}</span>
+                            <span class="block text-[8px] uppercase font-bold text-indigo-400">Total</span>
+                        </div>
+                    </li>
+                `).join('') + '</ul>';
+            }
+
+            // FLUJOS
+            const flujosCont = document.getElementById('dash-flujos-container');
+            const flujosFiltrados = movsArray.filter(m => m.in > 0 || m.out > 0);
+            
+            if (flujosFiltrados.length === 0) {
+                flujosCont.innerHTML = '<div class="p-6 text-center text-gray-400 font-medium text-sm">No hay entradas ni salidas registradas.</div>';
+            } else {
+                flujosCont.innerHTML = '<ul class="divide-y divide-gray-100 w-full">' + flujosFiltrados.map(f => `
+                    <li class="py-3 flex items-center justify-between gap-2 px-2 hover:bg-gray-50/50 rounded-lg transition-colors">
+                        <div class="flex flex-col min-w-0 w-[60%]">
+                            <span class="text-[9px] font-black text-gray-400 mb-0.5">${f.cod}</span>
+                            <span class="text-xs font-bold text-gray-700 truncate">${f.nombre}</span>
+                        </div>
+                        <div class="flex gap-2 shrink-0">
+                            <div class="bg-green-50 border border-green-100 px-2 py-0.5 rounded text-center min-w-[3rem]">
+                                <span class="block text-[8px] uppercase font-bold text-green-600 mb-0.5"><i class="fa-solid fa-arrow-down mr-0.5"></i>IN</span>
+                                <span class="block text-xs font-black text-green-700">${f.in}</span>
+                            </div>
+                            <div class="bg-red-50 border border-red-100 px-2 py-0.5 rounded text-center min-w-[3rem]">
+                                <span class="block text-[8px] uppercase font-bold text-red-600 mb-0.5"><i class="fa-solid fa-arrow-up mr-0.5"></i>OUT</span>
+                                <span class="block text-xs font-black text-red-700">${f.out}</span>
+                            </div>
+                        </div>
+                    </li>
+                `).join('') + '</ul>';
+            }
+
+            renderDashboardMap('quiebres');
+        }
+
+        function renderDashboardMap(filtro) {
+            const container = document.getElementById('mapHTMLContainerDash');
+            const legend = document.getElementById('heatmap-legend');
+            const btnQ = document.getElementById('btn-dash-quiebres');
+            const btnM = document.getElementById('btn-dash-mermas');
+
+            container.querySelectorAll('.rk-block').forEach(el => {
+                el.className = 'rk-block'; 
+            });
+
+            if(filtro === 'quiebres') {
+                btnQ.className = "text-[10px] font-bold px-3 py-2 rounded-lg bg-white shadow-sm text-red-600 transition-colors uppercase tracking-wider";
+                btnM.className = "text-[10px] font-bold px-3 py-2 rounded-lg text-gray-500 hover:text-gray-800 transition-colors uppercase tracking-wider";
+                legend.innerHTML = `
+                    <div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-[#ef4444] border border-[#b91c1c]"></div><span class="text-[9px] font-bold text-gray-500 uppercase">Sin Stock (Quiebre)</span></div>
+                `;
+
+                dbProducts.forEach(p => {
+                    if(p.STOCK <= 0 && p.ORGANIZADOR) {
+                        const match = p.ORGANIZADOR.match(/^(A|B|C)[\s\-]*0*(\d+)?/i);
+                        if(match && match[2]) {
+                            const rack = container.querySelector(`[data-rack="${match[1].toUpperCase()}${parseInt(match[2])}"]`);
+                            if(rack) { rack.classList.add('rk-heatmap-med'); }
+                        }
+                    }
+                });
+            } else if (filtro === 'mermas') {
+                btnM.className = "text-[10px] font-bold px-3 py-2 rounded-lg bg-white shadow-sm text-red-600 transition-colors uppercase tracking-wider";
+                btnQ.className = "text-[10px] font-bold px-3 py-2 rounded-lg text-gray-500 hover:text-gray-800 transition-colors uppercase tracking-wider";
+                legend.innerHTML = `
+                    <div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-[#fca5a5] border border-[#ef4444]"></div><span class="text-[9px] font-bold text-gray-500 uppercase">1-3 Mermas</span></div>
+                    <div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-[#ef4444] border border-[#b91c1c]"></div><span class="text-[9px] font-bold text-gray-500 uppercase">4-9 Mermas</span></div>
+                    <div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-[#991b1b] border border-[#7f1d1d]"></div><span class="text-[9px] font-bold text-gray-500 uppercase">+10 Peligro</span></div>
+                `;
+
+                let conteoPorCajon = {};
+                listaMermas.forEach(m => {
+                    const prod = dbProducts.find(p => p.CODIGO === m['CÓDIGO']);
+                    if(prod && prod.ORGANIZADOR) {
+                        const match = prod.ORGANIZADOR.match(/^(A|B|C)[\s\-]*0*(\d+)?/i);
+                        if(match && match[2]) {
+                            const rId = `${match[1].toUpperCase()}${parseInt(match[2])}`;
+                            if(!conteoPorCajon[rId]) conteoPorCajon[rId] = 0;
+                            conteoPorCajon[rId] += m.CANTIDAD;
+                        }
+                    }
+                });
+
+                for (let rId in conteoPorCajon) {
+                    const cant = conteoPorCajon[rId];
+                    const rack = container.querySelector(`[data-rack="${rId}"]`);
+                    if(rack) {
+                        if(cant >= 10) rack.classList.add('rk-heatmap-high');
+                        else if(cant >= 4) rack.classList.add('rk-heatmap-med');
+                        else rack.classList.add('rk-heatmap-low');
+                    }
+                }
             }
         }
 
-        // --- STREAMING_CHUNK: Implementando la nueva Ficha de Producto y Visor de Movimientos... ---
-        function abrirModalProducto(codigo) {
-            let prod = dbProducts.find(p => p.CODIGO.toUpperCase() === codigo.toUpperCase());
-            if(!prod) return Toast("Producto no hallado", "error");
-            
-            window.currentProd = prod;
-            document.getElementById('mdlCode').innerText = prod.CODIGO;
-            document.getElementById('mdlName').innerText = prod.NOMBRE;
-            document.getElementById('mdlFamily').innerText = prod.CATEGORIA || 'MATERIALES';
-            
-            const stockEl = document.getElementById('mdlStock');
-            stockEl.innerText = prod.STOCK;
-            stockEl.className = `text-[5rem] font-black leading-none tracking-tighter transition-colors truncate max-w-[80%] ${prod.STOCK > 10 ? 'text-green-500' : (prod.STOCK > 0 ? 'text-orange-500' : 'text-red-500')}`;
-            document.getElementById('mdlUnidad').innerText = prod.UNIDAD;
-
-            // Llenar datos de movimientos del mes
-            document.getElementById('mdlTotalIn').innerText = prod.ENTRADAS_MES;
-            document.getElementById('mdlTotalOut').innerText = prod.SALIDAS_MES;
-
-            // Fecha dinámica para el mes en curso
-            const meses = ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
-            const hoy = new Date();
-            document.getElementById('lblResumenMes').innerText = `RESUMEN ${meses[hoy.getMonth()]} ${hoy.getFullYear()}`;
-
-            // Reset panel movimientos (cerrado por defecto)
-            document.getElementById('panelMovimientos').classList.add('hidden');
-            document.getElementById('iconMovs').classList.remove('rotate-180');
-
-            const btnFicha = document.getElementById('btnDatasheet');
-            if(prod.FICHA && prod.FICHA.length > 5) {
-                btnFicha.classList.remove('hidden');
-                document.getElementById('noFichaAlert').classList.add('hidden');
-            } else {
-                btnFicha.classList.add('hidden');
-                document.getElementById('noFichaAlert').classList.remove('hidden');
-            }
-
-            const org = prod.ORGANIZADOR || '';
-            document.getElementById('mdlMapContainer').classList.add('hidden');
-            if(org && org.trim() !== '') {
-                document.getElementById('mdlOrg').innerText = org;
-            } else {
-                document.getElementById('mdlOrg').innerText = '-';
-            }
-
-            const modal = document.getElementById('modalProductDetail');
-            modal.classList.remove('hidden'); modal.classList.add('flex');
-        }
-
-        function cerrarModalProducto() {
-            const modal = document.getElementById('modalProductDetail');
-            modal.classList.add('hidden'); modal.classList.remove('flex');
-            window.currentProd = null;
-        }
-
-        function toggleMovimientos() {
-            const panel = document.getElementById('panelMovimientos');
-            const icon = document.getElementById('iconMovs');
-            
-            if(panel.classList.contains('hidden')) {
-                panel.classList.remove('hidden');
-                icon.classList.add('rotate-180');
-            } else {
-                panel.classList.add('hidden');
-                icon.classList.remove('rotate-180');
-            }
-        }
-
-        function abrirFichaActual() {
-            if(!window.currentProd || !window.currentProd.FICHA) return;
-            const modal = document.getElementById('modalFichaTecnica'); 
-            const iframe = document.getElementById('iframeFicha');
-            const btnDescarga = document.getElementById('btnDescargarFicha'); 
-            let url = window.currentProd.FICHA;
-            if(url.includes('dropbox.com')) { url = url.replace('dl=0', 'raw=1').replace('dl=1', 'raw=1'); } 
-            else if (url.includes('drive.google.com')) { url = url.replace('/view', '/preview'); }
-            
-            iframe.src = url; 
-            if(btnDescarga) btnDescarga.href = window.currentProd.FICHA; 
-            modal.classList.remove('hidden'); modal.classList.add('flex');
-        }
-
-        function cerrarModalFicha() { 
-            const modal = document.getElementById('modalFichaTecnica'); 
-            modal.classList.add('hidden'); modal.classList.remove('flex'); 
-            document.getElementById('iframeFicha').src = ''; 
-        }
-
-        function abrirMermaActual() {
-            if(!window.currentProd) return;
-            cerrarModalProducto();
-            
-            document.getElementById('modalMermaCode').innerText = window.currentProd.CODIGO; 
-            document.getElementById('modalMermaName').innerText = window.currentProd.NOMBRE;
-            document.getElementById('inputModalMermaQty').value = 1; 
-            document.getElementById('inputMotivoMerma').selectedIndex = 0; 
-            document.getElementById('inputObsMerma').value = '';
-            removerFotoMerma(); 
-            
-            const modal = document.getElementById('modalMerma'); 
-            modal.classList.remove('hidden'); modal.classList.add('flex');
-        }
-
-        function intentarVerGerencia() {
+        // --- STREAMING_CHUNK: Eventos de Interfaz y Navegación de Vistas... ---
+        function intentarAccesoProtegido(vista) {
+            targetAfterAuth = vista;
             if(inventarioDesbloqueado) { 
-                cerrarGerenciaTabs(); 
-                inventarioDesbloqueado = false; 
-                actualizarUiSeguridad(); 
-                Toast("Gerencia Bloqueada", "info"); 
+                setView(targetAfterAuth); 
+                if(targetAfterAuth === 'inventario') actualizarUIEstadoInventario(); 
+                if(targetAfterAuth === 'dashboard') renderDashboard();
             } else {
                 document.getElementById('modalAuth').classList.remove('hidden'); document.getElementById('modalAuth').classList.add('flex');
                 document.getElementById('pinError').classList.add('hidden'); document.getElementById('inputPinBodega').value = '';
@@ -1023,105 +1333,171 @@
         function cerrarModalAuth() { document.getElementById('modalAuth').classList.add('hidden'); document.getElementById('modalAuth').classList.remove('flex'); }
 
         function validarPin() {
-            const pin = document.getElementById('inputPinBodega').value;
-            if(pin === "1234") { 
+            const pinIngresado = document.getElementById('inputPinBodega').value;
+            if(pinIngresado === PIN_BODEGA) { 
                 inventarioDesbloqueado = true; 
+                addLog("Sesión iniciada."); 
                 cerrarModalAuth(); 
-                actualizarUiSeguridad(); 
-                Toast("Gerencia Desbloqueada", "success"); 
-                const tabsMobile = document.getElementById('gerencia-tabs-mobile');
-                if(tabsMobile && window.innerWidth < 1024) tabsMobile.classList.remove('hidden');
-                const tabsDesktop = document.getElementById('gerencia-tabs-desktop');
-                if(tabsDesktop) tabsDesktop.classList.remove('hidden');
+                setView(targetAfterAuth); 
+                if(targetAfterAuth === 'inventario') actualizarUIEstadoInventario(); 
+                if(targetAfterAuth === 'dashboard') renderDashboard();
             } else { 
                 document.getElementById('pinError').classList.remove('hidden'); 
                 document.getElementById('inputPinBodega').value = ''; 
             }
         }
 
-        function actualizarUiSeguridad() {
-            const btnGerMobile = document.getElementById('btn-nav-ger');
-            const iconGerMobile = document.getElementById('icon-ger-mobile');
-            const btnAuthDesk = document.getElementById('btn-auth-desktop');
-            const tabsDesktop = document.getElementById('gerencia-tabs-desktop');
-
-            if(inventarioDesbloqueado) {
-                if(iconGerMobile) iconGerMobile.className = "fa-solid fa-unlock text-xl mb-1 transition-transform";
-                if(btnGerMobile) { btnGerMobile.classList.remove('text-gray-400'); btnGerMobile.classList.add('text-indigo-600'); }
-                if(btnAuthDesk) { btnAuthDesk.innerHTML = '<i class="fa-solid fa-unlock"></i> <span class="text-xs ml-1">Bloquear</span>'; btnAuthDesk.classList.add('text-indigo-600'); }
-                if(tabsDesktop) tabsDesktop.classList.remove('hidden');
-            } else {
-                if(iconGerMobile) iconGerMobile.className = "fa-solid fa-lock text-xl mb-1 transition-transform";
-                if(btnGerMobile) { btnGerMobile.classList.add('text-gray-400'); btnGerMobile.classList.remove('text-indigo-600'); }
-                if(btnAuthDesk) { btnAuthDesk.innerHTML = '<i class="fa-solid fa-lock"></i> <span class="text-xs ml-1">Gerencia</span>'; btnAuthDesk.classList.remove('text-indigo-600'); }
-                if(tabsDesktop) tabsDesktop.classList.add('hidden');
-                const vistasActivas = document.querySelectorAll('.view-section.active');
-                if(vistasActivas.length > 0) {
-                    const id = vistasActivas[0].id;
-                    if(id === 'view-inventario' || id === 'view-mermas' || id === 'view-dashboard') setView('visor');
-                }
-            }
-        }
-
-        function cerrarGerenciaTabs() {
-            const t = document.getElementById('gerencia-tabs-mobile');
-            if(t) t.classList.add('hidden');
-        }
-
         function setView(view) {
-            cerrarGerenciaTabs();
-            if((view === 'inventario' || view === 'mermas' || view === 'dashboard') && !inventarioDesbloqueado) { 
-                intentarVerGerencia(); return; 
-            }
+            if((view === 'inventario' || view === 'dashboard') && !inventarioDesbloqueado) { intentarAccesoProtegido(view); return; }
+            if(view !== 'inventario' && view !== 'dashboard' && inventarioDesbloqueado) { inventarioDesbloqueado = false; document.getElementById('inputPinBodega').value = ''; }
 
             document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
             const targetView = document.getElementById(`view-${view}`);
             if(targetView) targetView.classList.add('active');
             
-            const panel = document.getElementById('panel-settings');
-            const btnToggleDesktop = document.getElementById('btn-settings-toggle-desktop');
-
-            if(view === 'generator') { 
-                if(panel) panel.classList.remove('settings-collapsed'); 
-                if(btnToggleDesktop) btnToggleDesktop.style.display = 'inline-flex';
-            } else { 
-                if(panel) panel.classList.add('settings-collapsed'); 
-                if(btnToggleDesktop) btnToggleDesktop.style.display = 'none';
-            }
-
-            const btnGenM = document.getElementById('btn-nav-gen');
-            const btnVisM = document.getElementById('btn-nav-vis');
+            const btnToggle = document.getElementById('btn-settings-toggle'); const panel = document.getElementById('panel-settings');
             
-            if(btnGenM) {
-                if(view === 'generator') { btnGenM.classList.add('text-orange-500'); btnGenM.classList.remove('text-gray-400'); } 
-                else { btnGenM.classList.remove('text-orange-500'); btnGenM.classList.add('text-gray-400'); }
-            }
-            if(btnVisM) {
-                if(view === 'visor') { btnVisM.classList.add('text-orange-500'); btnVisM.classList.remove('text-gray-400'); btnVisM.querySelector('i').classList.add('scale-110'); } 
-                else { btnVisM.classList.remove('text-orange-500'); btnVisM.classList.add('text-gray-400'); btnVisM.querySelector('i').classList.remove('scale-110'); }
-            }
+            if(view === 'generator') {
+                btnToggle.style.display = 'inline-flex'; panel.style.display = 'block';
+                if(!hasSeenGeneratorMenuHint) { hasSeenGeneratorMenuHint = true; panel.classList.remove('settings-collapsed'); btnToggle.classList.add('bg-orange-200'); hintTimeout = setTimeout(() => { panel.classList.add('settings-collapsed'); btnToggle.classList.remove('bg-orange-200'); }, 1200); }
+            } else { btnToggle.style.display = 'none'; panel.style.display = 'none'; }
 
-            document.querySelectorAll('#gerencia-tabs-desktop .ios-btn').forEach(btn => {
-                btn.classList.remove('btn-active-tab'); btn.classList.add('btn-ghost');
-            });
-            ['btn-gen-desktop', 'btn-vis-desktop'].forEach(id => {
-                const b = document.getElementById(id); if(b) { b.classList.remove('btn-active-tab'); b.classList.add('btn-ghost'); }
-            });
-
-            if(view==='generator') { const b = document.getElementById('btn-gen-desktop'); if(b) b.classList.replace('btn-ghost','btn-active-tab'); }
-            if(view==='visor') { const b = document.getElementById('btn-vis-desktop'); if(b) b.classList.replace('btn-ghost','btn-active-tab'); }
-            if(view==='inventario') { const b = document.getElementById('btn-inv-desktop'); if(b) b.classList.replace('btn-ghost','btn-active-tab'); actualizarUIEstadoInventario();}
-            if(view==='mermas') { const b = document.getElementById('btn-mermas-desktop'); if(b) b.classList.replace('btn-ghost','btn-active-tab'); }
-            if(view==='dashboard') { const b = document.getElementById('btn-dash-desktop'); if(b) b.classList.replace('btn-ghost','btn-active-tab'); }
+            const btnGen = document.getElementById('btn-gen'); if(btnGen) btnGen.className = view === 'generator' ? 'ios-btn btn-active-tab shrink-0' : 'ios-btn btn-ghost shrink-0';
+            const btnVis = document.getElementById('btn-vis'); if(btnVis) btnVis.className = view === 'visor' ? 'ios-btn btn-active-tab shrink-0' : 'ios-btn btn-ghost shrink-0';
+            const btnInv = document.getElementById('btn-inv'); if(btnInv) btnInv.className = view === 'inventario' ? 'ios-btn btn-active-tab shrink-0 text-gray-800 border-gray-200 bg-white shadow-sm' : 'ios-btn btn-ghost shrink-0 text-gray-500';
+            const btnMer = document.getElementById('btn-mermas'); if(btnMer) btnMer.className = view === 'mermas' ? 'ios-btn btn-active-tab shrink-0 text-red-600 border-red-200 bg-red-50 relative' : 'ios-btn btn-ghost shrink-0 text-red-600 relative';
+            const btnDash = document.getElementById('btn-dash'); if(btnDash) btnDash.className = view === 'dashboard' ? 'ios-btn btn-active-tab shrink-0 text-indigo-700 border-indigo-200 bg-indigo-50 relative' : 'ios-btn btn-ghost shrink-0 text-indigo-600 relative';
         }
 
         function toggleSettings() {
-            const panel = document.getElementById('panel-settings'); 
-            if (panel.classList.contains('settings-collapsed')) { panel.classList.remove('settings-collapsed'); } 
-            else { panel.classList.add('settings-collapsed'); }
+            const panel = document.getElementById('panel-settings'); const btn = document.getElementById('btn-settings-toggle');
+            if(hintTimeout) { clearTimeout(hintTimeout); hintTimeout = null; }
+            if (panel.classList.contains('settings-collapsed')) { panel.classList.remove('settings-collapsed'); btn.classList.add('bg-orange-200'); } 
+            else { panel.classList.add('settings-collapsed'); btn.classList.remove('bg-orange-200'); }
         }
 
-        // --- STREAMING_CHUNK: Autocompletado del Generador de Etiquetas... ---
+        // --- STREAMING_CHUNK: Implementando lógica del Visor y Modal de Ficha Técnica... ---
+        function abrirModalFicha() {
+            if(!window.currentProd || !window.currentProd.FICHA) return;
+            const modal = document.getElementById('modalFichaTecnica'); const iframe = document.getElementById('iframeFicha');
+            const btnDescarga = document.getElementById('btnDescargarFicha'); const title = document.getElementById('modalFichaTitle');
+            
+            let url = window.currentProd.FICHA;
+            if(url.includes('dropbox.com')) { url = url.replace('dl=0', 'raw=1').replace('dl=1', 'raw=1'); } 
+            else if (url.includes('drive.google.com')) { url = url.replace('/view', '/preview'); }
+            
+            iframe.src = url; btnDescarga.href = window.currentProd.FICHA; title.innerText = `Ficha: ${window.currentProd.NOMBRE}`;
+            modal.classList.remove('hidden'); modal.classList.add('flex');
+        }
+
+        function cerrarModalFicha() { const modal = document.getElementById('modalFichaTecnica'); modal.classList.add('hidden'); modal.classList.remove('flex'); document.getElementById('iframeFicha').src = ''; }
+
+        function handleEnter(e) { if(e.key === 'Enter') { document.getElementById('visorSearchResults').classList.add('hidden'); manualSearch(); } }
+
+        function manualSearch(codeOverride) {
+            const rawInput = codeOverride || document.getElementById('manualInput').value;
+            if(!rawInput) return;
+            const searchCode = rawInput.trim().toUpperCase();
+            
+            let prod = dbProducts.find(p => p.CODIGO && p.CODIGO.toUpperCase() === searchCode);
+            if (!prod) prod = dbProducts.find(p => p.NOMBRE && p.NOMBRE.toUpperCase() === searchCode);
+            if (!prod) prod = dbProducts.find(p => p.CODIGO && p.CODIGO.toUpperCase().includes(searchCode));
+            if (!prod) prod = dbProducts.find(p => p.NOMBRE && p.NOMBRE.toUpperCase().includes(searchCode));
+
+            const resDiv = document.getElementById('scanResult'); const errDiv = document.getElementById('scanError');
+            const datasDiv = document.getElementById('datasheetArea'); const noDataDiv = document.getElementById('noDataArea'); 
+            const stockEl = document.getElementById('resStock');
+            document.getElementById('visorSearchResults').classList.add('hidden');
+            document.getElementById('locationArea').classList.add('hidden');
+            const btnShowLoc = document.getElementById('btnShowLocation');
+
+            if(prod) {
+                window.currentProd = prod; 
+                errDiv.classList.add('hidden'); resDiv.classList.remove('hidden');
+                document.getElementById('resCode').innerText = prod.CODIGO; document.getElementById('resName').innerText = prod.NOMBRE;
+                
+                const stockNum = parseInt(prod.STOCK) || 0;
+                stockEl.innerText = prod.STOCK || 0;
+                stockEl.classList.remove('text-green-500', 'text-yellow-500', 'text-red-500');
+                if (stockNum > 20) { stockEl.classList.add('text-green-500'); } else if (stockNum > 0 && stockNum <= 20) { stockEl.classList.add('text-yellow-500'); } else { stockEl.classList.add('text-red-500'); }
+
+                document.getElementById('resUnidad').innerText = prod.UNIDAD || 'UND';
+                
+                if (prod.FICHA && prod.FICHA.length > 5) { datasDiv.classList.remove('hidden'); noDataDiv.classList.add('hidden'); } 
+                else { datasDiv.classList.add('hidden'); noDataDiv.classList.remove('hidden'); }
+
+                const org = prod.ORGANIZADOR || '';
+                
+                if (org && org.trim() !== '') {
+                    btnShowLoc.classList.remove('hidden', 'bg-gray-100', 'text-gray-400', 'border-transparent', 'cursor-not-allowed');
+                    btnShowLoc.classList.add('flex', 'bg-orange-50', 'text-orange-600', 'border-orange-200', 'hover:bg-orange-100');
+                    btnShowLoc.innerHTML = '<i class="fa-solid fa-map-location-dot"></i> Ver Ubicación Física';
+                    btnShowLoc.disabled = false;
+
+                    const containerVisor = document.getElementById('mapHTMLContainerVisor');
+                    containerVisor.querySelectorAll('.rk-active').forEach(el => el.classList.remove('rk-active'));
+                    containerVisor.querySelectorAll('[id^="LBL-pasillo-"]').forEach(el => { el.classList.remove('text-white', 'bg-orange-500', 'scale-110', 'border-orange-500'); el.classList.add('text-gray-400', 'bg-white/90', 'border-gray-100'); });
+
+                    const match = org.match(/^(A|B|C)[\s\-]*0*(\d+)?/i);
+
+                    if (match) {
+                        let pasillo = match[1].toUpperCase();
+                        let estanteria = match[2] || '';
+                        
+                        document.getElementById('locModulo').innerText = estanteria ? `${pasillo}${estanteria}` : pasillo;
+                        document.getElementById('locRaw').innerText = `CÓDIGO EXCEL: ${org}`;
+                        document.getElementById('locRaw').classList.remove('text-red-500', 'font-black');
+
+                        const lbl = containerVisor.querySelector(`#LBL-pasillo-${pasillo.toLowerCase()}`);
+                        if(lbl) { lbl.classList.remove('text-gray-400', 'bg-white/90', 'border-gray-100'); lbl.classList.add('text-white', 'bg-orange-500', 'scale-110', 'border-orange-500'); }
+                        if (estanteria) { const rkEl = containerVisor.querySelector(`[data-rack="${pasillo}${parseInt(estanteria)}"]`); if(rkEl) { rkEl.classList.add('rk-active'); } }
+                    } else {
+                        document.getElementById('locModulo').innerText = org.substring(0, 5) || '-';
+                        document.getElementById('locRaw').innerText = `CÓDIGO NO RECONOCIDO: ${org}`;
+                    }
+                } else {
+                    btnShowLoc.classList.remove('hidden', 'bg-orange-50', 'text-orange-600', 'border-orange-200', 'hover:bg-orange-100');
+                    btnShowLoc.classList.add('flex', 'bg-gray-100', 'text-gray-400', 'border-transparent', 'cursor-not-allowed');
+                    btnShowLoc.innerHTML = '<i class="fa-solid fa-location-dot"></i> Ubicación no registrada';
+                    btnShowLoc.disabled = true; document.getElementById('locModulo').innerText = '-';
+                }
+
+                setTimeout(() => { resDiv.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 150);
+            } else {
+                resDiv.classList.add('hidden'); errDiv.classList.remove('hidden');
+                setTimeout(() => { errDiv.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 150);
+            }
+        }
+
+        const manualInputEl = document.getElementById('manualInput');
+        const visorResultsEl = document.getElementById('visorSearchResults');
+
+        if(manualInputEl) {
+            manualInputEl.addEventListener('input', (e) => {
+                const val = e.target.value.toLowerCase().trim();
+                if(val.length < 2) { visorResultsEl.classList.add('hidden'); return; }
+                const matches = dbProducts.filter(p => (p.CODIGO && p.CODIGO.toLowerCase().includes(val)) || (p.NOMBRE && p.NOMBRE.toLowerCase().includes(val))).slice(0, 6);
+                visorResultsEl.innerHTML = '';
+                if(matches.length) {
+                    visorResultsEl.classList.remove('hidden');
+                    matches.forEach(p => {
+                        const div = document.createElement('div');
+                        div.className = "p-4 hover:bg-orange-50 cursor-pointer border-b border-gray-100 flex items-center justify-between transition-colors";
+                        div.innerHTML = `<div class="flex flex-col overflow-hidden"><span class="text-xs font-bold text-orange-500 mb-0.5">${p.CODIGO}</span><span class="text-sm font-bold text-gray-800 truncate leading-tight">${p.NOMBRE}</span></div><span class="text-[10px] font-black bg-gray-100 text-gray-500 px-2 py-1 rounded-md ml-2 whitespace-nowrap">${p.STOCK} ${p.UNIDAD}</span>`;
+                        div.onclick = () => { manualInputEl.value = p.CODIGO; visorResultsEl.classList.add('hidden'); manualSearch(p.CODIGO); };
+                        visorResultsEl.appendChild(div);
+                    });
+                } else { visorResultsEl.classList.add('hidden'); }
+            });
+        }
+
+        document.addEventListener('click', (e) => {
+            if (manualInputEl && visorResultsEl && !manualInputEl.contains(e.target) && !visorResultsEl.contains(e.target)) {
+                visorResultsEl.classList.add('hidden');
+            }
+        });
+
+        // --- STREAMING_CHUNK: Creando autocompletado en el generador de etiquetas... ---
         if(els.dbSearch) {
             els.dbSearch.addEventListener('input', (e) => {
                 const val = e.target.value.toLowerCase();
@@ -1150,6 +1526,7 @@
             });
         }
 
+        // --- STREAMING_CHUNK: Procesando fotografías de evidencias y validación de Mermas... ---
         function procesarFotoMerma(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -1173,12 +1550,21 @@
         function abrirFotoMerma(codigo, index) {
             const merma = listaMermas[index];
             if(merma && merma.FOTO) {
-                document.getElementById('verFotoGrande').src = merma.FOTO; document.getElementById('verFotoTitulo').innerText = `${merma.CANTIDAD}x ${merma.NOMBRE} (${merma.MOTIVO})`;
+                document.getElementById('verFotoGrande').src = merma.FOTO; document.getElementById('verFotoGrande').src = merma.FOTO; document.getElementById('verFotoTitulo').innerText = `${merma.CANTIDAD}x ${merma.NOMBRE} (${merma.MOTIVO})`;
                 document.getElementById('modalVerFoto').classList.remove('hidden'); document.getElementById('modalVerFoto').classList.add('flex');
             }
         }
 
         function cerrarModalVerFoto() { document.getElementById('modalVerFoto').classList.add('hidden'); document.getElementById('modalVerFoto').classList.remove('flex'); }
+
+        function abrirModalMerma() {
+            if(!window.currentProd) return;
+            document.getElementById('modalMermaCode').innerText = window.currentProd.CODIGO; document.getElementById('modalMermaName').innerText = window.currentProd.NOMBRE;
+            document.getElementById('inputModalMermaQty').value = 1; document.getElementById('inputMotivoMerma').selectedIndex = 0; document.getElementById('inputObsMerma').value = '';
+            removerFotoMerma(); 
+            const modal = document.getElementById('modalMerma'); modal.classList.remove('hidden'); modal.classList.add('flex');
+        }
+
         function cerrarModalMerma() { const modal = document.getElementById('modalMerma'); modal.classList.add('hidden'); modal.classList.remove('flex'); }
 
         function cambiarCantMerma(val) {
@@ -1201,10 +1587,8 @@
 
         function actualizarUIMermas() {
             const count = listaMermas.length; const badge = document.getElementById('badge-mermas'); const totalText = document.getElementById('totalMermasText'); const contenedor = document.getElementById('listaMermasContenedor');
-            if(count > 0) { if(badge) {badge.innerText = count; badge.classList.remove('hidden');} } else { if(badge) badge.classList.add('hidden'); }
-            if(totalText) totalText.innerText = `${count} REPORTES`;
-
-            if(!contenedor) return;
+            if(count > 0) { badge.innerText = count; badge.classList.remove('hidden'); } else { badge.classList.add('hidden'); }
+            totalText.innerText = `${count} REPORTES`;
 
             if(count === 0) { contenedor.innerHTML = `<div class="h-full flex flex-col items-center justify-center text-gray-400 gap-3"><i class="fa-solid fa-dumpster text-5xl text-gray-200"></i><p class="font-medium text-lg">No hay mermas reportadas.</p></div>`; return; }
 
@@ -1234,34 +1618,38 @@
         }
 
         function finalizarMermas() {
-            if(listaMermas.length === 0) { Toast("No hay mermas para borrar."); return; }
-            showConfirm('Vaciar Mermas', '¿Seguro que deseas borrar toda la lista de mermas de este dispositivo?', () => {
+            if(listaMermas.length === 0) { Toast("No hay mermas para borrar.", "error"); return; }
+            showConfirm('Vaciar Mermas', '¿Seguro que deseas borrar toda la lista de mermas de este dispositivo? ¡Asegúrate de exportar a Excel primero!', () => {
                 listaMermas = []; saveMermasState(); actualizarUIMermas();
             });
         }
 
-        // --- Inventario / Auditoria ---
+        // --- STREAMING_CHUNK: Gestión de Auditorías de Inventario Físico... ---
         function abrirModalInicioInventario() {
             document.getElementById('invInputNombre').value = ''; document.getElementById('invInputRut').value = ''; document.getElementById('invInputPeriodo').value = '';
             const modal = document.getElementById('modalInicioInventario'); modal.classList.remove('hidden'); modal.classList.add('flex');
         }
+
         function cerrarModalInicioInventario() { const modal = document.getElementById('modalInicioInventario'); modal.classList.add('hidden'); modal.classList.remove('flex'); }
+
         function confirmarInicioInventario() {
             const nombre = document.getElementById('invInputNombre').value.trim(); const rut = document.getElementById('invInputRut').value.trim(); const periodo = document.getElementById('invInputPeriodo').value; 
             if(!nombre || !rut || !periodo) { Toast("Por favor, completa todos los campos.", "error"); return; }
             inventarioMetadata = { nombre: nombre, rut: rut, periodo: periodo, fechaInicio: new Date().toLocaleString(), fechaTermino: null };
             saveInventarioState(); cerrarModalInicioInventario(); addLog(`Auditoría iniciada por ${nombre}`); actualizarUIEstadoInventario();
         }
+
         function actualizarUIEstadoInventario() {
             const containerInactivo = document.getElementById('invStartContainer'); const containerActivo = document.getElementById('invActiveContainer');
-            if(!containerInactivo) return;
             if(inventarioMetadata) {
                 containerInactivo.classList.add('hidden'); containerActivo.classList.remove('hidden'); containerActivo.classList.add('flex');
                 document.getElementById('lblInvPeriodo').innerText = parseInt(inventarioMetadata.periodo.split('-')[1]) + "/" + inventarioMetadata.periodo.split('-')[0]; document.getElementById('lblInvResponsable').innerText = inventarioMetadata.nombre;
                 renderFullInventoryList(document.getElementById('invFilterInput').value);
             } else { containerActivo.classList.add('hidden'); containerActivo.classList.remove('flex'); containerInactivo.classList.remove('hidden'); }
         }
+
         function toggleOcultarContados() { const filterText = document.getElementById('invFilterInput').value; renderFullInventoryList(filterText); }
+
         function renderFullInventoryList(filterText = '') {
             const container = document.getElementById('invFullListContainer'); if(!container) return;
             const val = filterText.toLowerCase().trim(); const hideCounted = document.getElementById('checkOcultarContados').checked;
@@ -1305,7 +1693,8 @@
             html += '</ul>';
             
             if(total === 0) { html = `<div class="p-8 text-center text-gray-400 font-medium">Base de datos vacía.</div>`; } 
-            
+            else if (html === '<ul class="flex flex-col gap-3 px-2 pb-4 pt-1"></ul>') { html = `<div class="p-8 text-center text-gray-400 font-medium text-sm"><i class="fa-solid fa-box-open text-3xl mb-3 block opacity-30"></i>¡Todo listo!<br>No hay productos pendientes.</div>`; }
+
             container.innerHTML = html;
             const pct = total === 0 ? 0 : Math.round((contados / total) * 100);
             document.getElementById('invProgressBar').style.width = pct + '%'; document.getElementById('invProgressText').innerText = `${contados} de ${total} contados (${pct}%)`;
@@ -1315,13 +1704,14 @@
             document.getElementById('nuevoProdCode').value = ''; document.getElementById('nuevoProdName').value = ''; document.getElementById('nuevoProdQty').value = ''; document.getElementById('nuevoProdUdm').value = 'UND';
             const modal = document.getElementById('modalIngresarNuevo'); modal.classList.remove('hidden'); modal.classList.add('flex'); setTimeout(() => document.getElementById('nuevoProdName').focus(), 100);
         }
+
         function cerrarModalNuevoProducto() { const modal = document.getElementById('modalIngresarNuevo'); modal.classList.add('hidden'); modal.classList.remove('flex'); }
 
         function guardarNuevoProductoManual() {
             const name = document.getElementById('nuevoProdName').value.trim().toUpperCase(); let code = document.getElementById('nuevoProdCode').value.trim().toUpperCase();
             const qtyStr = document.getElementById('nuevoProdQty').value; const udm = document.getElementById('nuevoProdUdm').value.trim().toUpperCase() || 'UND';
 
-            if(!name) { Toast("Debes ingresar el nombre.", "error"); return; }
+            if(!name) { Toast("Debes ingresar el nombre del material.", "error"); return; }
             if(qtyStr === '') { Toast("Debes ingresar una cantidad.", "error"); return; }
             if(!code) { code = 'MANUAL-' + Math.floor(Math.random() * 10000); }
             
@@ -1341,6 +1731,7 @@
             if(!prod) { Toast("Producto no encontrado.", "error"); return; }
             
             invCurrentProd = prod; document.getElementById('modalConteoCode').innerText = prod.CODIGO; document.getElementById('modalConteoName').innerText = prod.NOMBRE;
+            
             const isCounted = listaInventarioFisico.find(item => item['CÓDIGO'] === prod.CODIGO);
             const inputFisico = document.getElementById('inputConteoFisico'); inputFisico.value = isCounted ? isCounted['INVENTARIO FÍSICO'] : '';
             
@@ -1348,13 +1739,16 @@
         }
 
         function cerrarConteoModal() { document.getElementById('modalConteo').classList.add('hidden'); document.getElementById('modalConteo').classList.remove('flex'); invCurrentProd = null; }
-        
+
+        function abrirMermaDesdeInventario() { if(!invCurrentProd) return; window.currentProd = invCurrentProd; cerrarConteoModal(); abrirModalMerma(); }
+
         function guardarConteoFisico() {
             if(!invCurrentProd) return;
             const inputVal = document.getElementById('inputConteoFisico').value;
             if(inputVal === '') { Toast("Ingresa un número válido.", "error"); return; }
             
             const conteoFisico = parseInt(inputVal); const stockSistema = parseInt(invCurrentProd.STOCK) || 0; const diferencia = conteoFisico - stockSistema;
+            
             let estado = "CUADRADO"; 
             const isManualBefore = listaInventarioFisico.find(item => item['CÓDIGO'] === invCurrentProd.CODIGO && item['ESTADO'] === 'AGREGADO MANUAL');
             if(isManualBefore) { estado = "AGREGADO MANUAL"; } else { if(diferencia > 0) estado = "SOBRANTE"; if(diferencia < 0) estado = "FALTANTE"; }
@@ -1366,6 +1760,11 @@
             saveInventarioState(); cerrarConteoModal(); renderFullInventoryList(document.getElementById('invFilterInput').value);
         }
 
+        function abrirModalLogs() { renderLogs(); document.getElementById('modalLogs').classList.remove('hidden'); document.getElementById('modalLogs').classList.add('flex'); }
+        function cerrarModalLogs() { document.getElementById('modalLogs').classList.add('hidden'); document.getElementById('modalLogs').classList.remove('flex'); }
+        function renderLogs() { const container = document.getElementById('logsContainer'); if(!container) return; if(inventarioLogs.length === 0) { container.innerHTML = '<p class="text-gray-400 text-center py-4">No hay actividad.</p>'; return; } container.innerHTML = inventarioLogs.map(l => `<div class="border-b border-gray-50 pb-1 mb-1">${l}</div>`).join(''); }
+
+        // --- STREAMING_CHUNK: Generando exportaciones XLSX nativas... ---
         async function procesarDescargaOCompartir(datosExcel, nombreArchivo, nombreHoja, meta = null) {
             if(datosExcel.length === 0) { Toast("No hay datos para exportar.", "error"); return; }
             const workbook = XLSX.utils.book_new();
@@ -1420,11 +1819,12 @@
                         showConfirm('¿Limpiar Datos Locales?', '✅ Reporte de Inventario exportado exitosamente.\n\n¿Deseas borrar los datos del inventario de este dispositivo para dejar limpio el próximo mes?', () => {
                             listaInventarioFisico = []; inventarioLogs = []; inventarioMetadata = null; saveInventarioState(); actualizarUIEstadoInventario();
                         });
-                    } else { inventarioMetadata.fechaTermino = null; saveInventarioState(); Toast("Exportación cancelada."); }
+                    } else { inventarioMetadata.fechaTermino = null; saveInventarioState(); Toast("Exportación cancelada.", "error"); }
                 }, 300);
             });
         }
 
+        // --- STREAMING_CHUNK: Módulo final de Escaneo y Configuración de Etiquetas... ---
         function openScanner(target) {
             scannerTargetView = target; 
             const modal = document.getElementById('modalScanner'); modal.classList.remove('hidden'); modal.classList.add('flex');
@@ -1432,13 +1832,12 @@
             html5QrcodeScanner.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 }, (decodedText) => {
                 let scannedId = decodedText; try { const url = new URL(decodedText); if (url.searchParams.has('id')) { scannedId = url.searchParams.get('id'); } } catch(e) {}
                 closeScanner(); 
-                if(scannerTargetView === 'visor') { document.getElementById('dirSearchInput').value = scannedId; filterDirectory(); abrirModalProducto(scannedId); } 
+                if(scannerTargetView === 'visor') { document.getElementById('manualInput').value = scannedId; manualSearch(scannedId); } 
                 else if (scannerTargetView === 'inventario') { abrirConteoModal(scannedId); }
-            }).catch((err) => { Toast("Permite acceso a cámara.", "error"); closeScanner(); });
+            }).catch((err) => { Toast("Por favor, permite el acceso a la cámara.", "error"); closeScanner(); });
         }
         function closeScanner() { const modal = document.getElementById('modalScanner'); modal.classList.add('hidden'); modal.classList.remove('flex'); if (html5QrcodeScanner) { html5QrcodeScanner.stop().catch(err => console.warn(err)); } }
 
-        // --- Generador de Etiquetas A4 ---
         function incrementarAlfanumerico(str) { return str.replace(/\d+$/, function(n) { return String(parseInt(n, 10) + 1).padStart(n.length, '0'); }); }
 
         function agregarALaHoja() {
@@ -1451,6 +1850,7 @@
                 min: els.min ? els.min.value : '-',
                 max: els.max ? els.max.value : '-',
                 estilo: els.style ? els.style.value : 'traditional_orange',
+                // Guardar la configuración visual ESPECÍFICA para esta etiqueta
                 hasQR: els.checkQR ? els.checkQR.checked : true,
                 hasLogoInQR: els.checkLogoInQR ? els.checkLogoInQR.checked : false,
                 hasLogoGrayscale: els.checkLogoGrayscale ? els.checkLogoGrayscale.checked : false,
@@ -1509,6 +1909,7 @@
                         const smartLink = `${baseUrl}?id=${item.sku}`; const qrId = `qr-code-${count}`;
                         const card = document.createElement('div'); card.className = 'label-card';
                         
+                        // Leer la configuración guardada ESPECÍFICA para esta etiqueta
                         const hasQR = item.hasQR !== undefined ? item.hasQR : true;
                         const hasLogoInQR = item.hasLogoInQR !== undefined ? item.hasLogoInQR : false;
                         const hasLogoGrayscale = item.hasLogoGrayscale !== undefined ? item.hasLogoGrayscale : false;
@@ -1517,9 +1918,15 @@
                         const showMax = item.showMax !== undefined ? item.showMax : true;
 
                         let cardContent = '';
-                        const logoSrc = hasLogoGrayscale ? 'LOGO%20NEGRO.jpg' : 'logo.png';
+                        
+                        // CORRECCIÓN EXACTA DE RUTAS BASADA EN GITHUB
+                        // Uso explícito de la codificación URI para el espacio en "LOGO NEGRO.jpg"
+                        const logoSrc = hasLogoGrayscale ? encodeURI('LOGO NEGRO.jpg') : 'logo.png';
+                        
+                        // LOGO DEL QR
                         const logoHTML = hasLogoInQR ? `<div class="qr-logo-overlay" style="background-image: url('${logoSrc}'); background-size: contain; background-repeat: no-repeat; background-position: center; background-color: white;"></div>` : '';
                         
+                        // LOGICA MIN MAX INFERIOR
                         let minMaxHTML = '';
                         let headerHeightClass = 'h-[60%]'; 
 
@@ -1536,6 +1943,8 @@
                                     <div class="flex-1 flex items-center justify-center font-black text-3xl text-gray-900 min_max_bg_style_alt">${item.max}</div>
                                 </div>` : '';
 
+                            // LOGO INFERIOR IZQUIERDO: Se inyecta siempre si se activa MIN o MAX. 
+                            // Uso background-image en lugar de img para evitar fallos de renderizado de html2pdf
                             minMaxHTML = `
                                 <div class="h-[40%] flex w-full">
                                     <div class="w-[33.333%] flex items-center justify-center p-2 relative shrink-0">
@@ -1708,12 +2117,10 @@
                                         <div class="font-bold text-gray-400 uppercase tracking-widest mt-auto" style="font-size: ${sFamily}">${item.familia || 'EPP'}</div>
                                     </div>
                                     ${hasQR ? `
-                                    <div class="w-[30%] border-l border-gray-100 flex-shrink-0 p-2 sm:p-3">
-                                        <div class="qr-container">
-                                            <div class="qr-code-wrapper">
-                                                <div id="${qrId}"></div>
-                                                ${logoHTML}
-                                            </div>
+                                    <div class="w-[30%] border-l border-gray-100 flex items-center justify-center p-2 sm:p-3 flex-shrink-0 relative overflow-hidden">
+                                        <div class="relative max-w-full max-h-full aspect-square flex items-center justify-center">
+                                            <div id="${qrId}" class="w-full h-full mix-blend-multiply flex items-center justify-center"></div>
+                                            ${logoHTML}
                                         </div>
                                     </div>` : ''}
                                 </div>
@@ -1787,29 +2194,6 @@
                 };
                 html2pdf().set(opt).from(element).save().then(() => { restoreAll(); }).catch(err => { console.error(err); Toast("Error al generar PDF.", "error"); restoreAll(); });
             }, 300);
-        }
-        
-        function verUbicacionMapa() {
-            const mc = document.getElementById('mdlMapContainer');
-            if(mc.classList.contains('hidden')) {
-                mc.classList.remove('hidden');
-                mc.innerHTML = MAP_HTML_STRUCTURE;
-                // Pintar logica
-                if(!window.currentProd) return;
-                const org = window.currentProd.ORGANIZADOR;
-                if(!org) return;
-                
-                const match = org.match(/^(A|B|C)[\s\-]*0*(\d+)?/i);
-                if(match) {
-                    let pasillo = match[1].toUpperCase();
-                    let estanteria = match[2] || '';
-                    const lbl = mc.querySelector(`#LBL-pasillo-${pasillo.toLowerCase()}`);
-                    if(lbl) { lbl.classList.remove('text-gray-400', 'bg-white/90', 'border-gray-100'); lbl.classList.add('text-white', 'bg-orange-500', 'scale-110', 'border-orange-500'); }
-                    if (estanteria) { const rkEl = mc.querySelector(`[data-rack="${pasillo}${parseInt(estanteria)}"]`); if(rkEl) { rkEl.classList.add('rk-active'); } }
-                }
-            } else {
-                mc.classList.add('hidden');
-            }
         }
     </script>
 </body>
