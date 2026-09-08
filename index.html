@@ -4,6 +4,132 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>DTX BODEGA</title>
+    <script id="dtx-data-model">
+    // Modelo compartido: catálogo, asociación auditable y métricas sin dependencias del DOM.
+    var DtxData = (() => {
+        const normalize = value => String(value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim().toUpperCase();
+        const row = value => Object.fromEntries(Object.entries(value).map(([k,v]) => [normalize(k), v]));
+        const code = value => String(value ?? '').trim();
+        const number = value => {
+            if (typeof value === 'number') return Number.isFinite(value) ? value : null;
+            let text = String(value ?? '').trim().replace(/\s/g, '');
+            if (!text) return null;
+            if (text.includes(',')) text = text.replace(/\./g, '').replace(',', '.');
+            else if (/^-?\d{1,3}(\.\d{3})+$/.test(text)) text = text.replace(/\./g, '');
+            return /^-?\d+(\.\d+)?$/.test(text) && Number.isFinite(Number(text)) ? Number(text) : null;
+        };
+        const date = value => {
+            if (value instanceof Date) return Number.isFinite(value.getTime()) ? new Date(value.getFullYear(),value.getMonth(),value.getDate()) : null;
+            let y,m,d;
+            if (typeof value === 'number' && Number.isFinite(value) && value > 60 && value < 100000) {
+                const utc = new Date(Date.UTC(1899,11,30) + Math.floor(value)*86400000);
+                [y,m,d] = [utc.getUTCFullYear(),utc.getUTCMonth()+1,utc.getUTCDate()];
+            } else {
+                const text = normalize(value).toLowerCase();
+                let match = text.match(/^(\d{4})-(\d{2})-(\d{2})(?:[t ]00:00(?::00(?:\.000)?)?)?$/);
+                if (match) [,y,m,d] = match;
+                else {
+                    match = text.match(/^(\d{1,2})[\/. -](\d{1,2}|[a-z]+)[\/. -](\d{2}|\d{4})$/);
+                    if (!match) return null;
+                    [,d,m,y] = match;
+                    if (!/^\d+$/.test(m)) m = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'].indexOf(m.slice(0,3))+1;
+                    if (String(y).length === 2) y = Number(y)+2000;
+                }
+            }
+            y=Number(y); m=Number(m); d=Number(d);
+            const result = new Date(y,m-1,d);
+            return y >= 1900 && y <= 2200 && result.getFullYear()===y && result.getMonth()===m-1 && result.getDate()===d ? result : null;
+        };
+        const unit = value => {
+            const u=normalize(value).replace(/\.$/,'');
+            return ({UND:'UNIDAD',UD:'UNIDAD',UNIDADES:'UNIDAD',PARES:'PAR',KG:'KG',KGS:'KG',KILO:'KG',KILOS:'KG',MTS:'M',METROS:'M'})[u] || u || 'SIN UDM';
+        };
+        const hasLocation = p => !['','-','S/R','S/N','SIN UBICACION'].includes(normalize(p.ORGANIZADOR));
+        const low = p => p.STOCK !== null && p.STOCK > 0 && p.STOCK_CRITICO > 0 && p.STOCK <= p.STOCK_CRITICO;
+        function build(stockRows, entryRows, exitRows) {
+            const issues={invalid:0, unmatched:0, unitMismatch:0, stockInvalid:0, duplicateRows:0, conflicts:0, samples:[]};
+            const products=[]; const byCode=new Map(); const aliases=new Map();
+            const addAlias=(name,id) => { const key=normalize(name); if (!key) return; if (!aliases.has(key)) aliases.set(key,new Set()); aliases.get(key).add(id); };
+            for (const original of stockRows) {
+                const r=row(original), id=code(r.COD ?? r.CODIGO), name=code(r.DESCRIPCION ?? r.NOMBRE);
+                if (!id || !name) continue;
+                const p={CODIGO:id,NOMBRE:name,STOCK:number(r['STOCK ACTUAL'] ?? r.STOCK),STOCK_CRITICO:number(r['STOCK CRITICO']),UNIDAD:unit(r.UDM ?? r.UNIDAD),CATEGORIA:code(r.FAMILIA ?? r.CATEGORIA),FICHA:code(r.FICHA ?? r['FICHA TECNICA']),ORGANIZADOR:code(r.UBICACION ?? r.ORGANIZADOR ?? r.PASILLO),ENTRADAS_MES:number(r.ENTRADAS),SALIDAS_MES:number(r.SALIDAS)};
+                const signature=JSON.stringify(p);
+                if (!byCode.has(id)) byCode.set(id,[]);
+                if (byCode.get(id).some(item=>item.signature===signature)) {issues.duplicateRows++;continue;}
+                p.signature=signature;p.sourceRow=r.__ROW||products.length+1;
+                if (p.STOCK===null) issues.stockInvalid++;
+                products.push(p); byCode.get(id).push(p);
+            }
+            for (const [id,group] of byCode) {
+                if (group.length>1) {issues.conflicts++;issues.samples.push({sheet:'STOCK',row:group.map(p=>p.sourceRow).join(', '),name:group.map(p=>p.NOMBRE).join(' / '),reason:'Código '+id+' repetido con datos distintos'});}
+                for (const p of group) {p.conflict=group.length>1;p.KEY=p.conflict?id+':'+p.sourceRow:id;addAlias(p.NOMBRE,p.KEY);}
+            }
+            const resolveCode=(id,name)=> {const group=byCode.get(id)||[];if(group.length===1)return group[0].KEY;const exact=group.filter(p=>normalize(p.NOMBRE)===normalize(name));return exact.length===1?exact[0].KEY:'';};
+            const byKey=new Map(products.map(p=>[p.KEY,p]));
+            // Nombres históricos respaldados por un código explícito, no por similitud difusa.
+            for (const original of [...entryRows,...exitRows]) {
+                const r=row(original), id=code(r.COD ?? r.CODIGO);
+                const key=resolveCode(id,r.DESCRIPCION);if (key) addAlias(r.DESCRIPCION,key);
+            }
+            const movements=[];
+            for (const [rows,type,sheet] of [[entryRows,'entrada','ENTRADA'],[exitRows,'salida','SALIDA']]) {
+                for (const original of rows) {
+                    const r=row(original), name=code(r.DESCRIPCION), rawCode=code(r.COD ?? r.CODIGO);
+                    if (!name && !rawCode) continue;
+                    const day=date(r.FECHA), quantity=number(r.CANT ?? r.CAN ?? r.CANTIDAD);
+                    const sample={sheet,row:r.__ROW,name};
+                    if (!day || day.getFullYear()<2000 || quantity===null || quantity<0) { issues.invalid++; issues.samples.push({...sample,reason:day?.getFullYear()<2000?'Fecha anterior a 2000; revisar celda de origen':'Fecha o cantidad inválida'}); continue; }
+                    if (quantity===0) continue;
+                    const candidates=aliases.get(normalize(name));
+                    const id=rawCode ? resolveCode(rawCode,name) : candidates?.size===1 ? [...candidates][0] : '';
+                    const u=unit(r.UDM ?? r.UDN ?? r.UNIDAD), product=byKey.get(id);
+                    const mismatch=!!product && u!==product.UNIDAD;
+                    if (!id) { issues.unmatched++; issues.samples.push({...sample,reason:rawCode?'Código fuera de STOCK o ambiguo':candidates?.size>1?'Nombre ambiguo':'Nombre sin código asociado'}); }
+                    if (mismatch) issues.unitMismatch++;
+                    movements.push({type,date:day,code:id,rawCode,name,quantity,unit:u,unitMismatch:mismatch,party:code(type==='entrada'?r.PROVEEDOR:r.DESTINO),document:code(r.GD),order:code(r.OC),sheet,row:r.__ROW});
+                }
+            }
+            products.sort((a,b)=>a.NOMBRE.localeCompare(b.NOMBRE,'es'));
+            movements.sort((a,b)=>b.date-a.date || Number(b.row||0)-Number(a.row||0));
+            return {products,movements,issues};
+        }
+        function range(mode, now=new Date(), fields={}) {
+            const today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+            let from=null,to=today;
+            if (mode==='today') from=new Date(today);
+            if (mode==='month') from=new Date(today.getFullYear(),today.getMonth(),1);
+            if (mode==='30') from=new Date(today.getFullYear(),today.getMonth(),today.getDate()-29);
+            if (mode==='chosen') { from=date(fields.month+'-01'); if (from) to=new Date(from.getFullYear(),from.getMonth()+1,0); }
+            if (mode==='year2026') { from=new Date(2026,0,1); to=new Date(Math.min(today.getFullYear(),2026),today.getFullYear()>2026?11:today.getMonth(),today.getFullYear()>2026?31:today.getDate()); }
+            if (mode==='custom') {from=date(fields.from); to=date(fields.to);}
+            if ((['chosen','custom'].includes(mode)&&(!from||!to)) || (from && to && from>to)) throw new Error('Revisa las fechas: el inicio debe ser anterior o igual al final.');
+            return {from,to};
+        }
+        const inRange=(day,r) => !!day && (!r.from||day>=r.from) && (!r.to||day<=r.to);
+        const quantities=list => {
+            const groups=new Map(); for (const m of list) groups.set(m.unit,(groups.get(m.unit)||0)+m.quantity);
+            return [...groups].map(([unit,quantity])=>({unit,quantity:Math.round(quantity*1000000)/1000000}));
+        };
+        function summary(model,id,r,now=new Date()) {
+            const all=model.movements.filter(m=>m.code===id), selected=all.filter(m=>inRange(m.date,r));
+            const elapsed=all.filter(m=>inRange(m.date,range('all',now)));
+            return {selected,in:quantities(selected.filter(m=>m.type==='entrada')),out:quantities(selected.filter(m=>m.type==='salida')),lastIn:elapsed.find(m=>m.type==='entrada'),lastOut:elapsed.find(m=>m.type==='salida'),unitMismatch:selected.some(m=>m.unitMismatch)};
+        }
+        const initial=name => {const first=String(name).trim().toUpperCase().charAt(0); return first==='Ñ'?'Ñ':/^[A-Z]$/.test(normalize(first))?normalize(first):'#';};
+        const indicators=model => ({
+            total:model.products.length,
+            empty:model.products.filter(p=>p.STOCK!==null&&p.STOCK<=0).length,
+            low:model.products.filter(low).length,
+            noLocation:model.products.filter(p=>!hasLocation(p)).length,
+        });
+        function browse(model,{query='',letter='',filter='all',period=range('month')}={}) {
+            const active=new Set(model.movements.filter(m=>m.type==='salida'&&m.code&&inRange(m.date,period)).map(m=>m.code));
+            return model.products.filter(p=>(!query||normalize(p.NOMBRE).includes(normalize(query))||normalize(p.CODIGO).includes(normalize(query)))&&(!letter||initial(p.NOMBRE)===letter)&&(filter==='empty'?p.STOCK!==null&&p.STOCK<=0:filter==='low'?low(p):filter==='active'?active.has(p.KEY):filter==='location'?!hasLocation(p):true));
+        }
+        return {normalize,number,date,unit,build,range,inRange,summary,browse,low,hasLocation,initial,quantities,indicators};
+    })();
+    </script>
 
     <!-- PWA / WEB APP NATIVA META TAGS -->
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -66,7 +192,7 @@
         .view-section.active { display: flex; }
 
         @media (max-width: 1023px) {
-            .app-header { display: none; } /* Ocultar Header superior en móviles */
+            .app-header { display: flex; padding:0 12px; }
             .settings-panel { width: 100%; max-height: 1200px; border-right: none; position: absolute; z-index: 100; height: 100%; }
             .settings-inner { padding: 16px; padding-bottom: 100px; }
             .settings-collapsed { display: none !important; }
@@ -76,9 +202,8 @@
             .main-layout { flex-direction: row; height: calc(100vh - 60px); }
             .settings-panel { height: 100%; flex: 0 0 340px; width: 340px; border-right: 1px solid #e5e5e5; border-bottom: none; display: block !important; }
             .settings-collapsed { flex: 0 0 0px !important; width: 0px !important; border: none !important; }
-            .right-content { padding-bottom: 0; }
+            .right-content { padding-bottom: var(--bottom-nav-height); }
             .app-header { padding: 0 24px; display: flex; }
-            .bottom-nav-bar { display: none !important; } /* Ocultar nav inferior en Desktop */
         }
 
         /* DIRECTORIO SCRUBBER */
@@ -123,6 +248,16 @@
         .rk-heatmap-med { background-color: #ef4444 !important; border-color: #b91c1c; }
         .rk-heatmap-high { background-color: #991b1b !important; border-color: #7f1d1d; transform: scale(1.1); z-index: 10; }
         .warehouse-map-label { color: #334155; border-color: #cbd5e1; background: rgba(255,255,255,0.96); }
+        .warehouse-layout-shell { width:100%; max-width:1360px; padding:28px; margin:auto; color:#172033; }
+        .warehouse-layout-grid { display:grid; grid-template-columns:minmax(0,1fr) 320px; gap:20px; align-items:start; }
+        .warehouse-layout-map [data-layout-rack] { cursor:pointer; }
+        .warehouse-layout-map [data-layout-rack]:focus-visible { outline:3px solid #F26522; outline-offset:2px; }
+        .rack-status-empty { background:#ef4444 !important; border-color:#b91c1c !important; }
+        .rack-status-low { background:#f59e0b !important; border-color:#b45309 !important; }
+        .rack-status-normal { background:#22c55e !important; border-color:#15803d !important; }
+        .rack-status-unknown { background:#94a3b8 !important; border-color:#475569 !important; }
+        @media(max-width:900px) { .warehouse-layout-shell { padding:20px 16px; } .warehouse-layout-grid { grid-template-columns:1fr; } }
+        @media(max-width:600px) { .warehouse-layout-shell { padding:20px 12px; } }
         
         /* Animacion Modal Detail */
         .modal-slide-up { animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
@@ -143,7 +278,7 @@
             #splash-screen img { animation: dtxLogo 650ms var(--motion-ease) both; }
             .dtx-loading-track { width: 104px; height: 3px; margin-top: 22px; border-radius: 4px; overflow: hidden; background: #ffedd5; }
             .dtx-loading-track::after { content: ''; display: block; width: 36%; height: 100%; border-radius: inherit; background: #F26522; animation: dtxLoading 1400ms ease-in-out infinite; }
-            #view-dashboard.active > div, #view-visor.active > div { animation: dtxEnter 320ms var(--motion-ease); }
+            #view-dashboard.active > div, #view-visor.active > div, #view-layout.active > div { animation: dtxEnter 320ms var(--motion-ease); }
             #view-generator.active > .no-print, .settings-panel:not(.settings-collapsed) .settings-inner { animation: dtxEnter 280ms var(--motion-ease); }
             #view-dashboard.active #dashboardStats > div { animation: dtxEnter 380ms var(--motion-ease) both; }
             #view-dashboard.active #dashboardStats > div:nth-child(2) { animation-delay: 40ms; }
@@ -174,6 +309,89 @@
         @media print {
             *, *::before, *::after { animation: none !important; transition: none !important; }
         }
+        /* Dock corporativo compartido PC/móvil: la curva sigue la sección activa. */
+        @property --dock-x { syntax:'<percentage>'; inherits:true; initial-value:12.5%; }
+        :root { --bottom-nav-height:120px; }
+        .bottom-nav-bar { --dock-x:12.5%; position:fixed; z-index:2000; bottom:calc(16px + env(safe-area-inset-bottom,0px)); left:50%; transform:translateX(-50%); width:min(620px,calc(100% - 28px)); height:78px; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); filter:drop-shadow(0 10px 18px #17203324); transition:--dock-x .42s cubic-bezier(.22,1,.36,1); }
+        .dock-surface { position:absolute; inset:0; border-radius:24px; background:#fff; -webkit-mask:radial-gradient(circle 35px at var(--dock-x) 0,transparent 98%,#000 100%); mask:radial-gradient(circle 35px at var(--dock-x) 0,transparent 98%,#000 100%); pointer-events:none; }
+        .dock-button { position:relative; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; padding:8px 2px 0; min-width:0; color:#64748b; font-size:12px; font-weight:700; border-radius:20px; }
+        .dock-icon { display:flex; align-items:center; justify-content:center; width:52px; height:44px; font-size:21px; border-radius:50%; transition:transform .42s cubic-bezier(.22,1,.36,1),background .25s,color .25s; }
+        .dock-button[aria-current="page"] { color:#c74708; }
+        .dock-button[aria-current="page"] .dock-icon { height:52px; background:#ef5b0c; color:#fff; transform:translateY(-32px); box-shadow:0 6px 14px #ea580c33; }
+        .dock-button[aria-current="page"] .dock-label { transform:translateY(-20px); }
+        .dock-label { transition:transform .42s cubic-bezier(.22,1,.36,1); }
+        .bottom-nav-bar .dock-button[aria-current="page"] i { transform:none; }
+        .dock-button:focus-visible { outline:3px solid #f26522; outline-offset:3px; }
+        .dock-button:hover:not([aria-current]) { color:#c74708; }
+        .dashboard-shell { width:100%; max-width:1360px; padding:28px; margin:auto; color:#172033; }
+        .dashboard-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:20px; }
+        .dashboard-heading h2 { font-size:30px; font-weight:850; letter-spacing:-.8px; }
+        .dashboard-meta { font-size:12px; color:#64748b; margin-top:6px; line-height:1.7; }
+        .dash-period { display:flex; gap:12px; flex-wrap:wrap; align-items:end; background:#fff; border:1px solid #dce2e9; border-radius:16px; padding:14px 18px; margin-bottom:18px; }
+        .dash-period label { display:flex; gap:5px; flex-direction:column; font-size:11px; font-weight:750; color:#64748b; }
+        .dash-period :is(select,input) { min-height:40px; border:1px solid #dce2e9; border-radius:9px; padding:7px 10px; background:white; font-size:13px; color:#172033; min-width:0; }
+        .dash-grid { display:grid; grid-template-columns:minmax(0,1.55fr) minmax(300px,.85fr); gap:20px; align-items:start; }
+        .dash-card { background:#fff; border:1px solid #dce2e9; border-radius:18px; overflow:hidden; box-shadow:0 2px 4px #17203303; min-width:0; }
+        .dash-card-head { padding:20px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+        .dash-card h3 { font-size:16px; font-weight:800; }
+        .dash-search { display:flex; align-items:center; gap:10px; border:1px solid #dce2e9; border-radius:12px; padding:0 12px; min-height:44px; }
+        .dash-search input { border:0; outline:none; min-width:0; width:220px; font-size:14px; background:transparent; }
+        .dash-search:focus-within { border-color:#f26522; box-shadow:0 0 0 3px #fff0e6; }
+        .dash-alphabet { display:flex; flex-wrap:wrap; gap:4px; padding:0 20px 14px; }
+        .dash-alphabet button { min-width:30px; height:34px; border-radius:8px; font-size:11px; font-weight:750; color:#475569; }
+        .dash-alphabet button:hover { background:#fff0e6; }
+        .dash-alphabet button[aria-pressed="true"] { background:#ef5b0c; color:white; }
+        .dash-alphabet button:disabled { opacity:.3; cursor:default; }
+        .dash-kpi { text-align:left; padding:18px; border:1px solid #dce2e9; border-radius:16px; background:white; display:grid; grid-template-columns:1fr auto; gap:4px; }
+        .dash-kpi[aria-pressed="true"] { border-color:#f26522; box-shadow:0 0 0 2px #ffedd5; }
+        .dash-kpi strong { font-size:30px; font-weight:850; font-variant-numeric:tabular-nums; }
+        .dash-kpi small { grid-column:1/-1; color:#64748b; font-size:11px; }
+        .dash-filter-line { padding:10px 20px; border-top:1px solid #edf0f4; background:#fafbfc; display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:12px; color:#64748b; }
+        .dash-filter-line button { color:#c74708; font-weight:700; min-height:32px; }
+        .dash-row { padding:15px 20px; display:flex; width:100%; align-items:center; justify-content:space-between; gap:16px; text-align:left; border-top:1px solid #edf0f4; }
+        .dash-row:hover,.dash-row[aria-pressed="true"] { background:#fff7ed; }
+        .dash-row strong { display:block; font-size:13px; font-weight:750; overflow-wrap:anywhere; }
+        .dash-row small { display:block; margin-top:5px; color:#64748b; font-size:11px; }
+        .dash-badge { white-space:nowrap; font-size:12px; padding:5px 9px; border-radius:8px; font-weight:800; background:#f0fdf4; color:#15803d; }
+        .dash-badge.empty { background:#fef2f2; color:#b91c1c; } .dash-badge.low { background:#fff7ed; color:#c2410c; }
+        .dash-pager { display:flex; justify-content:space-between; align-items:center; padding:12px 20px; gap:8px; border-top:1px solid #edf0f4; font-size:12px; color:#64748b; }
+        .dash-pager button { min-height:40px; padding:6px 12px; border:1px solid #dce2e9; border-radius:9px; background:white; color:#172033; font-weight:700; }
+        .dash-pager button:disabled { opacity:.35; }
+        .dash-detail { background:#fffaf6; padding:20px; border-block:1px solid #fed7aa; }
+        .dash-detail h4 { font-size:22px; line-height:1.2; font-weight:850; letter-spacing:-.5px; overflow-wrap:anywhere; margin:6px 0; }
+        .dash-detail-summary { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin:16px 0; }
+        .dash-number { background:white; border:1px solid #dce2e9; border-radius:12px; padding:12px; min-width:0; }
+        .dash-number small { display:block; font-size:10px; text-transform:uppercase; color:#64748b; font-weight:750; }
+        .dash-number strong { display:block; font-size:23px; font-weight:850; margin-top:4px; }
+        .dash-number em { font-size:11px; font-style:normal; font-weight:600; }
+        .dash-latest { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+        .dash-latest article { border-left:3px solid #16a34a; background:white; padding:12px; border-radius:0 10px 10px 0; }
+        .dash-latest article:last-child { border-color:#ef4444; }
+        .dash-latest strong { display:block; font-size:14px; margin:6px 0; }
+        .dash-latest p { font-size:12px; color:#64748b; line-height:1.7; overflow-wrap:anywhere; }
+        .dash-note { font-size:12px; line-height:1.65; background:#fff7ed; color:#9a3412; border:1px solid #fed7aa; padding:10px 12px; border-radius:10px; margin-top:12px; }
+        .dash-history { margin-top:18px; background:white; border:1px solid #e2e8f0; border-radius:12px; overflow:hidden; }
+        .dash-history header { padding:12px; border-bottom:1px solid #e2e8f0; }
+        .dash-event { display:grid; grid-template-columns:90px 1fr auto; gap:12px; padding:12px; border-bottom:1px solid #f1f5f9; font-size:12px; }
+        .dash-event small { display:block; color:#64748b; margin-top:4px; overflow-wrap:anywhere; }
+        .dash-pdf { display:grid; grid-template-columns:1fr 1fr; background:#ef5b0c; border-radius:12px; overflow:hidden; margin-top:14px; color:white; }
+        .dash-pdf :is(a,button) { padding:13px 6px; font-size:13px; font-weight:750; text-align:center; }
+        .dash-pdf a { border-left:1px solid #ffffff66; background:#f97316; }
+        #view-dashboard :is(button,a,input,select,summary):focus-visible { outline:3px solid #fdba74; outline-offset:2px; }
+        @media(max-width:900px) { .dash-grid { grid-template-columns:1fr; } .dashboard-shell { padding:20px 16px; } }
+        @media(max-width:600px) {
+            .bottom-nav-bar { height:72px; bottom:calc(10px + env(safe-area-inset-bottom,0px)); width:calc(100% - 20px); }
+            .dock-button { font-size:10px; } .dock-icon { font-size:20px; }
+            .dashboard-heading h2 { font-size:26px; } .dashboard-heading { align-items:start; }
+            .dashboard-shell { padding:20px 12px; } .dash-card-head { padding:16px; } .dash-search { width:100%; } .dash-search input { width:100%; }
+            .dash-alphabet { flex-wrap:nowrap; overflow-x:auto; padding:0 16px 12px; } .dash-alphabet button { flex-shrink:0; min-width:36px; height:40px; }
+            .dash-kpi { padding:12px; } .dash-kpi strong { font-size:26px; } .dash-kpi small { font-size:10px; }
+            .dash-detail { padding:16px; } .dash-number { padding:9px; } .dash-number strong { font-size:20px; }
+            .dash-event { grid-template-columns:72px 1fr auto; gap:6px; font-size:11px; }
+            .dash-period { padding:12px; } .app-title { font-size:15px; } .app-header .brand-icon { width:28px;height:28px; }
+        }
+        @media(prefers-reduced-motion:reduce) { .bottom-nav-bar,.dock-icon,.dock-label { transition:none !important; } }
+        @media print { .bottom-nav-bar { display:none !important; } }
     </style>
 </head>
 <body>
@@ -196,17 +414,11 @@
                 <i class="fa-solid fa-sliders"></i> <span class="hidden md:inline">Panel Ajustes</span>
             </button>
             <div class="app-title flex items-center gap-2 mr-3 shrink-0"><img src="logo.png" alt="DETECO" class="h-8 w-8 object-contain"><span>DTX <span class="text-orange-600">BODEGA</span></span></div>
-            
-            <div class="flex bg-gray-200/60 p-1 rounded-lg overflow-x-auto hide-scroll gap-1">
-                <button onclick="setView('generator')" id="btn-gen-desktop" class="ios-btn btn-ghost shrink-0"><i class="fa-solid fa-tags mr-1"></i> Etiquetas 5S</button>
-                <button onclick="setView('visor')" id="btn-vis-desktop" class="ios-btn btn-active-tab shrink-0"><i class="fa-solid fa-book-open mr-1"></i> Visor Materiales</button>
-                <button onclick="setView('dashboard')" id="btn-dash-desktop" class="ios-btn btn-ghost shrink-0"><i class="fa-solid fa-chart-pie mr-1"></i> Dashboard</button>
-            </div>
         </div>
         <div class="flex gap-2 ml-2 shrink-0">
             <button onclick="loadDB(true)" class="ios-btn btn-secondary" title="Sincronizar Datos"><i class="fa-solid fa-rotate" id="syncIconTop"></i></button>
-            <button onclick="downloadPDF()" class="ios-btn btn-secondary"><span class="hidden lg:inline">PDF</span> <i class="fa-regular fa-file-pdf lg:ml-1"></i></button>
-            <button onclick="window.print()" class="ios-btn btn-primary"><span class="hidden lg:inline">Imprimir</span> <i class="fa-solid fa-print lg:ml-1"></i></button>
+            <button onclick="downloadPDF()" class="ios-btn btn-secondary label-action" aria-label="Descargar etiquetas PDF"><span class="hidden lg:inline">PDF</span> <i class="fa-regular fa-file-pdf lg:ml-1"></i></button>
+            <button onclick="window.print()" class="ios-btn btn-primary label-action" aria-label="Imprimir etiquetas"><span class="hidden lg:inline">Imprimir</span> <i class="fa-solid fa-print lg:ml-1"></i></button>
         </div>
     </div>
 
@@ -527,22 +739,48 @@
 
             <!-- DASHBOARD: CONTROL POR ALERTAS -->
             <div class="preview-panel view-section" id="view-dashboard">
-                <div class="w-full max-w-6xl mx-auto p-4 sm:p-6 pb-24 text-left">
-                    <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between mb-6">
-                        <div><p class="text-xs font-black tracking-[.18em] text-orange-600 uppercase">DTX BODEGA</p><h2 class="text-3xl font-black text-[#172033]">Control de bodega</h2></div>
-                        <button onclick="loadDB(true)" class="ios-btn btn-active-tab self-start"><i class="fa-solid fa-rotate"></i> Actualizar</button>
+                <div class="dashboard-shell">
+                    <div class="dashboard-heading">
+                        <div><p class="text-xs font-black tracking-[.18em] text-orange-600 uppercase">Operación · DTX BODEGA</p><h2>Control de bodega</h2><p id="dashboardSource" class="dashboard-meta" role="status">Conectando con el Excel de bodega…</p></div>
+                        <button id="dashboardRefresh" onclick="loadDB(true)" class="ios-btn btn-active-tab"><i class="fa-solid fa-rotate"></i> Actualizar</button>
                     </div>
+                    <div class="dash-period">
+                        <label>Período de movimientos<select id="dashboardPeriod" onchange="dashboardPeriodChanged()"><option value="today">Hoy</option><option value="month">Este mes</option><option value="30">Últimos 30 días</option><option value="chosen">Elegir mes</option><option value="year2026">Año 2026</option><option value="custom">Elegir fechas</option><option value="all">Historial disponible</option></select></label>
+                        <label id="dashboardMonthWrap" class="hidden">Mes<input type="month" id="dashboardMonth" onchange="dashboardPeriodChanged()"></label>
+                        <label id="dashboardFromWrap" class="hidden">Desde<input type="date" id="dashboardFrom" onchange="dashboardPeriodChanged()"></label>
+                        <label id="dashboardToWrap" class="hidden">Hasta<input type="date" id="dashboardTo" onchange="dashboardPeriodChanged()"></label>
+                        <p id="dashboardPeriodLabel" class="dashboard-meta"></p>
+                    </div>
+                    <p id="dashboardPeriodError" class="dash-note hidden" role="alert"></p>
                     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5" id="dashboardStats"></div>
-                    <div class="grid lg:grid-cols-[1.3fr_.7fr] gap-5">
-                        <section class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-                            <div class="p-4 border-b border-slate-100 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between"><div><h3 class="font-black text-[#172033]">Sin stock y stock bajo</h3><p class="text-sm text-slate-500">Materiales que requieren revisión</p></div><div class="relative"><i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-xs"></i><input id="dashboardMaterialSearch" oninput="renderDashboard()" placeholder="Buscar material" class="w-full sm:w-52 rounded-xl border border-slate-200 py-2.5 pl-8 pr-3 text-sm outline-none focus:border-orange-400"></div></div>
-                            <div id="dashboardMaterialDetail" class="hidden border-b border-slate-200 bg-orange-50/40 p-4"></div>
-                            <div id="dashboardAlerts" class="divide-y divide-slate-100"></div>
+                    <div class="dash-grid">
+                        <section class="dash-card">
+                            <div class="dash-card-head"><div><h3>Consulta de materiales</h3><p class="dashboard-meta">Busca y revisa sin salir del Dashboard.</p></div><label class="dash-search"><i class="fa-solid fa-magnifying-glass text-slate-400 text-xs"></i><input id="dashboardMaterialSearch" oninput="dashboardSearchChanged()" aria-label="Buscar material por nombre o código" placeholder="Nombre o código…"></label></div>
+                            <div id="dashboardAlphabet" class="dash-alphabet" aria-label="Filtrar materiales por inicial"></div>
+                            <div class="dash-filter-line"><span id="dashboardResultsCount" role="status"></span><button onclick="resetDashboardFilters()">Ver todos</button></div>
+                            <div id="dashboardMaterialDetail" class="dash-detail hidden" aria-label="Detalle del material" tabindex="-1"></div>
+                            <div id="dashboardAlerts"></div>
+                            <div id="dashboardPager" class="dash-pager"></div>
                         </section>
                         <div class="space-y-5">
-                            <section class="bg-white border border-slate-200 rounded-2xl shadow-sm p-4"><div class="flex items-center justify-between gap-3"><div><h3 class="font-black text-[#172033]">Movimientos del período</h3><p class="text-sm text-slate-500">Entradas y salidas</p></div><select id="dashboardPeriod" onchange="renderDashboard()" class="rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold text-slate-700"><option value="month">Este mes</option><option value="30">Últimos 30 días</option><option value="all">Todo el período</option></select></div><div id="dashboardMovements" class="grid grid-cols-2 gap-3 mt-4"></div></section>
+                            <section class="dash-card p-4"><h3>Movimientos de bodega</h3><p class="dashboard-meta">Registros del período · todos los materiales</p><div id="dashboardMovements" class="grid grid-cols-2 gap-3 mt-4"></div><p class="dashboard-meta">Cada fila válida cuenta como un movimiento. No se suman cantidades de unidades diferentes.</p></section>
+                            <section class="dash-card p-4"><h3>Estado de los datos</h3><div id="dashboardQuality" class="dashboard-meta"></div></section>
                             <section class="bg-white border border-slate-200 rounded-2xl shadow-sm p-4"><div class="flex items-center justify-between"><div><h3 class="font-black text-[#172033]">Mapa de bodega</h3><p class="text-xs text-slate-500 mt-1">4 pasillos y estanterías</p></div><button id="btnDashboardMap" onclick="toggleDashboardMap()" class="rounded-lg border border-orange-200 bg-orange-50 px-3 py-2 text-sm font-black text-orange-600 transition-all hover:-translate-y-0.5 hover:bg-orange-100"><i id="iconDashboardMap" class="fa-regular fa-map mr-1"></i><span id="dashboardMapText">Ver mapa</span></button></div><div id="dashboardMapContainer" class="hidden relative w-full aspect-[4/3] mt-4 map-grid-bg rounded-xl border-2 border-slate-300 overflow-hidden"></div><p id="dashboardMapHint" class="mt-3 text-xs font-semibold text-slate-500">Abre el plano para revisar los cuatro pasillos.</p></section>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LAYOUT: PLANO OPERATIVO INDEPENDIENTE -->
+            <div class="preview-panel view-section" id="view-layout">
+                <div class="warehouse-layout-shell">
+                    <div class="dashboard-heading">
+                        <div><p class="text-xs font-black tracking-[.18em] text-orange-600 uppercase">Operación · DTX BODEGA</p><h2>Layout de bodega</h2><p class="dashboard-meta">Selecciona una estantería para revisar sus materiales. Rojo: sin stock · Naranja: stock bajo · Verde: stock disponible.</p></div>
+                        <button onclick="setView('dashboard')" class="ios-btn btn-active-tab"><i class="fa-solid fa-arrow-left"></i> Dashboard</button>
+                    </div>
+                    <div class="warehouse-layout-grid">
+                        <section class="dash-card p-4"><div id="warehouseLayoutMap" class="warehouse-layout-map relative w-full aspect-[4/3] map-grid-bg rounded-2xl border-2 border-slate-300 overflow-hidden" aria-label="Plano interactivo de la bodega"></div><p id="warehouseLayoutHint" class="dashboard-meta mt-3">Selecciona una estantería del plano para ver sus materiales.</p></section>
+                        <aside class="dash-card p-4" aria-live="polite"><p class="text-xs font-black tracking-widest text-orange-700">ESTANTERÍA SELECCIONADA</p><h3 id="warehouseRackTitle" class="mt-2 text-2xl font-black text-[#172033]">Selecciona un rack</h3><p id="warehouseRackStatus" class="dashboard-meta mt-2">El plano conserva la distribución real de cuatro pasillos.</p><div id="warehouseRackMaterials" class="mt-4 border-t border-slate-100 pt-3"><h4 class="font-black text-[#172033]">Materiales en esta estantería</h4><p class="dashboard-meta mt-2">Aún no hay una estantería seleccionada.</p></div></aside>
                     </div>
                 </div>
             </div>
@@ -550,31 +788,14 @@
         </div> <!-- Fin Right Content -->
     </div> <!-- Fin Main Layout -->
 
-    <!-- BARRA NAVEGACION INFERIOR (MOVIL) -->
-    <div class="bottom-nav-bar fixed bottom-0 left-0 w-full bg-white/95 backdrop-blur-xl border-t border-gray-200 flex justify-around items-end pb-3 pt-2 lg:hidden z-[2000] shadow-[0_-10px_20px_rgba(0,0,0,0.05)] h-[var(--bottom-nav-height)]">
-        
-        <button onclick="setView('generator')" id="btn-nav-gen" class="flex-1 flex flex-col items-center justify-end text-gray-400 hover:text-orange-500 transition-colors h-full pb-1">
-            <i class="fa-solid fa-tags text-xl mb-1 transition-transform"></i>
-            <span class="text-[9px] font-bold uppercase tracking-wider">Etiquetas</span>
-        </button>
-
-        <button onclick="setView('visor')" id="btn-nav-vis" class="flex-1 flex flex-col items-center justify-end text-orange-500 transition-colors h-full pb-1">
-            <i class="fa-solid fa-book-open text-xl mb-1 transition-transform scale-110"></i>
-            <span class="text-[9px] font-bold uppercase tracking-wider">Visor Mat.</span>
-        </button>
-
-        <!-- Boton SCANNER Central Gigante -->
-        <div class="flex-1 flex justify-center h-full relative">
-            <button onclick="openScanner('visor')" class="absolute bottom-2 w-16 h-16 bg-[#000] rounded-full flex items-center justify-center text-white shadow-[0_10px_25px_rgba(0,0,0,0.3)] border-[5px] border-[#F5F5F7] hover:bg-[#333] transition-all active:scale-95 z-50">
-                <i class="fa-solid fa-camera text-2xl"></i>
-            </button>
-        </div>
-
-        <button onclick="setView('dashboard')" id="btn-nav-dash" class="flex-1 flex flex-col items-center justify-end text-gray-400 hover:text-orange-500 transition-colors h-full pb-1 relative">
-            <i class="fa-solid fa-chart-pie text-xl mb-1 transition-transform"></i>
-            <span class="text-[9px] font-bold uppercase tracking-wider">Dashboard</span>
-        </button>
-    </div>
+    <!-- Navegación inferior adaptada a PC y móvil -->
+    <nav id="dtxDock" class="bottom-nav-bar" aria-label="Navegación principal">
+        <div class="dock-surface" aria-hidden="true"></div>
+        <button onclick="setView('dashboard')" id="btn-nav-dash" class="dock-button" aria-current="page"><span class="dock-icon"><i class="fa-solid fa-chart-pie" aria-hidden="true"></i></span><span class="dock-label">Dashboard</span></button>
+        <button onclick="setView('visor')" id="btn-nav-vis" class="dock-button"><span class="dock-icon"><i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i></span><span class="dock-label">Materiales</span></button>
+        <button onclick="openWarehouseLayout()" id="btn-nav-layout" class="dock-button" aria-label="Layout de bodega"><span class="dock-icon"><i class="fa-regular fa-map" aria-hidden="true"></i></span><span class="dock-label">Layout</span></button>
+        <button onclick="setView('generator')" id="btn-nav-gen" class="dock-button"><span class="dock-icon"><i class="fa-solid fa-tags" aria-hidden="true"></i></span><span class="dock-label">Etiquetas</span></button>
+    </nav>
 
     <!-- Modales Adicionales: Ficha, Conteo, Merma, Scanner, VerFoto -->
     <div id="modalConteo" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[3500] p-4 backdrop-blur-sm">
@@ -666,6 +887,12 @@
 
         let dbProducts = [];
         let dbMovements = [];
+        let dashboardModel = null;
+        let dashboardUpdatedAt = null;
+        let dashboardLoadError = '';
+        let dashboardLoading = false;
+        let dashboardStockMonth = null;
+        const dashboardState = { letter:'', filter:'all', page:0, selected:'', historyPage:0, layoutRack:'' };
         let hasSeenGeneratorMenuHint = false;
         let hintTimeout = null;
         let html5QrcodeScanner = null;
@@ -787,6 +1014,10 @@
 
         // --- STREAMING_CHUNK: Conectando con bases de datos Excel y extrayendo movimientos... ---
         async function loadDB(isManualRefresh = false) {
+            if (dashboardLoading) return;
+            dashboardLoading = true;
+            dashboardLoadError = '';
+            renderDashboard();
             const statusEl = document.getElementById('dbStatusVisor');
             const syncIcon = document.getElementById('syncIconTop');
             
@@ -794,68 +1025,44 @@
             if(statusEl) { statusEl.innerText = "Sincronizando..."; statusEl.className = "text-[9px] text-orange-500 font-bold mt-1 uppercase tracking-widest"; }
 
             try {
-                const res = await fetch(DROPBOX_EXCEL_URL);
+                const res = await fetch(DROPBOX_EXCEL_URL, { cache:'no-store' });
                 if (!res.ok) throw new Error("Fallo HTTP: " + res.status);
 
                 const arrayBuffer = await res.arrayBuffer();
                 const workbook = XLSX.read(arrayBuffer, { type: 'buffer' });
                 
-                // LEER HOJA STOCK
-                const sheetStockName = workbook.SheetNames.includes('STOCK') ? 'STOCK' : workbook.SheetNames[0];
-                const wsStock = workbook.Sheets[sheetStockName];
-                const rawStock = XLSX.utils.sheet_to_json(wsStock, { header: 1, defval: "" });
-                let headerIdx = 0;
-                for(let i=0; i<Math.min(15, rawStock.length); i++){
-                    const rowStr = rawStock[i].join('').toUpperCase();
-                    if(rowStr.includes('COD') && rowStr.includes('DESCRIPCION')){ headerIdx = i; break; }
-                }
-                const jsonStock = XLSX.utils.sheet_to_json(wsStock, { range: headerIdx, defval: "" });
-                
-                const toNumber = (value) => {
-                    const raw = String(value ?? '').trim().replace(/\s/g, '');
-                    if (!raw) return 0;
-                    const isThousandsWithDots = /^\d{1,3}(\.\d{3})+$/.test(raw);
-                    const normalized = raw.includes(',') ? raw.replace(/\./g, '').replace(',', '.') : (isThousandsWithDots ? raw.replace(/\./g, '') : raw);
-                    const number = Number(normalized);
-                    return Number.isFinite(number) ? number : 0;
+                const sheetRows = (name, required) => {
+                    const actual=workbook.SheetNames.find(n=>DtxData.normalize(n)===name);
+                    if (!actual) throw new Error('Falta la hoja '+name+' en el Excel.');
+                    const grid=XLSX.utils.sheet_to_json(workbook.Sheets[actual],{header:1,defval:''});
+                    const header=grid.findIndex(r=>required.every(k=>r.some(v=>DtxData.normalize(v)===k)));
+                    if (header<0) throw new Error('No se reconocen los encabezados de '+name+'.');
+                    const headers=grid[header].map(DtxData.normalize);
+                    const rows=grid.slice(header+1).map((r,index)=> {
+                        const item=Object.fromEntries(headers.filter(Boolean).map(k=>[k,r[headers.indexOf(k)] ?? '']));
+                        item.__row=header+index+2;
+                        if (typeof item.FECHA==='number') {
+                            const parsed=XLSX.SSF.parse_date_code(item.FECHA,{date1904:!!workbook.Workbook?.WBProps?.date1904});
+                            item.FECHA=parsed?new Date(parsed.y,parsed.m-1,parsed.d):null;
+                        }
+                        const pdfIndex=headers.indexOf('FICHA');
+                        if (pdfIndex>=0) {
+                            const link=workbook.Sheets[actual][XLSX.utils.encode_cell({r:header+index+1,c:pdfIndex})]?.l?.Target;
+                            if (link) item.FICHA=link;
+                        }
+                        return item;
+                    });
+                    return {rows,grid,header};
                 };
-
-                const productsFromStock = jsonStock.map(row => {
-                    let nRow = {};
-                    for (let key in row) { nRow[String(key).trim().toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")] = String(row[key]).trim(); }
-                    
-                    return {
-                        CODIGO: nRow['COD'] || nRow['CODIGO'] || '', 
-                        NOMBRE: nRow['DESCRIPCION'] || nRow['NOMBRE'] || '',
-                        STOCK: Math.round(toNumber(nRow['STOCK ACTUAL'] || nRow['STOCK'])),
-                        STOCK_CRITICO: Math.round(toNumber(nRow['STOCK CRITICO'])),
-                        UNIDAD: nRow['UDM'] || nRow['UNIDAD'] || 'UND',
-                        CATEGORIA: nRow['FAMILIA'] || nRow['CATEGORIA'] || '', 
-                        FICHA: nRow['FICHA'] || nRow['FICHA TECNICA'] || '',
-                        ORGANIZADOR: nRow['UBICACION'] || nRow['ORGANIZADOR'] || nRow['PASILLO'] || '',
-                        ENTRADAS_MES: parseInt(nRow['ENTRADAS']) || 0,
-                        SALIDAS_MES: parseInt(nRow['SALIDAS']) || 0
-                    };
-                }).filter(p => p.CODIGO && p.NOMBRE);
-
-                dbProducts = Array.from(new Map(productsFromStock.map(product => [product.CODIGO, product])).values());
-                dbProducts.sort((a, b) => a.NOMBRE.localeCompare(b.NOMBRE));
-
-                const readMovements = (sheetName, type) => {
-                    const sheet = workbook.Sheets[sheetName];
-                    if (!sheet) return [];
-                    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
-                    const header = rows.findIndex(row => row.some(value => String(value).trim().toUpperCase() === 'FECHA'));
-                    if (header < 0) return [];
-                    return XLSX.utils.sheet_to_json(sheet, { range: header, defval: '' }).map(row => {
-                        const normalized = Object.fromEntries(Object.entries(row).map(([key, value]) => [String(key).trim().toUpperCase(), value]));
-                        const dateValue = normalized.FECHA;
-                        const parsedExcelDate = typeof dateValue === 'number' ? XLSX.SSF.parse_date_code(dateValue) : null;
-                        const date = dateValue instanceof Date ? dateValue : parsedExcelDate ? new Date(parsedExcelDate.y, parsedExcelDate.m - 1, parsedExcelDate.d) : new Date(dateValue);
-                        return { type, date, code: String(normalized.COD || ''), name: String(normalized.DESCRIPCION || ''), quantity: Number(normalized.CANT || normalized.CAN || 0) || 0 };
-                    }).filter(item => !Number.isNaN(item.date.getTime()));
-                };
-                dbMovements = [...readMovements('ENTRADA', 'entrada'), ...readMovements('SALIDA', 'salida')];
+                const stockSheet=sheetRows('STOCK',['COD','DESCRIPCION']);
+                const nextModel=DtxData.build(stockSheet.rows,sheetRows('ENTRADA',['FECHA','DESCRIPCION']).rows,sheetRows('SALIDA',['FECHA','DESCRIPCION']).rows);
+                if (!nextModel.products.length) throw new Error('La hoja STOCK no contiene materiales válidos.');
+                const stockDate=stockSheet.grid[stockSheet.header-1]?.[6];
+                dashboardStockMonth=DtxData.date(stockDate);
+                dashboardModel=nextModel;
+                dbProducts=nextModel.products;
+                dbMovements=nextModel.movements;
+                dashboardUpdatedAt=new Date();
 
                 if(statusEl) { statusEl.innerText = `Online: ${dbProducts.length} ítems`; statusEl.className = "text-[9px] text-green-600 font-black mt-1 uppercase tracking-widest"; }
                 if(isManualRefresh && syncIcon) { setTimeout(() => { syncIcon.classList.remove('fa-spin'); }, 500); }
@@ -864,9 +1071,13 @@
                 renderDashboard();
 
             } catch (e) {
+                dashboardLoadError=e.message || 'No se pudo leer el Excel.';
                 console.error("Error BD:", e);
                 if(statusEl) { statusEl.innerText = "Error de conexión"; statusEl.className = "text-[9px] text-red-500 font-bold mt-1 uppercase"; }
                 if(isManualRefresh && syncIcon) syncIcon.classList.remove('fa-spin');
+            } finally {
+                dashboardLoading=false;
+                renderDashboard();
             }
         }
 
@@ -912,7 +1123,7 @@
                 else if(p.STOCK > 10) badgeClass = 'bg-green-50 text-green-700 border-green-200';
 
                 htmlList += `
-                    <div class="px-4 py-3 border-b border-gray-50 flex items-center justify-between cursor-pointer hover:bg-orange-50/50 transition-colors bg-white active:bg-gray-100" onclick="abrirModalProducto('${p.CODIGO}')">
+                    <div class="px-4 py-3 border-b border-gray-50 flex items-center justify-between cursor-pointer hover:bg-orange-50/50 transition-colors bg-white active:bg-gray-100" onclick="abrirModalProducto('${p.KEY}')">
                         <div class="flex-1 min-w-0 pr-3">
                             <p class="text-sm font-bold text-gray-900 leading-tight uppercase truncate" title="${p.NOMBRE}">${p.NOMBRE}</p>
                             <p class="text-[10px] font-black text-gray-400 mt-0.5 uppercase tracking-widest"><i class="fa-solid fa-circle text-[6px] mr-1 text-orange-400 align-middle"></i>${p.CODIGO}</p>
@@ -946,7 +1157,9 @@
 
         // --- STREAMING_CHUNK: Implementando la nueva Ficha de Producto y Visor de Movimientos... ---
         function abrirModalProducto(codigo) {
-            let prod = dbProducts.find(p => p.CODIGO.toUpperCase() === codigo.toUpperCase());
+            const matches=dbProducts.filter(p=>p.KEY===String(codigo)||p.CODIGO.toUpperCase()===String(codigo).toUpperCase());
+            if(matches.length>1) return Toast('Código duplicado en STOCK. Busca el nombre en el Dashboard para revisar las filas.','error');
+            let prod = matches[0];
             if(!prod) return Toast("Producto no hallado", "error");
             
             window.currentProd = prod;
@@ -955,18 +1168,16 @@
             document.getElementById('mdlFamily').innerText = prod.CATEGORIA || 'MATERIALES';
             
             const stockEl = document.getElementById('mdlStock');
-            stockEl.innerText = prod.STOCK;
-            stockEl.className = `text-5xl font-black leading-none tracking-tighter transition-colors ${prod.STOCK > 10 ? 'text-green-500' : (prod.STOCK > 0 ? 'text-orange-500' : 'text-red-500')}`;
+            stockEl.innerText = fmt(prod.STOCK);
+            stockEl.className = `text-5xl font-black leading-none tracking-tighter transition-colors ${prod.STOCK===null?'text-slate-500':prod.STOCK<=0?'text-red-500':DtxData.low(prod)?'text-orange-500':'text-green-500'}`;
             document.getElementById('mdlUnidad').innerText = prod.UNIDAD;
 
             // Llenar datos de movimientos del mes
-            document.getElementById('mdlTotalIn').innerText = prod.ENTRADAS_MES;
-            document.getElementById('mdlTotalOut').innerText = prod.SALIDAS_MES;
-
-            const normalizarTexto = (texto) => String(texto || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toUpperCase();
-            const movimientosProducto = dbMovements
-                .filter(m => (m.code && m.code === String(prod.CODIGO)) || normalizarTexto(m.name) === normalizarTexto(prod.NOMBRE))
-                .sort((a, b) => b.date - a.date);
+            const qrSummary=DtxData.summary(dashboardModel,prod.KEY,DtxData.range('month'));
+            const qrQuantity=groups=>groups.length?groups.map(g=>`${fmt(g.quantity)} ${g.unit}`).join(' / '):'0';
+            document.getElementById('mdlTotalIn').innerText = qrQuantity(qrSummary.in);
+            document.getElementById('mdlTotalOut').innerText = qrQuantity(qrSummary.out);
+            const movimientosProducto = dbMovements.filter(m=>m.code===prod.KEY&&DtxData.inRange(m.date,DtxData.range('all')));
             const ultimoMovimiento = movimientosProducto[0];
             document.getElementById('mdlLastMove').innerText = ultimoMovimiento
                 ? ultimoMovimiento.date.toLocaleDateString('es-CL', { day: '2-digit', month: 'short' })
@@ -1064,17 +1275,17 @@
             icon.classList.toggle('rotate-180', opening);
         }
 
-        function abrirFichaActual() {
-            if(!window.currentProd || !window.currentProd.FICHA) return;
+        function abrirFichaActual(product = window.currentProd) {
+            if(!product || !pdfURL(product.FICHA)) return;
             const modal = document.getElementById('modalFichaTecnica'); 
             const iframe = document.getElementById('iframeFicha');
             const btnDescarga = document.getElementById('btnDescargarFicha'); 
-            let url = window.currentProd.FICHA;
+            let url = product.FICHA;
             if(url.includes('dropbox.com')) { url = url.replace('dl=0', 'raw=1').replace('dl=1', 'raw=1'); } 
             else if (url.includes('drive.google.com')) { url = url.replace('/view', '/preview'); }
             
-            iframe.src = url; 
-            if(btnDescarga) btnDescarga.href = window.currentProd.FICHA; 
+            iframe.src = pdfURL(product.FICHA);
+            if(btnDescarga) btnDescarga.href = pdfURL(product.FICHA,'download');
             modal.classList.remove('hidden'); modal.classList.add('flex');
         }
 
@@ -1161,6 +1372,8 @@
         }
 
         function setView(view) {
+            document.getElementById('dtxDock')?.style.setProperty('--dock-x', ({dashboard:'12.5%',visor:'37.5%',layout:'62.5%',generator:'87.5%'})[view] || '12.5%');
+            document.querySelectorAll('.label-action').forEach(button=>button.classList.toggle('hidden',view!=='generator'));
             cerrarGerenciaTabs();
             if((view === 'inventario' || view === 'mermas') && !inventarioDesbloqueado) {
                 intentarVerGerencia(); return; 
@@ -1183,6 +1396,7 @@
 
             const btnGenM = document.getElementById('btn-nav-gen');
             const btnVisM = document.getElementById('btn-nav-vis');
+            const btnLayoutM = document.getElementById('btn-nav-layout');
             
             if(btnGenM) {
                 if(view === 'generator') { btnGenM.classList.add('text-orange-500'); btnGenM.classList.remove('text-gray-400'); } 
@@ -1191,6 +1405,11 @@
             if(btnVisM) {
                 if(view === 'visor') { btnVisM.classList.add('text-orange-500'); btnVisM.classList.remove('text-gray-400'); btnVisM.querySelector('i').classList.add('scale-110'); } 
                 else { btnVisM.classList.remove('text-orange-500'); btnVisM.classList.add('text-gray-400'); btnVisM.querySelector('i').classList.remove('scale-110'); }
+            }
+            if (btnLayoutM) {
+                btnLayoutM.classList.toggle('text-orange-500',view==='layout');
+                btnLayoutM.classList.toggle('text-gray-400',view!=='layout');
+                if(view==='layout') btnLayoutM.setAttribute('aria-current','page'); else btnLayoutM.removeAttribute('aria-current');
             }
 
             document.querySelectorAll('#gerencia-tabs-desktop .ios-btn').forEach(btn => {
@@ -1205,7 +1424,8 @@
             if(view==='inventario') { const b = document.getElementById('btn-inv-desktop'); if(b) b.classList.replace('btn-ghost','btn-active-tab'); actualizarUIEstadoInventario();}
             if(view==='mermas') { const b = document.getElementById('btn-mermas-desktop'); if(b) b.classList.replace('btn-ghost','btn-active-tab'); }
             if(view==='dashboard') { const b = document.getElementById('btn-dash-desktop'); if(b) b.classList.replace('btn-ghost','btn-active-tab'); renderDashboard(); }
-            [['gen', 'generator'], ['vis', 'visor'], ['dash', 'dashboard']].forEach(([key, section]) => {
+            if(view==='layout') renderWarehouseLayout();
+            [['gen', 'generator'], ['vis', 'visor'], ['dash', 'dashboard'], ['layout', 'layout']].forEach(([key, section]) => {
                 ['btn-' + key + '-desktop', 'btn-nav-' + key].forEach(id => {
                     const button = document.getElementById(id);
                     if (!button) return;
@@ -1220,50 +1440,128 @@
         }
 
         function renderDashboard() {
-            const stats = document.getElementById('dashboardStats');
-            const alerts = document.getElementById('dashboardAlerts');
-            const movements = document.getElementById('dashboardMovements');
-            if (!stats || !alerts || !movements) return;
-            const products = dbProducts || [];
-            const empty = products.filter(p => p.STOCK <= 0);
-            const low = products.filter(p => p.STOCK > 0 && p.STOCK <= (p.STOCK_CRITICO > 0 ? p.STOCK_CRITICO : 10));
-            const period = document.getElementById('dashboardPeriod')?.value || 'month';
-            const now = new Date();
-            const start = period === 'month' ? new Date(now.getFullYear(), now.getMonth(), 1) : period === '30' ? new Date(now.getFullYear(), now.getMonth(), now.getDate() - 30) : null;
-            const periodMovements = dbMovements.filter(item => !start || item.date >= start);
-            const entries = periodMovements.filter(item => item.type === 'entrada').reduce((sum, item) => sum + item.quantity, 0);
-            const exits = periodMovements.filter(item => item.type === 'salida').reduce((sum, item) => sum + item.quantity, 0);
-            const query = (document.getElementById('dashboardMaterialSearch')?.value || '').trim().toLowerCase();
-            const resultadosBusqueda = query ? products.filter(p => p.NOMBRE.toLowerCase().includes(query) || p.CODIGO.toLowerCase().includes(query)) : [...empty, ...low];
-            const priority = resultadosBusqueda.slice(0, 8);
-            const statData = [['Materiales', products.length, 'fa-boxes-stacked', 'text-[#172033]'], ['Sin stock', empty.length, 'fa-circle-exclamation', 'text-red-500'], ['Stock bajo', low.length, 'fa-arrow-down', 'text-orange-500'], ['Movimientos', entries + exits, 'fa-arrow-right-arrow-left', 'text-green-600']];
-            stats.innerHTML = statData.map(([label, value, icon, tone]) => `<div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm"><i class="fa-solid ${icon} text-orange-500"></i><p class="mt-2 text-xs font-bold text-slate-500">${label}</p><p class="text-3xl font-black ${tone}">${value}</p></div>`).join('');
-            alerts.innerHTML = priority.length ? priority.map(p => { const critical = p.STOCK <= 0; return `<button onclick="mostrarDetalleDashboard('${p.CODIGO}')" class="w-full text-left p-4 hover:bg-orange-50/50 transition-colors flex items-center justify-between gap-3"><span class="min-w-0"><strong class="block truncate text-sm text-[#172033]">${p.NOMBRE}</strong><small class="text-slate-500">${p.CODIGO} · ${p.ORGANIZADOR || 'Sin ubicación'}</small></span><span class="shrink-0 ${critical ? 'text-red-600 bg-red-50 border-red-200' : 'text-orange-600 bg-orange-50 border-orange-200'} border rounded-lg px-2.5 py-1 text-xs font-black">${p.STOCK} ${p.UNIDAD}</span></button>`; }).join('') + (resultadosBusqueda.length > priority.length ? `<p class="px-4 py-3 text-xs font-bold text-slate-500">Mostrando 8 de ${resultadosBusqueda.length}. Afina tu búsqueda.</p>` : '') : `<p class="p-6 text-center text-sm text-slate-500">${query ? 'No se encontraron materiales para esta búsqueda.' : 'No hay materiales críticos.'}</p>`;
-            movements.innerHTML = `<div class="rounded-xl border border-green-100 bg-green-50 p-4"><i class="fa-solid fa-arrow-down text-green-600"></i><p class="mt-2 text-sm font-bold text-green-700">Entradas</p><p class="text-3xl font-black text-green-600">${entries}</p></div><div class="rounded-xl border border-red-100 bg-red-50 p-4"><i class="fa-solid fa-arrow-up text-red-500"></i><p class="mt-2 text-sm font-bold text-red-700">Salidas</p><p class="text-3xl font-black text-red-600">${exits}</p></div>`;
+            const stats=document.getElementById('dashboardStats'), alerts=document.getElementById('dashboardAlerts');
+            if (!stats || !alerts) return;
+            const source=document.getElementById('dashboardSource');
+            const updated=dashboardUpdatedAt?.toLocaleString('es-CL',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+            source.textContent=dashboardLoading?'Actualizando desde Dropbox…':dashboardLoadError?`No se pudo actualizar: ${dashboardLoadError}${updated?' Se conserva la lectura del '+updated+'.':''}`:`${fmt(dbProducts.length)} materiales · Excel de Dropbox · actualizado ${updated || '—'}`;
+            source.style.color=dashboardLoadError?'#b91c1c':'';
+            document.getElementById('dashboardRefresh').disabled=dashboardLoading;
+            if (!dashboardModel) { alerts.innerHTML='<p class="p-6 text-sm text-slate-500">'+(dashboardLoading?'Cargando catálogo e historial…':'No hay una lectura válida. Pulsa Actualizar para reintentar.')+'</p>'; return; }
+            let period;
+            try { period=dashboardRange(); document.getElementById('dashboardPeriodError').classList.add('hidden'); }
+            catch(e) {
+                const error=document.getElementById('dashboardPeriodError'); error.textContent=e.message; error.classList.remove('hidden');
+                stats.innerHTML=''; alerts.innerHTML=''; document.getElementById('dashboardMovements').innerHTML=''; document.getElementById('dashboardPager').innerHTML='';
+                document.getElementById('dashboardResultsCount').textContent='Selecciona un período válido.';
+                document.getElementById('dashboardMaterialDetail').classList.add('hidden'); return;
+            }
+            document.getElementById('dashboardPeriodLabel').textContent=periodCaption(period)+' · El stock es el actual';
+            const labels={all:'Todos',empty:'Sin stock',low:'Stock bajo',location:'Sin ubicación'};
+            const counts=DtxData.indicators(dashboardModel);
+            const cards=[['empty','Materiales sin stock','fa-box-open','#dc2626','Existencia ≤ 0 · revisar reposición',counts.empty],['low','Materiales con stock bajo','fa-arrow-trend-down','#c2410c','Stock positivo dentro del mínimo configurado',counts.low],['location','Materiales sin ubicación','fa-location-dot','#2563eb','Pendientes de asignar un lugar',counts.noLocation],['all','Catálogo total','fa-boxes-stacked','#475569','Materiales disponibles para consultar',counts.total]];
+            stats.innerHTML=cards.map(([filter,label,icon,color,hint,amount])=>`<button class="dash-kpi" data-filter="${filter}" aria-pressed="${dashboardState.filter===filter}"><span class="text-xs font-bold text-slate-600">${label}</span><i class="fa-solid ${icon}" style="color:${color}"></i><strong style="color:${color}">${fmt(amount)}</strong><small>${fmt(amount)} ${label.toLowerCase()}</small><small>${hint}</small></button>`).join('');
+            stats.querySelectorAll('[data-filter]').forEach(button=>button.onclick=()=>{dashboardState.filter=dashboardState.filter===button.dataset.filter?'all':button.dataset.filter; dashboardState.page=0; renderDashboard();});
+            const query=document.getElementById('dashboardMaterialSearch').value.trim();
+            const visible=DtxData.browse(dashboardModel,{query,letter:dashboardState.letter,filter:dashboardState.filter,period});
+            const letters=new Set(DtxData.browse(dashboardModel,{query,filter:dashboardState.filter,period}).map(p=>DtxData.initial(p.NOMBRE)));
+            const alphabet=document.getElementById('dashboardAlphabet');
+            alphabet.innerHTML=['','A','B','C','D','E','F','G','H','I','J','K','L','M','N','Ñ','O','P','Q','R','S','T','U','V','W','X','Y','Z','#'].map(l=>`<button data-letter="${l}" aria-pressed="${dashboardState.letter===l}" ${l&&!letters.has(l)?'disabled':''}>${l||'Todos'}</button>`).join('');
+            alphabet.querySelectorAll('[data-letter]').forEach(button=>button.onclick=()=>{const scroll=alphabet.scrollLeft;dashboardState.letter=button.dataset.letter;dashboardState.page=0;renderDashboard();alphabet.scrollLeft=scroll;alphabet.querySelector(`[data-letter="${dashboardState.letter}"]`)?.focus({preventScroll:true});});
+            const pages=Math.max(1,Math.ceil(visible.length/10)); dashboardState.page=Math.max(0,Math.min(dashboardState.page,pages-1));
+            document.getElementById('dashboardResultsCount').textContent=`${fmt(visible.length)} resultados · ${labels[dashboardState.filter]}${dashboardState.letter?' · '+dashboardState.letter:''}`;
+            alerts.innerHTML=visible.slice(dashboardState.page*10,dashboardState.page*10+10).map(p=>`<button class="dash-row" data-material="${esc(p.KEY)}" aria-pressed="${dashboardState.selected===p.KEY}"><span><strong>${esc(p.NOMBRE)}</strong><small>${esc(p.CODIGO)}${p.conflict?' · ⚠ Código duplicado':''} · ${esc(p.CATEGORIA)} · ${esc(DtxData.hasLocation(p)?p.ORGANIZADOR:'Sin ubicación')}</small></span><span class="dash-badge ${p.STOCK!==null&&p.STOCK<=0?'empty':DtxData.low(p)?'low':''}">${fmt(p.STOCK)} ${esc(p.UNIDAD)}</span></button>`).join('') || '<p class="p-6 text-sm text-slate-500">No hay coincidencias. Prueba otra letra o pulsa Ver todos.</p>';
+            alerts.querySelectorAll('[data-material]').forEach(button=>button.onclick=()=>mostrarDetalleDashboard(button.dataset.material));
+            document.getElementById('dashboardPager').innerHTML=`<button onclick="dashboardPage(-1)" ${dashboardState.page===0?'disabled':''}>Anterior</button><span>${dashboardState.page+1} / ${pages}</span><button onclick="dashboardPage(1)" ${dashboardState.page+1>=pages?'disabled':''}>Siguiente</button>`;
+            const selectedMovements=dbMovements.filter(m=>DtxData.inRange(m.date,period));
+            document.getElementById('dashboardMovements').innerHTML=[['entrada','Entradas','green'],['salida','Salidas','red']].map(([type,label,tone])=>`<div class="rounded-xl border border-${tone}-100 bg-${tone}-50 p-4"><i class="fa-solid fa-arrow-${type==='entrada'?'down':'up'} text-${tone}-600"></i><p class="mt-2 text-xs font-bold text-${tone}-700">${label}</p><p class="text-3xl font-black text-${tone}-600">${fmt(selectedMovements.filter(m=>m.type===type).length)}</p><p class="text-xs text-slate-500">registros</p></div>`).join('');
+            const issues=dashboardModel.issues, unresolved=selectedMovements.filter(m=>!m.code).length, future=dbMovements.filter(m=>m.date>DtxData.range('all').to).length;
+            const withoutMin=dbProducts.filter(p=>!(p.STOCK_CRITICO>0)).length;
+            const datedHistory=dbMovements.filter(m=>m.date<=DtxData.range('all').to);
+            const earliest=datedHistory.at(-1)?.date,latest=datedHistory[0]?.date;
+            document.getElementById('dashboardQuality').innerHTML=`<p class="text-orange-800"><strong>${fmt(issues.conflicts)} códigos con datos conflictivos</strong> conservados por fila. ${fmt(issues.duplicateRows)} repeticiones idénticas consolidadas.</p><p class="mt-2"><strong>${fmt(withoutMin)}</strong> materiales sin mínimo configurado. No se les asigna un mínimo automático.</p><p class="mt-2">Historial: ${dateText(earliest)} → ${dateText(latest)}.</p><p class="mt-2">${fmt(unresolved)} registros del período sin material asociado. Se cuentan en el resumen general, no en un material.</p><details class="mt-3"><summary class="cursor-pointer font-bold text-orange-700">Revisar calidad del Excel</summary><p class="mt-2">En todo el historial: ${fmt(issues.invalid)} filas excluidas por fecha/cantidad inválida; ${fmt(issues.unmatched)} sin asociación; ${fmt(issues.unitMismatch)} con unidad distinta de STOCK; ${fmt(issues.stockInvalid)} stocks inválidos; ${fmt(future)} movimientos futuros.</p><p class="mt-2">Una fila con cantidad cero no cuenta como movimiento. Fechas anteriores a 2000 se excluyen por revisión; fechas futuras no se incluyen en períodos hasta hoy. No se convierten unidades.</p>${issues.samples.slice(0,12).map(s=>`<p class="mt-2">${esc(s.sheet)} · fila ${esc(s.row)} · ${esc(s.name)}<br>${esc(s.reason)}</p>`).join('')}${issues.samples.length>12?'<p class="mt-2">Primeros 12 casos; revisa las hojas de origen para el resto.</p>':''}</details>`;
+            if (dashboardState.selected) renderDashboardDetail();
         }
 
         function mostrarDetalleDashboard(codigo) {
-            const product = dbProducts.find(p => String(p.CODIGO).toUpperCase() === String(codigo).toUpperCase());
-            const detail = document.getElementById('dashboardMaterialDetail');
-            if (!product || !detail) return;
-            const normalizarTexto = (texto) => String(texto || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toUpperCase();
-            const movements = dbMovements
-                .filter(m => (m.code && String(m.code) === String(product.CODIGO)) || normalizarTexto(m.name) === normalizarTexto(product.NOMBRE))
-                .sort((a, b) => b.date - a.date);
-            const entradas = product.ENTRADAS_MES || 0;
-            const salidas = product.SALIDAS_MES || 0;
-            const lastMovement = movements[0]?.date;
-            const stockTone = product.STOCK <= 0 ? 'text-red-600' : product.STOCK <= (product.STOCK_CRITICO || 10) ? 'text-orange-600' : 'text-green-600';
-            const ficha = product.FICHA && product.FICHA.length > 5
-                ? `<a href="${product.FICHA}" target="_blank" class="rounded-xl bg-orange-600 px-3 py-2 text-xs font-black text-white transition-colors hover:bg-orange-700"><i class="fa-solid fa-file-pdf mr-1"></i>Ver ficha</a>`
-                : '<span class="text-xs font-bold text-slate-400">Sin ficha técnica</span>';
-            detail.innerHTML = `<div class="flex items-start justify-between gap-3"><div><p class="text-[10px] font-black tracking-widest text-orange-600">DETALLE EN DASHBOARD · ${product.CODIGO}</p><h4 class="mt-1 text-lg font-black text-[#172033] uppercase">${product.NOMBRE}</h4><p class="mt-1 text-xs font-semibold text-slate-500">${product.CATEGORIA || 'Sin categoría'} · ${product.ORGANIZADOR || 'Sin ubicación'}</p></div><button onclick="cerrarDetalleDashboard()" class="h-8 w-8 rounded-full bg-white text-slate-500 shadow-sm transition-colors hover:text-orange-600" aria-label="Cerrar detalle"><i class="fa-solid fa-xmark"></i></button></div><div class="mt-4 grid grid-cols-3 gap-2"><div class="rounded-xl border border-slate-200 bg-white p-3"><p class="text-[10px] font-black uppercase text-slate-400">Stock</p><p class="mt-1 text-2xl font-black ${stockTone}">${product.STOCK} <span class="text-sm">${product.UNIDAD}</span></p></div><div class="rounded-xl border border-green-100 bg-green-50 p-3"><p class="text-[10px] font-black uppercase text-green-700">Entradas</p><p class="mt-1 text-2xl font-black text-green-600">${entradas}</p></div><div class="rounded-xl border border-red-100 bg-red-50 p-3"><p class="text-[10px] font-black uppercase text-red-700">Salidas</p><p class="mt-1 text-2xl font-black text-red-600">${salidas}</p></div></div><div class="mt-3 flex items-center justify-between gap-3"><p class="text-xs font-semibold text-slate-500"><i class="fa-regular fa-clock mr-1 text-blue-600"></i>${lastMovement ? `Último movimiento: ${lastMovement.toLocaleDateString('es-CL')}` : 'Sin movimientos registrados'}</p>${ficha}</div>`;
-            mostrarPanelSuave(detail, true);
-            detail.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth', block: 'nearest' });
+            dashboardState.selected=String(codigo); dashboardState.historyPage=0;
+            renderDashboardDetail();
+            const detail=document.getElementById('dashboardMaterialDetail');
+            detail.focus({preventScroll:true});
+            detail.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'start'});
+            document.querySelectorAll('#dashboardAlerts [data-material]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.material===dashboardState.selected)));
         }
 
+        const esc = value => String(value ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        const fmt = value => value===null || value===undefined ? '—' : Number(value).toLocaleString('es-CL',{maximumFractionDigits:3});
+        const dateText = day => day ? day.toLocaleDateString('es-CL',{day:'2-digit',month:'short',year:'numeric'}) : 'Sin registro asociado';
+        const periodCaption = r => `${r.from?dateText(r.from):'Inicio del historial'} — ${dateText(r.to)}`;
+        const localISO = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+        function dashboardRange() {
+            return DtxData.range(document.getElementById('dashboardPeriod').value,new Date(),{month:document.getElementById('dashboardMonth').value,from:document.getElementById('dashboardFrom').value,to:document.getElementById('dashboardTo').value});
+        }
+        function dashboardPeriodChanged() {
+            const mode=document.getElementById('dashboardPeriod').value, today=new Date();
+            for (const [id,show] of [['Month',mode==='chosen'],['From',mode==='custom'],['To',mode==='custom']]) document.getElementById('dashboard'+id+'Wrap').classList.toggle('hidden',!show);
+            if (!document.getElementById('dashboardMonth').value) document.getElementById('dashboardMonth').value=localISO(today).slice(0,7);
+            if (!document.getElementById('dashboardFrom').value) document.getElementById('dashboardFrom').value=localISO(new Date(today.getFullYear(),today.getMonth(),1));
+            if (!document.getElementById('dashboardTo').value) document.getElementById('dashboardTo').value=localISO(today);
+            dashboardState.page=0; dashboardState.historyPage=0; renderDashboard();
+        }
+        function dashboardSearchChanged() { dashboardState.page=0; dashboardState.letter=''; renderDashboard(); }
+        function resetDashboardFilters() { dashboardState.page=0;dashboardState.letter='';dashboardState.filter='all';document.getElementById('dashboardMaterialSearch').value='';renderDashboard(); }
+        function dashboardPage(delta) { dashboardState.page+=delta;renderDashboard();document.getElementById('dashboardAlerts').scrollIntoView({block:'start',behavior:'instant'}); }
+        function dashboardHistoryPage(delta) { dashboardState.historyPage+=delta;renderDashboardDetail();document.getElementById('dashboardHistory').scrollIntoView({block:'nearest',behavior:'instant'}); }
+        const quantityText = groups => groups.length?groups.map(g=>`${fmt(g.quantity)} <em>${esc(g.unit)}</em>`).join('<br>'):'0 <em>registros</em>';
+        function renderDashboardDetail() {
+            const product=dbProducts.find(p=>p.KEY===dashboardState.selected), detail=document.getElementById('dashboardMaterialDetail');
+            if (!product) {dashboardState.selected='';detail.classList.add('hidden');return;}
+            const period=dashboardRange(), s=DtxData.summary(dashboardModel,product.KEY,period);
+            const latest=(title,m)=>`<article><p>${title}</p><strong>${m?dateText(m.date):'Sin registro asociado'}</strong><p>${m?`${fmt(m.quantity)} ${esc(m.unit)} · ${esc(m.party||'Sin proveedor/destino')}<br>Documento: ${esc(m.document||'Sin documento')} · ${esc(m.sheet)} fila ${esc(m.row)}`:'Consulta el historial disponible y el estado de los datos.'}</p></article>`;
+            let discrepancy='';
+            if (dashboardStockMonth) {
+                const r=DtxData.range('chosen',new Date(),{month:localISO(dashboardStockMonth).slice(0,7)}), month=DtxData.summary(dashboardModel,product.KEY,r);
+                const sameUnit=groups=>groups.every(g=>g.unit===product.UNIDAD);
+                if (sameUnit(month.in)&&sameUnit(month.out)) {
+                    const entry=month.in.reduce((n,g)=>n+g.quantity,0),exit=month.out.reduce((n,g)=>n+g.quantity,0);
+                    if ((product.ENTRADAS_MES!==null&&Math.abs(entry-product.ENTRADAS_MES)>.0001)||(product.SALIDAS_MES!==null&&Math.abs(exit-product.SALIDAS_MES)>.0001)) discrepancy=`<p class="dash-note"><strong>Diferencia en el Excel · ${dashboardStockMonth.toLocaleDateString('es-CL',{month:'long',year:'numeric'})}</strong><br>STOCK informa ${fmt(product.ENTRADAS_MES)} entradas / ${fmt(product.SALIDAS_MES)} salidas. El historial asociado suma ${fmt(entry)} / ${fmt(exit)} ${esc(product.UNIDAD)}. Revisa fechas y asociaciones; se conserva el stock actual de STOCK.</p>`;
+                } else discrepancy='<p class="dash-note">El mes indicado en STOCK contiene movimientos con unidades distintas. No se comparan ni convierten automáticamente.</p>';
+            }
+            const pages=Math.max(1,Math.ceil(s.selected.length/8));dashboardState.historyPage=Math.max(0,Math.min(dashboardState.historyPage,pages-1));
+            const rows=s.selected.slice(dashboardState.historyPage*8,dashboardState.historyPage*8+8);
+            const pdf=pdfURL(product.FICHA);
+            detail.innerHTML=`<div class="flex justify-between items-start gap-3"><div><p class="text-[10px] font-black tracking-widest text-orange-700">MATERIAL · ${esc(product.CODIGO)}</p><h4>${esc(product.NOMBRE)}</h4><p class="dashboard-meta">${esc(product.CATEGORIA||'Sin categoría')} · Mínimo: ${product.STOCK_CRITICO>0?fmt(product.STOCK_CRITICO)+' '+esc(product.UNIDAD):'no configurado'}</p></div><button onclick="cerrarDetalleDashboard()" class="shrink-0 rounded-full bg-white border border-slate-200 h-10 w-10" aria-label="Cerrar detalle"><i class="fa-solid fa-xmark"></i></button></div>
+            <div class="dash-detail-summary"><div class="dash-number"><small>Stock actual</small><strong>${fmt(product.STOCK)} <em>${esc(product.UNIDAD)}</em></strong></div><div class="dash-number"><small>Entradas del período</small><strong class="text-green-700">${quantityText(s.in)}</strong></div><div class="dash-number"><small>Salidas del período</small><strong class="text-red-600">${quantityText(s.out)}</strong></div></div>
+            <p class="dashboard-meta mb-3">${periodCaption(period)} · Totales del historial asociado.</p>
+            <div class="dash-latest">${latest('Última entrada',s.lastIn)}${latest('Última salida',s.lastOut)}</div><p class="dashboard-meta">Últimas fechas de todo el historial disponible hasta hoy.</p>
+            ${product.conflict?`<p class="dash-note"><strong>Código duplicado: ${esc(product.CODIGO)}</strong> · STOCK fila ${esc(product.sourceRow)}. Hay otras filas con este código; sólo se muestran movimientos identificables. Corrige el código en el Excel antes de imprimir nuevos QR.</p>`:''}${s.unitMismatch?'<p class="dash-note">Hay unidades distintas de la unidad de STOCK. Se muestran por separado, sin conversión.</p>':''}${discrepancy}
+            <section class="dash-history" id="dashboardHistory"><header><h3>Historial del período <span class="text-xs text-slate-500">· ${fmt(s.selected.length)} registros</span></h3></header>${rows.map(m=>`<div class="dash-event"><span>${dateText(m.date)}<small class="${m.type==='entrada'?'text-green-700':'text-red-600'}">${m.type==='entrada'?'↓ Entrada':'↑ Salida'}</small></span><span>${esc(m.party||'Sin proveedor/destino')}<small>GD ${esc(m.document||'—')}${m.order?' · OC '+esc(m.order):''}<br>${esc(m.sheet)} · fila ${esc(m.row)}</small></span><strong>${fmt(m.quantity)}<small>${esc(m.unit)}</small></strong></div>`).join('')||'<p class="p-4 text-xs text-slate-500">No hay movimientos asociados en este período. Cambia las fechas; los registros sin asociación se indican en Estado de los datos.</p>'}<div class="dash-pager"><button onclick="dashboardHistoryPage(-1)" ${dashboardState.historyPage===0?'disabled':''}>Anterior</button><span>${dashboardState.historyPage+1} / ${pages}</span><button onclick="dashboardHistoryPage(1)" ${dashboardState.historyPage+1>=pages?'disabled':''}>Siguiente</button></div></section>
+            <div class="dash-history p-3"><div class="flex justify-between items-center gap-3"><div><p class="text-xs font-bold text-slate-500">Ubicación</p><p class="text-sm font-bold mt-1">${esc(DtxData.hasLocation(product)?product.ORGANIZADOR:'Sin ubicación asignada')}</p></div><button id="btnDashboardMaterialMap" onclick="openWarehouseLayout('${esc(product.KEY)}')" class="ios-btn btn-active-tab"><i class="fa-regular fa-map"></i> Ver en layout</button></div><p class="dashboard-meta mt-3">Abre el layout para ubicar el material y revisar su estantería.</p></div>
+            ${pdf?`<div class="dash-pdf"><button onclick="abrirFichaDashboard()"><i class="fa-regular fa-eye mr-2"></i>Ver ficha</button><a href="${esc(pdfURL(product.FICHA,'download'))}" target="_blank" rel="noopener" download><i class="fa-solid fa-download mr-2"></i>Descargar</a></div>`:'<p class="dashboard-meta mt-3">Ficha técnica no disponible en el Excel.</p>'}`;
+            const wasHidden=detail.classList.contains('hidden');
+            if (wasHidden) mostrarPanelSuave(detail,true);
+        }
+        function toggleDashboardMaterialMap() {
+            const p=dbProducts.find(p=>p.KEY===dashboardState.selected), panel=document.getElementById('dashboardMaterialMap');
+            const opening=panel.dataset.open!=='true';
+            if(opening) renderWarehouseMap('dashboardMaterialMap',p?.ORGANIZADOR);
+            mostrarPanelSuave(panel,opening);
+            const button=document.getElementById('btnDashboardMaterialMap');button.setAttribute('aria-expanded',String(opening));button.innerHTML=`<i class="fa-regular fa-map"></i> ${opening?'Ocultar mapa':'Ver mapa'}`;
+            const hint=document.getElementById('dashboardMaterialMapHint');hint.classList.toggle('hidden',!opening);hint.textContent=panel.querySelector('.rk-active')?'Estantería del material destacada en naranja.':'Plano general. No hay una estantería reconocida para este material.';
+        }
+        function pdfURL(value,mode='preview') {
+            try {const url=new URL(value);if(!['https:','http:'].includes(url.protocol))return '';
+                if(url.hostname.endsWith('dropbox.com')) {url.searchParams.delete('raw');url.searchParams.delete('dl');url.searchParams.set(mode==='download'?'dl':'raw','1');}
+                if(url.hostname==='drive.google.com'&&mode==='preview')url.pathname=url.pathname.replace('/view','/preview');return url.href;
+            }catch{return '';}
+        }
+        function abrirFichaDashboard() {const p=dbProducts.find(p=>p.KEY===dashboardState.selected);if(p)abrirFichaActual(p);}
+
         function cerrarDetalleDashboard() {
+            const code=dashboardState.selected;
+            dashboardState.selected='';
             const detail = document.getElementById('dashboardMaterialDetail');
+            document.querySelectorAll('#dashboardAlerts [data-material]').forEach(b=>{b.setAttribute('aria-pressed','false');if(b.dataset.material===code)b.focus({preventScroll:true});});
             if (detail) mostrarPanelSuave(detail, false);
         }
 
@@ -1676,8 +1974,9 @@
                         const showMax = item.showMax !== undefined ? item.showMax : true;
 
                         let cardContent = '';
-                        const logoSrc = hasLogoGrayscale ? 'LOGO%20NEGRO.jpg' : 'logo.png';
-                        const logoHTML = hasLogoInQR ? `<div class="qr-logo-overlay" style="background-image: url('${logoSrc}'); background-size: contain; background-repeat: no-repeat; background-position: center; background-color: white;"></div>` : '';
+                        const logoSrc = 'logo.png';
+                        const logoFilter = hasLogoGrayscale ? 'filter: grayscale(1) contrast(1.15);' : '';
+                        const logoHTML = hasLogoInQR ? `<div class="qr-logo-overlay" style="background-image: url('${logoSrc}'); background-size: contain; background-repeat: no-repeat; background-position: center; background-color: white; ${logoFilter}"></div>` : '';
                         
                         let minMaxHTML = '';
                         let headerHeightClass = 'h-[60%]'; 
@@ -1950,13 +2249,18 @@
             }, 300);
         }
         
+        function locationToRack(organizador = '') {
+            const match=String(organizador).match(/^(A|B|C)[\s\-]*0*(\d+)?/i);
+            return match&&match[2]?`${match[1].toUpperCase()}${parseInt(match[2],10)}`:'';
+        }
+
         function renderWarehouseMap(containerId, organizador = '') {
             const container = document.getElementById(containerId);
             if (!container) return;
             container.innerHTML = MAP_HTML_STRUCTURE;
-            const match = String(organizador).match(/^(A|B|C)[\s\-]*0*(\d+)?/i);
-            if (!match || !match[2]) return;
-            const rack = container.querySelector(`[data-rack="${match[1].toUpperCase()}${parseInt(match[2], 10)}"]`);
+            const rackCode=locationToRack(organizador);
+            if (!rackCode) return;
+            const rack = container.querySelector(`[data-rack="${rackCode}"]`);
             if (rack) rack.classList.add('rk-active');
         }
 
@@ -1974,6 +2278,48 @@
             icon.className = opening ? 'fa-solid fa-chevron-up mr-1' : 'fa-regular fa-map mr-1';
             if (hint) hint.innerText = opening ? 'Plano completo de los cuatro pasillos.' : 'Abre el plano para revisar los cuatro pasillos.';
         }
+
+        function rackProducts(rack) { return dbProducts.filter(product=>locationToRack(product.ORGANIZADOR)===rack); }
+        function rackStatus(products) {
+            if (!products.length) return 'unknown';
+            if (products.some(product=>product.STOCK!==null&&product.STOCK<=0)) return 'empty';
+            if (products.some(product=>DtxData.low(product))) return 'low';
+            return 'normal';
+        }
+        function selectWarehouseRack(rack) { dashboardState.layoutRack=rack; renderWarehouseLayout(null); }
+        function renderWarehouseLayout(productKey = dashboardState.selected) {
+            const container=document.getElementById('warehouseLayoutMap');
+            if (!container) return;
+            const selectedProduct=dbProducts.find(product=>product.KEY===productKey);
+            const productRack=locationToRack(selectedProduct?.ORGANIZADOR);
+            if (productRack) dashboardState.layoutRack=productRack;
+            container.innerHTML=MAP_HTML_STRUCTURE;
+            container.querySelectorAll('[data-rack]').forEach(rack=>{
+                const code=rack.dataset.rack, products=rackProducts(code), status=rackStatus(products);
+                rack.dataset.layoutRack=code;
+                rack.classList.add(`rack-status-${status}`);
+                rack.setAttribute('role','button'); rack.setAttribute('tabindex','0');
+                rack.setAttribute('aria-label',`${code}: ${products.length} materiales, ${status==='empty'?'sin stock':status==='low'?'stock bajo':status==='normal'?'con stock':'sin información'}`);
+                rack.addEventListener('click',()=>selectWarehouseRack(code));
+                rack.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();selectWarehouseRack(code);}});
+                if (code===dashboardState.layoutRack) rack.classList.add('rk-active');
+            });
+            const rack=dashboardState.layoutRack, products=rackProducts(rack);
+            const title=document.getElementById('warehouseRackTitle'), status=document.getElementById('warehouseRackStatus'), list=document.getElementById('warehouseRackMaterials'), hint=document.getElementById('warehouseLayoutHint');
+            if (!rack) {
+                title.textContent='Selecciona un rack'; status.textContent=selectedProduct?'La ubicación de este material no coincide con un rack reconocido.':'Elige una estantería desde el plano.';
+                list.innerHTML='<h4 class="font-black text-[#172033]">Materiales en esta estantería</h4><p class="dashboard-meta mt-2">Aún no hay una estantería seleccionada.</p>';
+                hint.textContent=selectedProduct?'No se reconoció la ubicación del material seleccionado.':'Selecciona una estantería del plano para ver sus materiales.';
+                return;
+            }
+            const state=rackStatus(products), stateText={empty:'Contiene materiales sin stock',low:'Contiene materiales con stock bajo',normal:'Materiales con stock disponible',unknown:'Sin materiales asociados'}[state];
+            title.textContent=`Rack ${rack}`; status.textContent=`${stateText} · ${products.length} materiales asociados.`;
+            hint.textContent=selectedProduct&&productRack===rack?`${selectedProduct.NOMBRE} está destacado en ${rack}.`:`Rack ${rack} seleccionado.`;
+            list.innerHTML=`<h4 class="font-black text-[#172033]">Materiales en esta estantería</h4>${products.length?products.sort((a,b)=>a.NOMBRE.localeCompare(b.NOMBRE,'es')).map(product=>`<button class="dash-row mt-2" onclick="mostrarDetalleDesdeLayout('${esc(product.KEY)}')"><span><strong>${esc(product.NOMBRE)}</strong><small>${esc(product.CODIGO)} · ${esc(product.CATEGORIA)}</small></span><span class="dash-badge ${product.STOCK!==null&&product.STOCK<=0?'empty':DtxData.low(product)?'low':''}">${fmt(product.STOCK)} ${esc(product.UNIDAD)}</span></button>`).join(''):'<p class="dashboard-meta mt-2">No hay materiales asociados a esta estantería en el Excel.</p>'}`;
+        }
+        function mostrarDetalleDesdeLayout(productKey) { dashboardState.selected=productKey; setView('dashboard'); renderDashboard(); window.requestAnimationFrame(()=>mostrarDetalleDashboard(productKey)); }
+        function openWarehouseLayout(productKey = dashboardState.selected) { if(productKey) dashboardState.selected=String(productKey); setView('layout'); renderWarehouseLayout(); }
+        function abrirLayoutBodega() { openWarehouseLayout(); }
 
         function verUbicacionMapa() {
             const mc = document.getElementById('mdlMapContainer');
