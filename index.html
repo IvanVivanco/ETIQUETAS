@@ -44,6 +44,12 @@
             const u=normalize(value).replace(/\.$/,'');
             return ({UND:'UNIDAD',UD:'UNIDAD',UNIDADES:'UNIDAD',PARES:'PAR',KG:'KG',KGS:'KG',KILO:'KG',KILOS:'KG',MTS:'M',METROS:'M'})[u] || u || 'SIN UDM';
         };
+        // Regla operativa aprobada: para EPP, un par y una unidad representan la misma salida/entrada.
+        // La unidad original del movimiento nunca se modifica; solo se usa esta equivalencia al resumir.
+        const equivalentUnit = (product, movementUnit) => {
+            const productUnit=unit(product?.UNIDAD), sourceUnit=unit(movementUnit);
+            return normalize(product?.CATEGORIA)==='EPP' && ((productUnit==='PAR'&&sourceUnit==='UNIDAD') || (productUnit==='UNIDAD'&&sourceUnit==='PAR'));
+        };
         const hasLocation = p => !['','-','S/R','S/N','SIN UBICACION'].includes(normalize(p.ORGANIZADOR));
         const low = p => p.STOCK !== null && p.STOCK > 0 && p.STOCK_CRITICO > 0 && p.STOCK <= p.STOCK_CRITICO;
         function build(stockRows, entryRows, exitRows) {
@@ -84,7 +90,7 @@
                     const candidates=aliases.get(normalize(name));
                     const id=rawCode ? resolveCode(rawCode,name) : candidates?.size===1 ? [...candidates][0] : '';
                     const u=unit(r.UDM ?? r.UDN ?? r.UNIDAD), product=byKey.get(id);
-                    const mismatch=!!product && u!==product.UNIDAD;
+                    const mismatch=!!product && u!==product.UNIDAD && !equivalentUnit(product,u);
                     if (!id) { issues.unmatched++; issues.samples.push({...sample,reason:rawCode?'Código fuera de STOCK o ambiguo':candidates?.size>1?'Nombre ambiguo':'Nombre sin código asociado'}); }
                     if (mismatch) issues.unitMismatch++;
                     movements.push({type,date:day,code:id,rawCode,name,quantity,unit:u,unitMismatch:mismatch,party:code(type==='entrada'?r.PROVEEDOR:r.DESTINO),document:code(r.GD),order:code(r.OC),sheet,row:r.__ROW});
@@ -107,27 +113,48 @@
             return {from,to};
         }
         const inRange=(day,r) => !!day && (!r.from||day>=r.from) && (!r.to||day<=r.to);
-        const quantities=list => {
-            const groups=new Map(); for (const m of list) groups.set(m.unit,(groups.get(m.unit)||0)+m.quantity);
+        const quantities=(list,product=null) => {
+            const groups=new Map(); for (const m of list) { const key=product&&equivalentUnit(product,m.unit)?product.UNIDAD:m.unit; groups.set(key,(groups.get(key)||0)+m.quantity); }
             return [...groups].map(([unit,quantity])=>({unit,quantity:Math.round(quantity*1000000)/1000000}));
         };
         function summary(model,id,r,now=new Date()) {
-            const all=model.movements.filter(m=>m.code===id), selected=all.filter(m=>inRange(m.date,r));
+            const product=model.products.find(p=>p.KEY===id), all=model.movements.filter(m=>m.code===id), selected=all.filter(m=>inRange(m.date,r));
             const elapsed=all.filter(m=>inRange(m.date,range('all',now)));
-            return {selected,in:quantities(selected.filter(m=>m.type==='entrada')),out:quantities(selected.filter(m=>m.type==='salida')),lastIn:elapsed.find(m=>m.type==='entrada'),lastOut:elapsed.find(m=>m.type==='salida'),unitMismatch:selected.some(m=>m.unitMismatch)};
+            return {selected,in:quantities(selected.filter(m=>m.type==='entrada'),product),out:quantities(selected.filter(m=>m.type==='salida'),product),lastIn:elapsed.find(m=>m.type==='entrada'),lastOut:elapsed.find(m=>m.type==='salida'),unitMismatch:selected.some(m=>m.unitMismatch)};
+        }
+        function consumptionSeries(model,id,r,metric='quantity') {
+            const product=model.products.find(p=>p.KEY===id);
+            if (!product || !r?.to) return [];
+            const exits=model.movements.filter(m=>m.code===id&&m.type==='salida'&&(metric==='movements'||m.unit===product.UNIDAD||equivalentUnit(product,m.unit))&&inRange(m.date,r));
+            let from=r.from || exits.at(-1)?.date || r.to;
+            const days=Math.max(1,Math.round((r.to-from)/86400000)+1), daily=days<=31;
+            if (!daily && (r.to.getFullYear()-from.getFullYear())*12+r.to.getMonth()-from.getMonth()>11) from=new Date(r.to.getFullYear(),r.to.getMonth()-11,1);
+            const buckets=[];
+            if (daily) {
+                for (let day=new Date(from);day<=r.to;day=new Date(day.getFullYear(),day.getMonth(),day.getDate()+1)) buckets.push({key:`${day.getFullYear()}-${day.getMonth()}-${day.getDate()}`,label:day.toLocaleDateString('es-CL',{day:'2-digit',month:'short'}),quantity:0,unit:metric==='movements'?'movimientos':product.UNIDAD});
+            } else {
+                for (let month=new Date(from.getFullYear(),from.getMonth(),1);month<=r.to;month=new Date(month.getFullYear(),month.getMonth()+1,1)) buckets.push({key:`${month.getFullYear()}-${month.getMonth()}`,label:month.toLocaleDateString('es-CL',{month:'short'}).replace('.',''),quantity:0,unit:metric==='movements'?'movimientos':product.UNIDAD});
+            }
+            const byKey=new Map(buckets.map(item=>[item.key,item]));
+            for (const movement of exits) {
+                const key=daily?`${movement.date.getFullYear()}-${movement.date.getMonth()}-${movement.date.getDate()}`:`${movement.date.getFullYear()}-${movement.date.getMonth()}`;
+                const bucket=byKey.get(key); if (bucket) bucket.quantity=Math.round((bucket.quantity+(metric==='movements'?1:movement.quantity))*1000000)/1000000;
+            }
+            return buckets;
         }
         const initial=name => {const first=String(name).trim().toUpperCase().charAt(0); return first==='Ñ'?'Ñ':/^[A-Z]$/.test(normalize(first))?normalize(first):'#';};
         const indicators=model => ({
             total:model.products.length,
             empty:model.products.filter(p=>p.STOCK!==null&&p.STOCK<=0).length,
             low:model.products.filter(low).length,
+            healthy:model.products.filter(p=>p.STOCK!==null&&p.STOCK>0&&!low(p)).length,
             noLocation:model.products.filter(p=>!hasLocation(p)).length,
         });
         function browse(model,{query='',letter='',filter='all',period=range('month')}={}) {
             const active=new Set(model.movements.filter(m=>m.type==='salida'&&m.code&&inRange(m.date,period)).map(m=>m.code));
-            return model.products.filter(p=>(!query||normalize(p.NOMBRE).includes(normalize(query))||normalize(p.CODIGO).includes(normalize(query)))&&(!letter||initial(p.NOMBRE)===letter)&&(filter==='empty'?p.STOCK!==null&&p.STOCK<=0:filter==='low'?low(p):filter==='active'?active.has(p.KEY):filter==='location'?!hasLocation(p):true));
+            return model.products.filter(p=>(!query||normalize(p.NOMBRE).includes(normalize(query))||normalize(p.CODIGO).includes(normalize(query)))&&(!letter||initial(p.NOMBRE)===letter)&&(filter==='empty'?p.STOCK!==null&&p.STOCK<=0:filter==='low'?low(p):filter==='healthy'?p.STOCK!==null&&p.STOCK>0&&!low(p):filter==='active'?active.has(p.KEY):filter==='location'?!hasLocation(p):true));
         }
-        return {normalize,number,date,unit,build,range,inRange,summary,browse,low,hasLocation,initial,quantities,indicators};
+        return {normalize,number,date,unit,equivalentUnit,build,range,inRange,summary,consumptionSeries,browse,low,hasLocation,initial,quantities,indicators};
     })();
     </script>
 
@@ -186,7 +213,7 @@
         .settings-panel { background: #fff; border-bottom: 1px solid #e5e5e5; flex-shrink: 0; overflow-y: auto; overflow-x: hidden; transition: all 0.3s ease-in-out; }
         .settings-inner { width: 100%; max-width: 360px; padding: 20px; margin: 0 auto; padding-bottom: calc(var(--bottom-nav-height) + 20px); }
 
-        .right-content { flex: 1 1 auto; height: 100%; overflow-y: auto; overflow-x: hidden; background-color: var(--ios-bg); width: 100%; padding-bottom: var(--bottom-nav-height); }
+        .right-content { flex: 1 1 auto; height: 100%; overflow-y: auto; overflow-x: hidden; background-color: var(--ios-bg); width: 100%; padding-bottom: var(--bottom-nav-height); scroll-padding-bottom:var(--bottom-nav-height); }
         .preview-panel { background-color: var(--ios-bg); display: flex; flex-direction: column; align-items: center; width: 100%; min-height: 100%; }
         .view-section { display: none; width: 100%; justify-content: flex-start; align-items: center; flex-direction: column;}
         .view-section.active { display: flex; }
@@ -271,13 +298,27 @@
         :root { --motion-ease: cubic-bezier(.22, 1, .36, 1); }
         @keyframes dtxEnter { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes dtxFade { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes dtxLogo { from { opacity: 0; transform: scale(.88) rotate(-8deg); } to { opacity: 1; transform: scale(1) rotate(0); } }
         @keyframes dtxLoading { from { transform: translateX(-130%); } to { transform: translateX(330%); } }
+        @keyframes dtxFacetReveal {
+            from { opacity:0; transform:var(--facet-from) scale(.96); filter:blur(3px); }
+            to { opacity:1; transform:translate(0,0) scale(1); filter:blur(0); }
+        }
+        @keyframes dtxLogoComplete { to { opacity:1; } }
+        @keyframes dtxLoaderCopy { from { opacity:0; transform:translateY(7px); } to { opacity:1; transform:translateY(0); } }
         @media screen {
             #splash-screen > div:first-child { animation: dtxEnter 500ms var(--motion-ease) both; }
-            #splash-screen img { animation: dtxLogo 650ms var(--motion-ease) both; }
-            .dtx-loading-track { width: 104px; height: 3px; margin-top: 22px; border-radius: 4px; overflow: hidden; background: #ffedd5; }
-            .dtx-loading-track::after { content: ''; display: block; width: 36%; height: 100%; border-radius: inherit; background: #F26522; animation: dtxLoading 1400ms ease-in-out infinite; }
+            .dtx-loader-brand { position:relative; width:100px; height:100px; margin-bottom:20px; }
+            .dtx-logo-source, .dtx-logo-piece { position:absolute; inset:0; width:100%; height:100%; }
+            .dtx-logo-source { object-fit:contain; opacity:0; animation:dtxLogoComplete 1ms linear 980ms forwards; }
+            .dtx-logo-piece { background:url('logo.png') center/contain no-repeat; opacity:0; animation:dtxFacetReveal 420ms var(--motion-ease) forwards; }
+            .dtx-logo-piece-top { --facet-from:translateY(-8px); clip-path:polygon(0 0,100% 0,76% 34%,24% 34%); animation-delay:100ms; }
+            .dtx-logo-piece-right { --facet-from:translateX(8px); clip-path:polygon(100% 0,100% 100%,72% 76%,72% 24%); animation-delay:250ms; }
+            .dtx-logo-piece-bottom { --facet-from:translateY(8px); clip-path:polygon(0 100%,100% 100%,76% 72%,24% 72%); animation-delay:400ms; }
+            .dtx-logo-piece-left { --facet-from:translateX(-8px); clip-path:polygon(0 0,28% 24%,28% 76%,0 100%); animation-delay:550ms; }
+            .dtx-loader-title { opacity:0; animation:dtxLoaderCopy 420ms var(--motion-ease) 760ms forwards; }
+            .dtx-loader-status { opacity:0; animation:dtxLoaderCopy 420ms var(--motion-ease) 870ms forwards; }
+            .dtx-loading-track { position:relative; width:176px; height:4px; margin-top:20px; border-radius:4px; overflow:hidden; background:#fed7aa; }
+            .dtx-loading-track::after { content: ''; display:block; width:38%; height:100%; border-radius:inherit; background:#F26522; box-shadow:0 0 12px #F2652255; animation:dtxLoading 1700ms cubic-bezier(.22,1,.36,1) infinite; }
             #view-dashboard.active > div, #view-visor.active > div, #view-layout.active > div { animation: dtxEnter 320ms var(--motion-ease); }
             #view-generator.active > .no-print, .settings-panel:not(.settings-collapsed) .settings-inner { animation: dtxEnter 280ms var(--motion-ease); }
             #view-dashboard.active #dashboardStats > div { animation: dtxEnter 380ms var(--motion-ease) both; }
@@ -304,6 +345,8 @@
         }
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+            .dtx-logo-source, .dtx-loader-title, .dtx-loader-status { opacity:1; }
+            .dtx-logo-piece { display:none; }
             .dtx-loading-track::after { width: 100%; }
         }
         @media print {
@@ -311,8 +354,8 @@
         }
         /* Dock corporativo compartido PC/móvil: la curva sigue la sección activa. */
         @property --dock-x { syntax:'<percentage>'; inherits:true; initial-value:12.5%; }
-        :root { --bottom-nav-height:120px; }
-        .bottom-nav-bar { --dock-x:12.5%; position:fixed; z-index:2000; bottom:calc(16px + env(safe-area-inset-bottom,0px)); left:50%; transform:translateX(-50%); width:min(620px,calc(100% - 28px)); height:78px; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); filter:drop-shadow(0 10px 18px #17203324); transition:--dock-x .42s cubic-bezier(.22,1,.36,1); }
+        :root { --bottom-nav-height:142px; }
+        .bottom-nav-bar { --dock-x:12.5%; position:fixed; z-index:2000; bottom:calc(16px + env(safe-area-inset-bottom,0px)); left:50%; transform:translateX(-50%); width:min(620px,calc(100% - 28px)); height:78px; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); filter:drop-shadow(0 10px 18px #17203324); transition:--dock-x .42s cubic-bezier(.22,1,.36,1),height .24s ease,width .24s ease,bottom .24s ease; }
         .dock-surface { position:absolute; inset:0; border-radius:24px; background:#fff; -webkit-mask:radial-gradient(circle 35px at var(--dock-x) 0,transparent 98%,#000 100%); mask:radial-gradient(circle 35px at var(--dock-x) 0,transparent 98%,#000 100%); pointer-events:none; }
         .dock-button { position:relative; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; padding:8px 2px 0; min-width:0; color:#64748b; font-size:12px; font-weight:700; border-radius:20px; }
         .dock-icon { display:flex; align-items:center; justify-content:center; width:52px; height:44px; font-size:21px; border-radius:50%; transition:transform .42s cubic-bezier(.22,1,.36,1),background .25s,color .25s; }
@@ -323,74 +366,162 @@
         .bottom-nav-bar .dock-button[aria-current="page"] i { transform:none; }
         .dock-button:focus-visible { outline:3px solid #f26522; outline-offset:3px; }
         .dock-button:hover:not([aria-current]) { color:#c74708; }
-        .dashboard-shell { width:100%; max-width:1360px; padding:28px; margin:auto; color:#172033; }
-        .dashboard-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:20px; }
-        .dashboard-heading h2 { font-size:30px; font-weight:850; letter-spacing:-.8px; }
-        .dashboard-meta { font-size:12px; color:#64748b; margin-top:6px; line-height:1.7; }
-        .dash-period { display:flex; gap:12px; flex-wrap:wrap; align-items:end; background:#fff; border:1px solid #dce2e9; border-radius:16px; padding:14px 18px; margin-bottom:18px; }
-        .dash-period label { display:flex; gap:5px; flex-direction:column; font-size:11px; font-weight:750; color:#64748b; }
-        .dash-period :is(select,input) { min-height:40px; border:1px solid #dce2e9; border-radius:9px; padding:7px 10px; background:white; font-size:13px; color:#172033; min-width:0; }
-        .dash-grid { display:grid; grid-template-columns:minmax(0,1.55fr) minmax(300px,.85fr); gap:20px; align-items:start; }
-        .dash-card { background:#fff; border:1px solid #dce2e9; border-radius:18px; overflow:hidden; box-shadow:0 2px 4px #17203303; min-width:0; }
-        .dash-card-head { padding:20px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; }
-        .dash-card h3 { font-size:16px; font-weight:800; }
-        .dash-search { display:flex; align-items:center; gap:10px; border:1px solid #dce2e9; border-radius:12px; padding:0 12px; min-height:44px; }
-        .dash-search input { border:0; outline:none; min-width:0; width:220px; font-size:14px; background:transparent; }
-        .dash-search:focus-within { border-color:#f26522; box-shadow:0 0 0 3px #fff0e6; }
-        .dash-alphabet { display:flex; flex-wrap:wrap; gap:4px; padding:0 20px 14px; }
-        .dash-alphabet button { min-width:30px; height:34px; border-radius:8px; font-size:11px; font-weight:750; color:#475569; }
-        .dash-alphabet button:hover { background:#fff0e6; }
-        .dash-alphabet button[aria-pressed="true"] { background:#ef5b0c; color:white; }
-        .dash-alphabet button:disabled { opacity:.3; cursor:default; }
-        .dash-kpi { text-align:left; padding:18px; border:1px solid #dce2e9; border-radius:16px; background:white; display:grid; grid-template-columns:1fr auto; gap:4px; }
+        .bottom-nav-bar.dock-compact { width:min(390px,calc(100% - 28px)); height:60px; }
+        .bottom-nav-bar.dock-compact .dock-surface { border-radius:20px; }
+        .bottom-nav-bar.dock-compact .dock-button { justify-content:center; padding:5px 2px 0; }
+        .bottom-nav-bar.dock-compact .dock-icon { width:42px; height:42px; font-size:19px; }
+        .bottom-nav-bar.dock-compact .dock-label { position:absolute; bottom:4px; opacity:0; transform:translateY(8px); font-size:9px; pointer-events:none; }
+        .bottom-nav-bar.dock-compact .dock-button[aria-current="page"] .dock-icon { width:44px; height:44px; transform:translateY(-13px); }
+        .bottom-nav-bar.dock-compact .dock-button[aria-current="page"] .dock-label { opacity:1; transform:translateY(-3px); }
+        .dashboard-shell { width:100%; max-width:1540px; padding:24px; margin:auto; color:#172033; }
+        .dashboard-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:16px; }
+        .dashboard-heading h2 { font-size:31px; font-weight:850; letter-spacing:-1px; }
+        .dashboard-meta { font-size:12px; color:#64748b; margin-top:5px; line-height:1.6; }
+        .dashboard-kpi-strip { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:9px; margin-bottom:12px; }
+        .dash-kpi { min-height:94px; text-align:left; padding:13px 14px; border:1px solid #dce2e9; border-radius:14px; background:white; display:grid; grid-template-columns:auto 1fr; grid-template-rows:auto 1fr auto; column-gap:10px; box-shadow:0 2px 8px rgba(23,32,51,.035); transition:transform .2s var(--motion-ease),border-color .2s,box-shadow .2s; }
+        .dash-kpi:hover { transform:translateY(-2px); box-shadow:0 8px 22px rgba(23,32,51,.08); }
         .dash-kpi[aria-pressed="true"] { border-color:#f26522; box-shadow:0 0 0 2px #ffedd5; }
-        .dash-kpi strong { font-size:30px; font-weight:850; font-variant-numeric:tabular-nums; }
-        .dash-kpi small { grid-column:1/-1; color:#64748b; font-size:11px; }
-        .dash-filter-line { padding:10px 20px; border-top:1px solid #edf0f4; background:#fafbfc; display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:12px; color:#64748b; }
-        .dash-filter-line button { color:#c74708; font-weight:700; min-height:32px; }
-        .dash-row { padding:15px 20px; display:flex; width:100%; align-items:center; justify-content:space-between; gap:16px; text-align:left; border-top:1px solid #edf0f4; }
+        .dash-kpi .dash-kpi-icon { grid-row:1/3; width:32px; height:32px; display:grid; place-items:center; border-radius:10px; background:var(--kpi-soft); color:var(--kpi-color); }
+        .dash-kpi span { align-self:center; color:#52647e; font-size:11px; font-weight:750; }
+        .dash-kpi strong { align-self:end; font-size:26px; line-height:1; font-weight:850; color:var(--kpi-color); font-variant-numeric:tabular-nums; }
+        .dash-kpi small { grid-column:1/-1; color:#8290a4; font-size:10px; margin-top:8px; }
+        .dash-period { display:flex; gap:12px; flex-wrap:wrap; align-items:end; background:#fff; border:1px solid #dce2e9; border-radius:14px; padding:10px 14px; margin-bottom:14px; }
+        .dash-period label { display:flex; gap:4px; flex-direction:column; font-size:10px; font-weight:750; color:#64748b; }
+        .dash-period :is(select,input) { min-height:38px; border:1px solid #dce2e9; border-radius:9px; padding:6px 10px; background:white; font-size:12px; color:#172033; min-width:0; }
+        .dashboard-explorer-grid { display:grid; grid-template-columns:minmax(260px,310px) minmax(470px,1fr) minmax(245px,285px); gap:12px; align-items:start; }
+        .dash-card { background:#fff; border:1px solid #dce2e9; border-radius:16px; overflow:hidden; box-shadow:0 3px 14px rgba(23,32,51,.04); min-width:0; }
+        .dash-card-head { padding:16px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+        .dash-card h3 { font-size:15px; font-weight:800; }
+        .dashboard-directory { position:sticky; top:12px; }
+        .dash-search { display:flex; width:100%; align-items:center; gap:10px; border:1px solid #dce2e9; border-radius:11px; padding:0 12px; min-height:43px; background:#fff; }
+        .dash-search input { border:0; outline:none; min-width:0; width:100%; font-size:13px; background:transparent; }
+        .dash-search:focus-within { border-color:#f26522; box-shadow:0 0 0 3px #fff0e6; }
+        .dash-filter-chips { display:flex; gap:6px; overflow-x:auto; padding:0 14px 10px; scrollbar-width:none; }
+        .dash-filter-chips::-webkit-scrollbar { display:none; }
+        .dash-filter-chip { flex:none; min-height:34px; padding:6px 10px; border-radius:999px; border:1px solid #dce2e9; color:#52647e; font-size:10px; font-weight:750; background:#f8fafc; }
+        .dash-filter-chip[aria-pressed="true"] { background:#ef5b0c; border-color:#ef5b0c; color:#fff; box-shadow:0 5px 12px rgba(239,91,12,.18); }
+        .dash-alphabet { display:flex; flex-wrap:wrap; gap:2px; padding:0 14px 10px; }
+        .dash-alphabet button { min-width:24px; height:27px; border-radius:7px; font-size:9px; font-weight:800; color:#607089; }
+        .dash-alphabet button:hover { background:#fff0e6; }
+        .dash-alphabet button[aria-pressed="true"] { background:#172033; color:white; }
+        .dash-alphabet button:disabled { opacity:.25; cursor:default; }
+        .dash-filter-line { padding:9px 14px; border-block:1px solid #edf0f4; background:#fafbfc; display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:10px; color:#64748b; }
+        .dash-filter-line button { color:#c74708; font-weight:750; min-height:30px; }
+        .dashboard-directory-list { max-height:560px; overflow-y:auto; overscroll-behavior:contain; }
+        .dash-row { padding:13px 14px; display:flex; width:100%; align-items:center; justify-content:space-between; gap:12px; text-align:left; border-top:1px solid #edf0f4; transition:background .18s,border-color .18s; }
         .dash-row:hover,.dash-row[aria-pressed="true"] { background:#fff7ed; }
-        .dash-row strong { display:block; font-size:13px; font-weight:750; overflow-wrap:anywhere; }
-        .dash-row small { display:block; margin-top:5px; color:#64748b; font-size:11px; }
-        .dash-badge { white-space:nowrap; font-size:12px; padding:5px 9px; border-radius:8px; font-weight:800; background:#f0fdf4; color:#15803d; }
+        .dashboard-directory .dash-row[aria-pressed="true"] { box-shadow:inset 3px 0 #ef5b0c; }
+        .dash-row strong { display:block; font-size:12px; font-weight:780; overflow-wrap:anywhere; }
+        .dash-row small { display:block; margin-top:4px; color:#64748b; font-size:10px; }
+        .dash-badge { white-space:nowrap; font-size:10px; padding:5px 8px; border-radius:8px; font-weight:800; background:#f0fdf4; color:#15803d; }
         .dash-badge.empty { background:#fef2f2; color:#b91c1c; } .dash-badge.low { background:#fff7ed; color:#c2410c; }
-        .dash-pager { display:flex; justify-content:space-between; align-items:center; padding:12px 20px; gap:8px; border-top:1px solid #edf0f4; font-size:12px; color:#64748b; }
-        .dash-pager button { min-height:40px; padding:6px 12px; border:1px solid #dce2e9; border-radius:9px; background:white; color:#172033; font-weight:700; }
+        .dash-pager { display:flex; justify-content:space-between; align-items:center; padding:10px 14px; gap:8px; border-top:1px solid #edf0f4; font-size:10px; color:#64748b; }
+        .dash-pager button { min-height:36px; padding:5px 10px; border:1px solid #dce2e9; border-radius:9px; background:white; color:#172033; font-weight:700; }
         .dash-pager button:disabled { opacity:.35; }
-        .dash-detail { background:#fffaf6; padding:20px; border-block:1px solid #fed7aa; }
-        .dash-detail h4 { font-size:22px; line-height:1.2; font-weight:850; letter-spacing:-.5px; overflow-wrap:anywhere; margin:6px 0; }
-        .dash-detail-summary { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin:16px 0; }
-        .dash-number { background:white; border:1px solid #dce2e9; border-radius:12px; padding:12px; min-width:0; }
-        .dash-number small { display:block; font-size:10px; text-transform:uppercase; color:#64748b; font-weight:750; }
-        .dash-number strong { display:block; font-size:23px; font-weight:850; margin-top:4px; }
-        .dash-number em { font-size:11px; font-style:normal; font-weight:600; }
-        .dash-latest { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-        .dash-latest article { border-left:3px solid #16a34a; background:white; padding:12px; border-radius:0 10px 10px 0; }
+        .dashboard-workspace { min-height:710px; }
+        .dash-empty-state { min-height:420px; display:grid; place-items:center; text-align:center; padding:32px; color:#64748b; }
+        .dash-empty-state i { display:block; color:#f26522; font-size:30px; margin-bottom:12px; }
+        .dash-detail { background:#fff; }
+        .dash-material-header { display:flex; justify-content:space-between; align-items:center; gap:14px; padding:18px; border-bottom:1px solid #edf0f4; }
+        .dash-material-ident { display:flex; min-width:0; align-items:center; gap:13px; }
+        .dash-material-glyph { flex:none; width:50px; height:50px; display:grid; place-items:center; border-radius:14px; color:#ef5b0c; background:linear-gradient(145deg,#fff7ed,#ffedd5); font-size:21px; border:1px solid #fed7aa; }
+        .dash-material-header h4 { font-size:19px; line-height:1.15; font-weight:850; letter-spacing:-.4px; overflow-wrap:anywhere; }
+        .dash-material-code { display:inline-flex; margin-top:6px; border-radius:7px; padding:3px 7px; background:#eef2ff; color:#4338ca; font-size:9px; font-weight:800; }
+        .dash-stock-block { flex:none; text-align:right; }
+        .dash-stock-block strong { display:block; font-size:23px; font-weight:850; margin-top:5px; }
+        .dash-state { display:inline-flex; align-items:center; gap:5px; padding:5px 8px; border-radius:999px; background:#ecfdf5; color:#15803d; font-size:9px; font-weight:800; }
+        .dash-state.empty { background:#fef2f2; color:#b91c1c; } .dash-state.low { background:#fff7ed; color:#c2410c; }
+        .dash-tabs { display:grid; grid-template-columns:repeat(4,1fr); border-bottom:1px solid #e2e8f0; padding:0 10px; }
+        .dash-tabs button { min-height:50px; padding:8px 5px; color:#64748b; font-size:10px; font-weight:750; border-bottom:2px solid transparent; }
+        .dash-tabs button[aria-selected="true"] { color:#ea580c; border-bottom-color:#ea580c; }
+        .dash-tab-panel { padding:14px; animation:dtxEnter 240ms var(--motion-ease) both; }
+        .dash-panel { border:1px solid #e2e8f0; border-radius:13px; padding:14px; background:#fff; }
+        .dash-panel + .dash-panel { margin-top:12px; }
+        .dash-detail-summary { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin:12px 0; }
+        .dash-number { background:#f8fafc; border:1px solid #e2e8f0; border-radius:11px; padding:11px; min-width:0; }
+        .dash-number small { display:block; font-size:9px; text-transform:uppercase; color:#64748b; font-weight:800; }
+        .dash-number strong { display:block; font-size:20px; font-weight:850; margin-top:5px; overflow-wrap:anywhere; }
+        .dash-number em { font-size:10px; font-style:normal; font-weight:650; }
+        .dash-latest { display:grid; grid-template-columns:1fr 1fr; gap:9px; }
+        .dash-latest article { border-left:3px solid #16a34a; background:#f8fafc; padding:11px; border-radius:0 10px 10px 0; }
         .dash-latest article:last-child { border-color:#ef4444; }
-        .dash-latest strong { display:block; font-size:14px; margin:6px 0; }
-        .dash-latest p { font-size:12px; color:#64748b; line-height:1.7; overflow-wrap:anywhere; }
-        .dash-note { font-size:12px; line-height:1.65; background:#fff7ed; color:#9a3412; border:1px solid #fed7aa; padding:10px 12px; border-radius:10px; margin-top:12px; }
-        .dash-history { margin-top:18px; background:white; border:1px solid #e2e8f0; border-radius:12px; overflow:hidden; }
-        .dash-history header { padding:12px; border-bottom:1px solid #e2e8f0; }
-        .dash-event { display:grid; grid-template-columns:90px 1fr auto; gap:12px; padding:12px; border-bottom:1px solid #f1f5f9; font-size:12px; }
+        .dash-latest strong { display:block; font-size:13px; margin:5px 0; }
+        .dash-latest p { font-size:10px; color:#64748b; line-height:1.55; overflow-wrap:anywhere; }
+        .dash-facts { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:5px; margin-top:8px; }
+        .dash-fact { min-width:0; padding:6px; background:#fff; border:1px solid #e7edf5; border-radius:7px; }
+        .dash-fact span { display:block; color:#64748b; font-size:8px; font-weight:800; letter-spacing:.04em; text-transform:uppercase; }
+        .dash-latest .dash-fact strong { margin:2px 0 0; font-size:10px; line-height:1.25; overflow-wrap:anywhere; }
+        .dash-trace { display:block; margin-top:7px; color:#64748b; font-size:9px; line-height:1.4; }
+        .dash-note { font-size:11px; line-height:1.55; background:#fff7ed; color:#9a3412; border:1px solid #fed7aa; padding:9px 10px; border-radius:9px; margin-top:10px; }
+        .dash-consumption-chart { height:245px; padding:20px 8px 6px; border-radius:11px; background:#fbfcfe; border:1px solid #edf1f5; overflow-x:auto; overflow-y:hidden; }
+        .dash-chart-canvas { --series-count:14; position:relative; width:100%; min-width:max(100%,calc(var(--series-count) * 18px)); height:100%; }
+        .dash-chart-grid { position:absolute; inset:20px 0 25px; border-bottom:1px solid #d8e1eb; background:repeating-linear-gradient(to top,#e5ebf2 0,#e5ebf2 1px,transparent 1px,transparent 25%); pointer-events:none; }
+        .dash-chart-columns { position:absolute; z-index:2; inset:0; display:flex; align-items:stretch; gap:4px; }
+        .dash-chart-trend-layer { position:absolute; z-index:3; inset:0; pointer-events:none; }
+        .dash-chart-trend { position:absolute; inset:0; width:100%; height:100%; overflow:visible; filter:drop-shadow(0 2px 2px rgba(51,65,85,.18)); }
+        .dash-chart-trend-line { fill:none; stroke:#526174; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; animation:dtxTrendFade 180ms ease-out both; }
+        .dash-chart-toolbar { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px; }
+        .dash-chart-toggle { display:flex; padding:3px; border-radius:9px; background:#f1f5f9; }
+        .dash-chart-toggle button { min-height:30px; padding:5px 9px; border-radius:7px; color:#64748b; font-size:9px; font-weight:800; }
+        .dash-chart-toggle button[aria-pressed="true"] { color:#fff; background:#ef5b0c; box-shadow:0 3px 8px rgba(239,91,12,.2); }
+        .dash-chart-column { position:relative; flex:1 1 0; min-width:0; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; gap:6px; }
+        .dash-chart-value { position:relative; z-index:4; height:16px; padding:0 3px; font-size:9px; font-weight:800; color:#475569; white-space:nowrap; background:#fbfcfe; border-radius:4px; }
+        .dash-chart-bar-wrap { height:165px; width:100%; display:flex; align-items:flex-end; justify-content:center; }
+        .dash-chart-bar { position:relative; z-index:1; width:min(32px,76%); min-height:2px; height:var(--bar-height); background:linear-gradient(180deg,#fb923c,#ea580c); border-radius:7px 7px 2px 2px; transform-origin:bottom; animation:dtxBarGrow 520ms var(--motion-ease) both; box-shadow:0 5px 12px rgba(234,88,12,.16); }
+        .dash-chart-label { position:relative; z-index:4; font-size:9px; color:#64748b; text-transform:capitalize; white-space:nowrap; background:#fbfcfe; padding:0 2px; }
+        .dash-chart-label--muted { visibility:hidden; }
+        @keyframes dtxTrendFade { from { opacity:0; } to { opacity:1; } }
+        @keyframes dtxBarGrow { from { transform:scaleY(0); opacity:.2; } to { transform:scaleY(1); opacity:1; } }
+        .dash-history { margin-top:0; background:white; border:1px solid #e2e8f0; border-radius:11px; overflow:hidden; }
+        .dash-history header { padding:11px; border-bottom:1px solid #e2e8f0; }
+        .dash-event { display:grid; grid-template-columns:78px 1fr auto; gap:9px; padding:11px; border-bottom:1px solid #f1f5f9; font-size:10px; }
         .dash-event small { display:block; color:#64748b; margin-top:4px; overflow-wrap:anywhere; }
-        .dash-pdf { display:grid; grid-template-columns:1fr 1fr; background:#ef5b0c; border-radius:12px; overflow:hidden; margin-top:14px; color:white; }
-        .dash-pdf :is(a,button) { padding:13px 6px; font-size:13px; font-weight:750; text-align:center; }
+        .dash-event .dash-event-main { color:#172033; font-weight:750; overflow-wrap:anywhere; }
+        .dash-pdf { display:grid; grid-template-columns:1fr 1fr; background:#ef5b0c; border-radius:11px; overflow:hidden; margin-top:12px; color:white; }
+        .dash-pdf :is(a,button) { padding:12px 5px; font-size:11px; font-weight:750; text-align:center; }
         .dash-pdf a { border-left:1px solid #ffffff66; background:#f97316; }
+        .dashboard-side { display:grid; gap:12px; }
+        .dash-side-title { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:14px; border-bottom:1px solid #edf0f4; }
+        .dash-side-title span { min-width:25px; height:25px; display:grid; place-items:center; border-radius:999px; background:#fff0e6; color:#c74708; font-size:10px; font-weight:850; }
+        .dash-action { display:grid; grid-template-columns:34px 1fr auto; align-items:center; gap:9px; padding:12px 14px; border-bottom:1px solid #edf0f4; }
+        .dash-action-icon { width:34px; height:34px; display:grid; place-items:center; border-radius:10px; background:#fff7ed; color:#ea580c; }
+        .dash-action strong { display:block; font-size:11px; }.dash-action small { display:block; margin-top:3px; font-size:9px; line-height:1.4; color:#64748b; }
+        .dash-action button { min-height:32px; padding:5px 8px; border-radius:8px; background:#fff7ed; border:1px solid #fed7aa; color:#c74708; font-size:9px; font-weight:800; }
+        .dash-quick-list { padding:7px 14px 12px; }
+        .dash-quick-list div { display:grid; grid-template-columns:18px 1fr auto; gap:7px; padding:7px 0; border-bottom:1px solid #edf0f4; color:#64748b; font-size:10px; }
+        .dash-quick-list div:last-child { border:0; }.dash-quick-list strong { color:#172033; text-align:right; }
+        .dash-priority { margin-top:12px; }
+        .dash-priority-head { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; padding:15px; border-bottom:1px solid #edf0f4; }
+        .dash-priority-tabs { display:flex; gap:5px; overflow-x:auto; }
+        .dash-priority-tabs button { min-height:34px; padding:6px 10px; border-radius:9px; color:#64748b; font-size:10px; font-weight:800; }
+        .dash-priority-tabs button[aria-selected="true"] { background:#fff0e6; color:#c74708; }
+        .dash-priority-table { overflow-x:auto; }
+        .dash-priority-table table { width:100%; min-width:760px; border-collapse:collapse; font-size:10px; }
+        .dash-priority-table th { padding:9px 12px; text-align:left; color:#64748b; background:#f8fafc; text-transform:uppercase; letter-spacing:.05em; }
+        .dash-priority-table td { padding:10px 12px; border-top:1px solid #edf0f4; vertical-align:middle; }
+        .dash-priority-table td strong { display:block; font-size:11px; }.dash-priority-table td small { display:block; color:#64748b; margin-top:3px; }
+        .dash-priority-table button { min-height:32px; padding:5px 9px; border-radius:8px; background:#fff7ed; color:#c74708; font-weight:800; }
         #view-dashboard :is(button,a,input,select,summary):focus-visible { outline:3px solid #fdba74; outline-offset:2px; }
-        @media(max-width:900px) { .dash-grid { grid-template-columns:1fr; } .dashboard-shell { padding:20px 16px; } }
+        #view-dashboard.active #dashboardStats > button { animation:dtxEnter 360ms var(--motion-ease) both; }
+        #view-dashboard.active #dashboardStats > button:nth-child(2) { animation-delay:35ms; }
+        #view-dashboard.active #dashboardStats > button:nth-child(3) { animation-delay:70ms; }
+        #view-dashboard.active #dashboardStats > button:nth-child(4) { animation-delay:105ms; }
+        #view-dashboard.active #dashboardStats > button:nth-child(5) { animation-delay:140ms; }
+        @media(max-width:1180px) { .dashboard-explorer-grid { grid-template-columns:minmax(250px,300px) minmax(0,1fr); } .dashboard-side { grid-column:2; grid-template-columns:1fr 1fr; } .dashboard-workspace { min-height:0; } }
+        @media(max-width:820px) { .dashboard-kpi-strip { grid-template-columns:repeat(5,150px); overflow-x:auto; padding-bottom:4px; scroll-snap-type:x proximity; } .dash-kpi { scroll-snap-align:start; } .dashboard-explorer-grid { grid-template-columns:1fr; } .dashboard-directory { position:static; } .dashboard-side { grid-column:auto; grid-template-columns:1fr 1fr; } .dashboard-directory-list { max-height:400px; } }
         @media(max-width:600px) {
             .bottom-nav-bar { height:72px; bottom:calc(10px + env(safe-area-inset-bottom,0px)); width:calc(100% - 20px); }
+            .bottom-nav-bar.dock-compact { width:calc(100% - 20px); height:58px; }
             .dock-button { font-size:10px; } .dock-icon { font-size:20px; }
-            .dashboard-heading h2 { font-size:26px; } .dashboard-heading { align-items:start; }
-            .dashboard-shell { padding:20px 12px; } .dash-card-head { padding:16px; } .dash-search { width:100%; } .dash-search input { width:100%; }
-            .dash-alphabet { flex-wrap:nowrap; overflow-x:auto; padding:0 16px 12px; } .dash-alphabet button { flex-shrink:0; min-width:36px; height:40px; }
-            .dash-kpi { padding:12px; } .dash-kpi strong { font-size:26px; } .dash-kpi small { font-size:10px; }
-            .dash-detail { padding:16px; } .dash-number { padding:9px; } .dash-number strong { font-size:20px; }
-            .dash-event { grid-template-columns:72px 1fr auto; gap:6px; font-size:11px; }
-            .dash-period { padding:12px; } .app-title { font-size:15px; } .app-header .brand-icon { width:28px;height:28px; }
+            .dashboard-heading h2 { font-size:25px; } .dashboard-heading { align-items:start; }
+            .dashboard-shell { padding:18px 10px; } .dashboard-heading .ios-btn { padding:8px 9px; }
+            .dash-period { padding:10px; } .dash-period label { flex:1 1 130px; }.dash-period .dashboard-meta { flex-basis:100%; }
+            .dashboard-side { grid-template-columns:1fr; }.dash-material-header { align-items:flex-start; }.dash-material-glyph { width:44px;height:44px; }.dash-stock-block strong { font-size:19px; }
+            .dash-tabs { overflow-x:auto; display:flex; padding:0 6px; }.dash-tabs button { flex:1 0 108px; min-height:48px; }
+            .dash-detail-summary,.dash-latest { grid-template-columns:1fr; }.dash-event { grid-template-columns:68px 1fr auto; gap:5px; }.dash-priority-head { align-items:flex-start; }
+            .app-title { font-size:15px; } .app-header .brand-icon { width:28px;height:28px; }
         }
-        @media(prefers-reduced-motion:reduce) { .bottom-nav-bar,.dock-icon,.dock-label { transition:none !important; } }
+        @media(prefers-reduced-motion:reduce) { .bottom-nav-bar,.dock-icon,.dock-label,.dash-kpi { transition:none !important; } .dash-chart-bar,.dash-chart-trend-line,#view-dashboard.active #dashboardStats > button,.dash-tab-panel { animation:none !important; } }
         @media print { .bottom-nav-bar { display:none !important; } }
     </style>
 </head>
@@ -398,9 +529,15 @@
 
     <div id="splash-screen" class="fixed inset-0 bg-[#F5F5F7] z-[9999] flex flex-col items-center justify-center transition-opacity duration-700 ease-in-out">
         <div class="flex flex-col items-center">
-            <img src="logo.png" alt="Logo DETECO" class="w-24 h-24 object-contain mb-4 drop-shadow-xl">
-            <h1 class="text-4xl sm:text-5xl font-black text-[#172033] tracking-tight">DTX <span class="text-orange-600">BODEGA</span></h1>
-            <div class="text-xs font-bold text-gray-400 tracking-widest mt-3 uppercase">Cargando Sistema...</div>
+            <div class="dtx-loader-brand dtx-logo-assembly" aria-hidden="true">
+                <img src="logo.png" alt="Logo DETECO" class="dtx-logo-source">
+                <span class="dtx-logo-piece dtx-logo-piece-top"></span>
+                <span class="dtx-logo-piece dtx-logo-piece-right"></span>
+                <span class="dtx-logo-piece dtx-logo-piece-bottom"></span>
+                <span class="dtx-logo-piece dtx-logo-piece-left"></span>
+            </div>
+            <h1 class="dtx-loader-title text-4xl sm:text-5xl font-black text-[#172033] tracking-tight">DTX <span class="text-orange-600">BODEGA</span></h1>
+            <div class="dtx-loader-status text-xs font-bold text-gray-400 tracking-widest mt-3 uppercase">Cargando Sistema...</div>
             <div class="dtx-loading-track" aria-hidden="true"></div>
         </div>
         <div class="absolute bottom-8 text-center px-4 w-full">
@@ -737,13 +874,14 @@
                 </div>
             </div>
 
-            <!-- DASHBOARD: CONTROL POR ALERTAS -->
+            <!-- DASHBOARD: EXPLORADOR OPERATIVO DE MATERIALES -->
             <div class="preview-panel view-section" id="view-dashboard">
-                <div class="dashboard-shell">
+                <div class="dashboard-shell" id="dashboardExplorer">
                     <div class="dashboard-heading">
-                        <div><p class="text-xs font-black tracking-[.18em] text-orange-600 uppercase">Operación · DTX BODEGA</p><h2>Control de bodega</h2><p id="dashboardSource" class="dashboard-meta" role="status">Conectando con el Excel de bodega…</p></div>
+                        <div><p class="text-xs font-black tracking-[.18em] text-orange-600 uppercase">Operación · DTX BODEGA</p><h2>Explorador de materiales</h2><p id="dashboardSource" class="dashboard-meta" role="status">Conectando con el Excel de bodega…</p></div>
                         <button id="dashboardRefresh" onclick="loadDB(true)" class="ios-btn btn-active-tab"><i class="fa-solid fa-rotate"></i> Actualizar</button>
                     </div>
+                    <div class="dashboard-kpi-strip" id="dashboardStats" aria-label="Indicadores del catálogo"></div>
                     <div class="dash-period">
                         <label>Período de movimientos<select id="dashboardPeriod" onchange="dashboardPeriodChanged()"><option value="today">Hoy</option><option value="month">Este mes</option><option value="30">Últimos 30 días</option><option value="chosen">Elegir mes</option><option value="year2026">Año 2026</option><option value="custom">Elegir fechas</option><option value="all">Historial disponible</option></select></label>
                         <label id="dashboardMonthWrap" class="hidden">Mes<input type="month" id="dashboardMonth" onchange="dashboardPeriodChanged()"></label>
@@ -752,22 +890,38 @@
                         <p id="dashboardPeriodLabel" class="dashboard-meta"></p>
                     </div>
                     <p id="dashboardPeriodError" class="dash-note hidden" role="alert"></p>
-                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5" id="dashboardStats"></div>
-                    <div class="dash-grid">
-                        <section class="dash-card">
-                            <div class="dash-card-head"><div><h3>Consulta de materiales</h3><p class="dashboard-meta">Busca y revisa sin salir del Dashboard.</p></div><label class="dash-search"><i class="fa-solid fa-magnifying-glass text-slate-400 text-xs"></i><input id="dashboardMaterialSearch" oninput="dashboardSearchChanged()" aria-label="Buscar material por nombre o código" placeholder="Nombre o código…"></label></div>
+                    <div class="dashboard-explorer-grid">
+                        <section class="dash-card dashboard-directory" id="dashboardDirectory">
+                            <div class="dash-card-head"><div><h3>Materiales</h3><p class="dashboard-meta">Catálogo completo del Excel</p></div><strong id="dashboardDirectoryTotal" class="text-xs text-slate-500"></strong><label class="dash-search"><i class="fa-solid fa-magnifying-glass text-slate-400 text-xs"></i><input id="dashboardMaterialSearch" oninput="dashboardSearchChanged()" aria-label="Buscar material por nombre o código" placeholder="Buscar por nombre o código…"></label></div>
+                            <div id="dashboardQuickFilters" class="dash-filter-chips" aria-label="Filtros del catálogo"></div>
                             <div id="dashboardAlphabet" class="dash-alphabet" aria-label="Filtrar materiales por inicial"></div>
                             <div class="dash-filter-line"><span id="dashboardResultsCount" role="status"></span><button onclick="resetDashboardFilters()">Ver todos</button></div>
-                            <div id="dashboardMaterialDetail" class="dash-detail hidden" aria-label="Detalle del material" tabindex="-1"></div>
-                            <div id="dashboardAlerts"></div>
+                            <div id="dashboardAlerts" class="dashboard-directory-list"></div>
                             <div id="dashboardPager" class="dash-pager"></div>
                         </section>
-                        <div class="space-y-5">
-                            <section class="dash-card p-4"><h3>Movimientos de bodega</h3><p class="dashboard-meta">Registros del período · todos los materiales</p><div id="dashboardMovements" class="grid grid-cols-2 gap-3 mt-4"></div><p class="dashboard-meta">Cada fila válida cuenta como un movimiento. No se suman cantidades de unidades diferentes.</p></section>
-                            <section class="dash-card p-4"><h3>Estado de los datos</h3><div id="dashboardQuality" class="dashboard-meta"></div></section>
-                            <section class="bg-white border border-slate-200 rounded-2xl shadow-sm p-4"><div class="flex items-center justify-between"><div><h3 class="font-black text-[#172033]">Mapa de bodega</h3><p class="text-xs text-slate-500 mt-1">4 pasillos y estanterías</p></div><button id="btnDashboardMap" onclick="toggleDashboardMap()" class="rounded-lg border border-orange-200 bg-orange-50 px-3 py-2 text-sm font-black text-orange-600 transition-all hover:-translate-y-0.5 hover:bg-orange-100"><i id="iconDashboardMap" class="fa-regular fa-map mr-1"></i><span id="dashboardMapText">Ver mapa</span></button></div><div id="dashboardMapContainer" class="hidden relative w-full aspect-[4/3] mt-4 map-grid-bg rounded-xl border-2 border-slate-300 overflow-hidden"></div><p id="dashboardMapHint" class="mt-3 text-xs font-semibold text-slate-500">Abre el plano para revisar los cuatro pasillos.</p></section>
-                        </div>
+                        <main class="dash-card dashboard-workspace" id="dashboardMaterialWorkspace" tabindex="-1">
+                            <div id="dashboardMaterialEmptyState" class="dash-empty-state"><div><i class="fa-solid fa-boxes-stacked"></i><strong class="text-sm">Selecciona un material</strong><p class="dashboard-meta">Verás stock, consumo, movimientos y ubicación sin salir del Dashboard.</p></div></div>
+                            <div id="dashboardMaterialDetail" class="dash-detail hidden" aria-label="Detalle del material">
+                                <div id="dashboardMaterialHeader"></div>
+                                <nav class="dash-tabs" aria-label="Detalle del material">
+                                    <button data-dashboard-tab="summary" onclick="setDashboardMaterialTab('summary')"><i class="fa-regular fa-file-lines mr-1"></i> Resumen</button>
+                                    <button data-dashboard-tab="consumption" onclick="setDashboardMaterialTab('consumption')"><i class="fa-solid fa-chart-column mr-1"></i> Consumo</button>
+                                    <button data-dashboard-tab="movements" onclick="setDashboardMaterialTab('movements')"><i class="fa-solid fa-arrow-right-arrow-left mr-1"></i> Movimientos</button>
+                                    <button data-dashboard-tab="location" onclick="setDashboardMaterialTab('location')"><i class="fa-solid fa-location-dot mr-1"></i> Ubicación</button>
+                                </nav>
+                                <div id="dashboardTabPanel" class="dash-tab-panel"></div>
+                            </div>
+                        </main>
+                        <aside class="dashboard-side" id="dashboardActionsPanel">
+                            <section class="dash-card"><div class="dash-side-title"><h3>Acciones pendientes</h3><span id="dashboardActionCount">0</span></div><div id="dashboardActions"></div></section>
+                            <section class="dash-card"><div class="dash-side-title"><h3>Datos rápidos</h3><i class="fa-regular fa-clipboard text-orange-600"></i></div><div id="dashboardQuickData" class="dash-quick-list"></div></section>
+                            <section class="dash-card"><div class="dash-side-title"><h3>Estado de los datos</h3><i class="fa-solid fa-shield-halved text-slate-400"></i></div><div id="dashboardQuality" class="dashboard-meta p-4 pt-2"></div></section>
+                        </aside>
                     </div>
+                    <section class="dash-card dash-priority" id="dashboardPriorityPanel">
+                        <div class="dash-priority-head"><div><h3>Prioridades de bodega</h3><p class="dashboard-meta">Materiales que requieren una acción operativa.</p></div><div class="dash-priority-tabs" aria-label="Prioridades"><button data-priority-tab="urgent" onclick="setDashboardPriorityTab('urgent')">Urgentes</button><button data-priority-tab="low" onclick="setDashboardPriorityTab('low')">Stock bajo</button><button data-priority-tab="location" onclick="setDashboardPriorityTab('location')">Sin ubicación</button></div></div>
+                        <div id="dashboardPriorityTable" class="dash-priority-table"></div>
+                    </section>
                 </div>
             </div>
 
@@ -791,10 +945,10 @@
     <!-- Navegación inferior adaptada a PC y móvil -->
     <nav id="dtxDock" class="bottom-nav-bar" aria-label="Navegación principal">
         <div class="dock-surface" aria-hidden="true"></div>
-        <button onclick="setView('dashboard')" id="btn-nav-dash" class="dock-button" aria-current="page"><span class="dock-icon"><i class="fa-solid fa-chart-pie" aria-hidden="true"></i></span><span class="dock-label">Dashboard</span></button>
-        <button onclick="setView('visor')" id="btn-nav-vis" class="dock-button"><span class="dock-icon"><i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i></span><span class="dock-label">Materiales</span></button>
+        <button onclick="setView('dashboard')" id="btn-nav-dash" class="dock-button" aria-current="page" aria-label="Dashboard"><span class="dock-icon"><i class="fa-solid fa-chart-pie" aria-hidden="true"></i></span><span class="dock-label">Dashboard</span></button>
+        <button onclick="setView('visor')" id="btn-nav-vis" class="dock-button" aria-label="Materiales"><span class="dock-icon"><i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i></span><span class="dock-label">Materiales</span></button>
         <button onclick="openWarehouseLayout()" id="btn-nav-layout" class="dock-button" aria-label="Layout de bodega"><span class="dock-icon"><i class="fa-regular fa-map" aria-hidden="true"></i></span><span class="dock-label">Layout</span></button>
-        <button onclick="setView('generator')" id="btn-nav-gen" class="dock-button"><span class="dock-icon"><i class="fa-solid fa-tags" aria-hidden="true"></i></span><span class="dock-label">Etiquetas</span></button>
+        <button onclick="setView('generator')" id="btn-nav-gen" class="dock-button" aria-label="Etiquetas"><span class="dock-icon"><i class="fa-solid fa-tags" aria-hidden="true"></i></span><span class="dock-label">Etiquetas</span></button>
     </nav>
 
     <!-- Modales Adicionales: Ficha, Conteo, Merma, Scanner, VerFoto -->
@@ -892,7 +1046,7 @@
         let dashboardLoadError = '';
         let dashboardLoading = false;
         let dashboardStockMonth = null;
-        const dashboardState = { letter:'', filter:'all', page:0, selected:'', historyPage:0, layoutRack:'' };
+        const dashboardState = { letter:'', filter:'all', page:0, selected:'', historyPage:0, layoutRack:'', materialTab:'summary', priorityTab:'urgent', chartMode:'quantity' };
         let hasSeenGeneratorMenuHint = false;
         let hintTimeout = null;
         let html5QrcodeScanner = null;
@@ -988,6 +1142,7 @@
         window.addEventListener('load', async () => {
             try {
                 setView('dashboard');
+                initAdaptiveDock();
                 await loadDB();
                 
                 const urlParams = new URLSearchParams(window.location.search);
@@ -1003,7 +1158,7 @@
                 });
 
                 const splash = document.getElementById('splash-screen');
-                setTimeout(() => { splash.style.opacity = '0'; if (searchId) activarEntradaQR(); setTimeout(() => { splash.style.display = 'none'; }, 700); }, 500);
+                setTimeout(() => { splash.style.opacity = '0'; if (searchId) activarEntradaQR(); setTimeout(() => { splash.style.display = 'none'; }, 700); }, 1700);
 
             } catch (err) {
                 console.error("Error cargando la app: ", err);
@@ -1371,6 +1526,37 @@
             if(t) t.classList.add('hidden');
         }
 
+        let dockLastScrollTop=0, dockIntentTimer=0;
+function updateDockCompactState(forceCompact=false) {
+            const dock=document.getElementById('dtxDock'), scroller=document.querySelector('.right-content');
+            if (!dock || !scroller) return;
+            const current=Math.max(0,scroller.scrollTop), movingDown=current>dockLastScrollTop+3, movingUp=current<dockLastScrollTop-3;
+            if (movingUp || current<=72) dock.classList.remove('dock-compact');
+  else if ((movingDown || forceCompact) && current>72) dock.classList.add('dock-compact');
+            dockLastScrollTop=current;
+        }
+        function expandAdaptiveDock() {
+            const dock=document.getElementById('dtxDock');
+            if (!dock) return;
+            dock.classList.remove('dock-compact');
+            clearTimeout(dockIntentTimer);
+        }
+        function settleAdaptiveDock() {
+            clearTimeout(dockIntentTimer);
+  dockIntentTimer=window.setTimeout(()=>updateDockCompactState(true),300);
+}
+        function initAdaptiveDock() {
+            const dock=document.getElementById('dtxDock'), scroller=document.querySelector('.right-content');
+            if (!dock || !scroller || dock.dataset.adaptive==='true') return;
+            dock.dataset.adaptive='true';
+            scroller.addEventListener('scroll',updateDockCompactState,{passive:true});
+            dock.addEventListener('pointerenter',expandAdaptiveDock);
+            dock.addEventListener('pointerdown',expandAdaptiveDock);
+            dock.addEventListener('focusin',expandAdaptiveDock);
+            dock.addEventListener('pointerleave',settleAdaptiveDock);
+            dock.addEventListener('focusout',settleAdaptiveDock);
+        }
+
         function setView(view) {
             document.getElementById('dtxDock')?.style.setProperty('--dock-x', ({dashboard:'12.5%',visor:'37.5%',layout:'62.5%',generator:'87.5%'})[view] || '12.5%');
             document.querySelectorAll('.label-action').forEach(button=>button.classList.toggle('hidden',view!=='generator'));
@@ -1452,44 +1638,48 @@
             try { period=dashboardRange(); document.getElementById('dashboardPeriodError').classList.add('hidden'); }
             catch(e) {
                 const error=document.getElementById('dashboardPeriodError'); error.textContent=e.message; error.classList.remove('hidden');
-                stats.innerHTML=''; alerts.innerHTML=''; document.getElementById('dashboardMovements').innerHTML=''; document.getElementById('dashboardPager').innerHTML='';
+                stats.innerHTML=''; alerts.innerHTML=''; document.getElementById('dashboardPager').innerHTML='';
                 document.getElementById('dashboardResultsCount').textContent='Selecciona un período válido.';
                 document.getElementById('dashboardMaterialDetail').classList.add('hidden'); return;
             }
             document.getElementById('dashboardPeriodLabel').textContent=periodCaption(period)+' · El stock es el actual';
-            const labels={all:'Todos',empty:'Sin stock',low:'Stock bajo',location:'Sin ubicación'};
+            const labels={all:'Todos',empty:'Sin stock',low:'Stock bajo',healthy:'Con stock y sin alerta',location:'Sin ubicación'};
             const counts=DtxData.indicators(dashboardModel);
-            const cards=[['empty','Materiales sin stock','fa-box-open','#dc2626','Existencia ≤ 0 · revisar reposición',counts.empty],['low','Materiales con stock bajo','fa-arrow-trend-down','#c2410c','Stock positivo dentro del mínimo configurado',counts.low],['location','Materiales sin ubicación','fa-location-dot','#2563eb','Pendientes de asignar un lugar',counts.noLocation],['all','Catálogo total','fa-boxes-stacked','#475569','Materiales disponibles para consultar',counts.total]];
-            stats.innerHTML=cards.map(([filter,label,icon,color,hint,amount])=>`<button class="dash-kpi" data-filter="${filter}" aria-pressed="${dashboardState.filter===filter}"><span class="text-xs font-bold text-slate-600">${label}</span><i class="fa-solid ${icon}" style="color:${color}"></i><strong style="color:${color}">${fmt(amount)}</strong><small>${fmt(amount)} ${label.toLowerCase()}</small><small>${hint}</small></button>`).join('');
-            stats.querySelectorAll('[data-filter]').forEach(button=>button.onclick=()=>{dashboardState.filter=dashboardState.filter===button.dataset.filter?'all':button.dataset.filter; dashboardState.page=0; renderDashboard();});
+            const cards=[['all','Catálogo total','fa-boxes-stacked','#475569','#f1f5f9','Materiales disponibles',counts.total],['empty','Sin stock','fa-circle-xmark','#dc2626','#fef2f2','Requieren reposición',counts.empty],['low','Stock bajo','fa-triangle-exclamation','#ea580c','#fff7ed','Según mínimo configurado',counts.low],['healthy','Con stock y sin alerta','fa-cube','#16a34a','#f0fdf4','Existencia positiva',counts.healthy],['location','Sin ubicación','fa-location-dot','#2563eb','#eff6ff','Pendientes de asignar',counts.noLocation]];
+            stats.innerHTML=cards.map(([filter,label,icon,color,soft,hint,amount])=>`<button class="dash-kpi" style="--kpi-color:${color};--kpi-soft:${soft}" data-filter="${filter}" aria-pressed="${dashboardState.filter===filter}"><span class="dash-kpi-icon"><i class="fa-solid ${icon}"></i></span><span>${label}</span><strong>${fmt(amount)}</strong><small>${hint}</small></button>`).join('');
+            stats.querySelectorAll('[data-filter]').forEach(button=>button.onclick=()=>dashboardFilterChanged(button.dataset.filter));
+            const quickFilters=document.getElementById('dashboardQuickFilters');
+            quickFilters.innerHTML=[['all','Todos'],['empty','Sin stock'],['low','Stock bajo'],['healthy','Con stock'],['location','Sin ubicación']].map(([filter,label])=>`<button class="dash-filter-chip" data-filter="${filter}" aria-pressed="${dashboardState.filter===filter}">${label}</button>`).join('');
+            quickFilters.querySelectorAll('[data-filter]').forEach(button=>button.onclick=()=>dashboardFilterChanged(button.dataset.filter));
             const query=document.getElementById('dashboardMaterialSearch').value.trim();
             const visible=DtxData.browse(dashboardModel,{query,letter:dashboardState.letter,filter:dashboardState.filter,period});
             const letters=new Set(DtxData.browse(dashboardModel,{query,filter:dashboardState.filter,period}).map(p=>DtxData.initial(p.NOMBRE)));
             const alphabet=document.getElementById('dashboardAlphabet');
             alphabet.innerHTML=['','A','B','C','D','E','F','G','H','I','J','K','L','M','N','Ñ','O','P','Q','R','S','T','U','V','W','X','Y','Z','#'].map(l=>`<button data-letter="${l}" aria-pressed="${dashboardState.letter===l}" ${l&&!letters.has(l)?'disabled':''}>${l||'Todos'}</button>`).join('');
             alphabet.querySelectorAll('[data-letter]').forEach(button=>button.onclick=()=>{const scroll=alphabet.scrollLeft;dashboardState.letter=button.dataset.letter;dashboardState.page=0;renderDashboard();alphabet.scrollLeft=scroll;alphabet.querySelector(`[data-letter="${dashboardState.letter}"]`)?.focus({preventScroll:true});});
-            const pages=Math.max(1,Math.ceil(visible.length/10)); dashboardState.page=Math.max(0,Math.min(dashboardState.page,pages-1));
+            const pages=Math.max(1,Math.ceil(visible.length/9)); dashboardState.page=Math.max(0,Math.min(dashboardState.page,pages-1));
+            document.getElementById('dashboardDirectoryTotal').textContent=`${fmt(counts.total)} ítems`;
             document.getElementById('dashboardResultsCount').textContent=`${fmt(visible.length)} resultados · ${labels[dashboardState.filter]}${dashboardState.letter?' · '+dashboardState.letter:''}`;
-            alerts.innerHTML=visible.slice(dashboardState.page*10,dashboardState.page*10+10).map(p=>`<button class="dash-row" data-material="${esc(p.KEY)}" aria-pressed="${dashboardState.selected===p.KEY}"><span><strong>${esc(p.NOMBRE)}</strong><small>${esc(p.CODIGO)}${p.conflict?' · ⚠ Código duplicado':''} · ${esc(p.CATEGORIA)} · ${esc(DtxData.hasLocation(p)?p.ORGANIZADOR:'Sin ubicación')}</small></span><span class="dash-badge ${p.STOCK!==null&&p.STOCK<=0?'empty':DtxData.low(p)?'low':''}">${fmt(p.STOCK)} ${esc(p.UNIDAD)}</span></button>`).join('') || '<p class="p-6 text-sm text-slate-500">No hay coincidencias. Prueba otra letra o pulsa Ver todos.</p>';
+            alerts.innerHTML=visible.slice(dashboardState.page*9,dashboardState.page*9+9).map(p=>`<button class="dash-row" data-material="${esc(p.KEY)}" aria-pressed="${dashboardState.selected===p.KEY}"><span><strong>${esc(p.NOMBRE)}</strong><small>${esc(p.CODIGO)}${p.conflict?' · ⚠ Código duplicado':''} · ${esc(p.CATEGORIA||'Sin categoría')}</small></span><span class="dash-badge ${p.STOCK!==null&&p.STOCK<=0?'empty':DtxData.low(p)?'low':''}">${fmt(p.STOCK)} ${esc(p.UNIDAD)}</span></button>`).join('') || '<p class="p-6 text-sm text-slate-500">No hay coincidencias. Prueba otra letra o pulsa Ver todos.</p>';
             alerts.querySelectorAll('[data-material]').forEach(button=>button.onclick=()=>mostrarDetalleDashboard(button.dataset.material));
             document.getElementById('dashboardPager').innerHTML=`<button onclick="dashboardPage(-1)" ${dashboardState.page===0?'disabled':''}>Anterior</button><span>${dashboardState.page+1} / ${pages}</span><button onclick="dashboardPage(1)" ${dashboardState.page+1>=pages?'disabled':''}>Siguiente</button>`;
             const selectedMovements=dbMovements.filter(m=>DtxData.inRange(m.date,period));
-            document.getElementById('dashboardMovements').innerHTML=[['entrada','Entradas','green'],['salida','Salidas','red']].map(([type,label,tone])=>`<div class="rounded-xl border border-${tone}-100 bg-${tone}-50 p-4"><i class="fa-solid fa-arrow-${type==='entrada'?'down':'up'} text-${tone}-600"></i><p class="mt-2 text-xs font-bold text-${tone}-700">${label}</p><p class="text-3xl font-black text-${tone}-600">${fmt(selectedMovements.filter(m=>m.type===type).length)}</p><p class="text-xs text-slate-500">registros</p></div>`).join('');
             const issues=dashboardModel.issues, unresolved=selectedMovements.filter(m=>!m.code).length, future=dbMovements.filter(m=>m.date>DtxData.range('all').to).length;
             const withoutMin=dbProducts.filter(p=>!(p.STOCK_CRITICO>0)).length;
             const datedHistory=dbMovements.filter(m=>m.date<=DtxData.range('all').to);
             const earliest=datedHistory.at(-1)?.date,latest=datedHistory[0]?.date;
-            document.getElementById('dashboardQuality').innerHTML=`<p class="text-orange-800"><strong>${fmt(issues.conflicts)} códigos con datos conflictivos</strong> conservados por fila. ${fmt(issues.duplicateRows)} repeticiones idénticas consolidadas.</p><p class="mt-2"><strong>${fmt(withoutMin)}</strong> materiales sin mínimo configurado. No se les asigna un mínimo automático.</p><p class="mt-2">Historial: ${dateText(earliest)} → ${dateText(latest)}.</p><p class="mt-2">${fmt(unresolved)} registros del período sin material asociado. Se cuentan en el resumen general, no en un material.</p><details class="mt-3"><summary class="cursor-pointer font-bold text-orange-700">Revisar calidad del Excel</summary><p class="mt-2">En todo el historial: ${fmt(issues.invalid)} filas excluidas por fecha/cantidad inválida; ${fmt(issues.unmatched)} sin asociación; ${fmt(issues.unitMismatch)} con unidad distinta de STOCK; ${fmt(issues.stockInvalid)} stocks inválidos; ${fmt(future)} movimientos futuros.</p><p class="mt-2">Una fila con cantidad cero no cuenta como movimiento. Fechas anteriores a 2000 se excluyen por revisión; fechas futuras no se incluyen en períodos hasta hoy. No se convierten unidades.</p>${issues.samples.slice(0,12).map(s=>`<p class="mt-2">${esc(s.sheet)} · fila ${esc(s.row)} · ${esc(s.name)}<br>${esc(s.reason)}</p>`).join('')}${issues.samples.length>12?'<p class="mt-2">Primeros 12 casos; revisa las hojas de origen para el resto.</p>':''}</details>`;
-            if (dashboardState.selected) renderDashboardDetail();
+            document.getElementById('dashboardQuality').innerHTML=`<p><strong>${fmt(withoutMin)}</strong> materiales sin mínimo configurado.</p><p class="mt-2"><strong>${fmt(unresolved)}</strong> movimientos del período sin asociación.</p><p class="mt-2">Historial: ${dateText(earliest)} → ${dateText(latest)}.</p><details class="mt-3"><summary class="cursor-pointer font-bold text-orange-700">Detalle de calidad</summary><p class="mt-2">${fmt(issues.conflicts)} códigos conflictivos; ${fmt(issues.duplicateRows)} duplicados consolidados; ${fmt(issues.invalid)} filas excluidas; ${fmt(issues.unitMismatch)} unidades distintas; ${fmt(future)} movimientos futuros.</p></details>`;
+            if (!dashboardState.selected && dbProducts.length) dashboardState.selected=dbProducts[0].KEY;
+            renderDashboardDetail();
+            renderDashboardPriority(period);
         }
 
         function mostrarDetalleDashboard(codigo) {
-            dashboardState.selected=String(codigo); dashboardState.historyPage=0;
-            renderDashboardDetail();
-            const detail=document.getElementById('dashboardMaterialDetail');
-            detail.focus({preventScroll:true});
-            detail.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'start'});
-            document.querySelectorAll('#dashboardAlerts [data-material]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.material===dashboardState.selected)));
+            dashboardState.selected=String(codigo); dashboardState.historyPage=0; dashboardState.materialTab='summary'; dashboardState.chartMode='quantity';
+            renderDashboard();
+            const workspace=document.getElementById('dashboardMaterialWorkspace');
+            workspace.focus({preventScroll:true});
+            if (window.innerWidth<=820) workspace.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});
         }
 
         const esc = value => String(value ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -1508,16 +1698,36 @@
             if (!document.getElementById('dashboardTo').value) document.getElementById('dashboardTo').value=localISO(today);
             dashboardState.page=0; dashboardState.historyPage=0; renderDashboard();
         }
+        function dashboardFilterChanged(filter) { dashboardState.filter=filter; dashboardState.page=0; renderDashboard(); }
         function dashboardSearchChanged() { dashboardState.page=0; dashboardState.letter=''; renderDashboard(); }
         function resetDashboardFilters() { dashboardState.page=0;dashboardState.letter='';dashboardState.filter='all';document.getElementById('dashboardMaterialSearch').value='';renderDashboard(); }
-        function dashboardPage(delta) { dashboardState.page+=delta;renderDashboard();document.getElementById('dashboardAlerts').scrollIntoView({block:'start',behavior:'instant'}); }
-        function dashboardHistoryPage(delta) { dashboardState.historyPage+=delta;renderDashboardDetail();document.getElementById('dashboardHistory').scrollIntoView({block:'nearest',behavior:'instant'}); }
+        function dashboardPage(delta) { dashboardState.page+=delta;renderDashboard();document.getElementById('dashboardDirectory').scrollIntoView({block:'start',behavior:'auto'}); }
+        function dashboardHistoryPage(delta) { dashboardState.historyPage+=delta;renderDashboardDetail();document.getElementById('dashboardHistory').scrollIntoView({block:'nearest',behavior:'auto'}); }
         const quantityText = groups => groups.length?groups.map(g=>`${fmt(g.quantity)} <em>${esc(g.unit)}</em>`).join('<br>'):'0 <em>registros</em>';
+        const dashboardProductState = product => product.STOCK!==null&&product.STOCK<=0?{label:'Sin stock',tone:'empty',icon:'fa-circle-xmark'}:DtxData.low(product)?{label:'Stock bajo',tone:'low',icon:'fa-triangle-exclamation'}:{label:'Con stock',tone:'',icon:'fa-circle-check'};
+        function dashboardMovementClassification(movement) {
+            if (movement?.type!=='salida') return 'Recepción de proveedor';
+            return DtxData.normalize(movement.document)==='PLANILLA' || DtxData.normalize(movement.party)==='ENTREGA DE EPP' ? 'Consumo de planta' : 'Despacho a destino';
+        }
+        function dashboardDocumentLabel(movement) {
+            const document=String(movement?.document||'').trim();
+            if (!document) return 'Sin guía';
+            return DtxData.normalize(document)==='PLANILLA' ? 'Registro: PLANILLA' : `Guía: ${esc(document)}`;
+        }
+        function dashboardMovementFacts(movement) {
+            if (movement.type==='entrada') return `<div class="dash-facts"><div class="dash-fact"><span>Proveedor</span><strong>${esc(movement.party||'No informado')}</strong></div><div class="dash-fact"><span>Cantidad</span><strong>${fmt(movement.quantity)} ${esc(movement.unit)}</strong></div><div class="dash-fact"><span>Orden de compra</span><strong>${esc(movement.order||'No informada')}</strong></div><div class="dash-fact"><span>Guía / documento</span><strong>${dashboardDocumentLabel(movement)}</strong></div></div>`;
+            return `<div class="dash-facts"><div class="dash-fact"><span>Destino</span><strong>${esc(movement.party||'No informado')}</strong></div><div class="dash-fact"><span>Cantidad</span><strong>${fmt(movement.quantity)} ${esc(movement.unit)}</strong></div><div class="dash-fact"><span>Guía / documento</span><strong>${dashboardDocumentLabel(movement)}</strong></div><div class="dash-fact"><span>Clasificación</span><strong>${dashboardMovementClassification(movement)}</strong></div></div>`;
+        }
+        const dashboardLatestCard = (title,movement) => `<article><p>${title}</p><strong>${movement?dateText(movement.date):'Sin registro asociado'}</strong>${movement?`${dashboardMovementFacts(movement)}<small class="dash-trace">${esc(movement.sheet)} · fila ${esc(movement.row)}</small>`:'<p>No hay un movimiento asociado para este material.</p>'}</article>`;
+
         function renderDashboardDetail() {
-            const product=dbProducts.find(p=>p.KEY===dashboardState.selected), detail=document.getElementById('dashboardMaterialDetail');
-            if (!product) {dashboardState.selected='';detail.classList.add('hidden');return;}
+            const product=dbProducts.find(p=>p.KEY===dashboardState.selected), detail=document.getElementById('dashboardMaterialDetail'), emptyState=document.getElementById('dashboardMaterialEmptyState');
+            if (!product) {dashboardState.selected='';detail.classList.add('hidden');emptyState.classList.remove('hidden');renderDashboardActions();return;}
+            emptyState.classList.add('hidden');detail.classList.remove('hidden');
             const period=dashboardRange(), s=DtxData.summary(dashboardModel,product.KEY,period);
-            const latest=(title,m)=>`<article><p>${title}</p><strong>${m?dateText(m.date):'Sin registro asociado'}</strong><p>${m?`${fmt(m.quantity)} ${esc(m.unit)} · ${esc(m.party||'Sin proveedor/destino')}<br>Documento: ${esc(m.document||'Sin documento')} · ${esc(m.sheet)} fila ${esc(m.row)}`:'Consulta el historial disponible y el estado de los datos.'}</p></article>`;
+            const state=dashboardProductState(product), pdf=pdfURL(product.FICHA);
+            document.getElementById('dashboardMaterialHeader').innerHTML=`<div class="dash-material-header"><div class="dash-material-ident"><div class="dash-material-glyph"><i class="fa-solid fa-box"></i></div><div><h4>${esc(product.NOMBRE)}</h4><span class="dash-material-code">${esc(product.CODIGO)} · ${esc(product.CATEGORIA||'Sin categoría')}</span></div></div><div class="dash-stock-block"><span class="dash-state ${state.tone}"><i class="fa-solid ${state.icon}"></i>${state.label}</span><strong>${fmt(product.STOCK)} <span class="text-xs">${esc(product.UNIDAD)}</span></strong><p class="dashboard-meta">Stock actual</p></div></div>`;
+            document.querySelectorAll('[data-dashboard-tab]').forEach(button=>button.setAttribute('aria-selected',String(button.dataset.dashboardTab===dashboardState.materialTab)));
             let discrepancy='';
             if (dashboardStockMonth) {
                 const r=DtxData.range('chosen',new Date(),{month:localISO(dashboardStockMonth).slice(0,7)}), month=DtxData.summary(dashboardModel,product.KEY,r);
@@ -1527,27 +1737,84 @@
                     if ((product.ENTRADAS_MES!==null&&Math.abs(entry-product.ENTRADAS_MES)>.0001)||(product.SALIDAS_MES!==null&&Math.abs(exit-product.SALIDAS_MES)>.0001)) discrepancy=`<p class="dash-note"><strong>Diferencia en el Excel · ${dashboardStockMonth.toLocaleDateString('es-CL',{month:'long',year:'numeric'})}</strong><br>STOCK informa ${fmt(product.ENTRADAS_MES)} entradas / ${fmt(product.SALIDAS_MES)} salidas. El historial asociado suma ${fmt(entry)} / ${fmt(exit)} ${esc(product.UNIDAD)}. Revisa fechas y asociaciones; se conserva el stock actual de STOCK.</p>`;
                 } else discrepancy='<p class="dash-note">El mes indicado en STOCK contiene movimientos con unidades distintas. No se comparan ni convierten automáticamente.</p>';
             }
-            const pages=Math.max(1,Math.ceil(s.selected.length/8));dashboardState.historyPage=Math.max(0,Math.min(dashboardState.historyPage,pages-1));
-            const rows=s.selected.slice(dashboardState.historyPage*8,dashboardState.historyPage*8+8);
-            const pdf=pdfURL(product.FICHA);
-            detail.innerHTML=`<div class="flex justify-between items-start gap-3"><div><p class="text-[10px] font-black tracking-widest text-orange-700">MATERIAL · ${esc(product.CODIGO)}</p><h4>${esc(product.NOMBRE)}</h4><p class="dashboard-meta">${esc(product.CATEGORIA||'Sin categoría')} · Mínimo: ${product.STOCK_CRITICO>0?fmt(product.STOCK_CRITICO)+' '+esc(product.UNIDAD):'no configurado'}</p></div><button onclick="cerrarDetalleDashboard()" class="shrink-0 rounded-full bg-white border border-slate-200 h-10 w-10" aria-label="Cerrar detalle"><i class="fa-solid fa-xmark"></i></button></div>
-            <div class="dash-detail-summary"><div class="dash-number"><small>Stock actual</small><strong>${fmt(product.STOCK)} <em>${esc(product.UNIDAD)}</em></strong></div><div class="dash-number"><small>Entradas del período</small><strong class="text-green-700">${quantityText(s.in)}</strong></div><div class="dash-number"><small>Salidas del período</small><strong class="text-red-600">${quantityText(s.out)}</strong></div></div>
-            <p class="dashboard-meta mb-3">${periodCaption(period)} · Totales del historial asociado.</p>
-            <div class="dash-latest">${latest('Última entrada',s.lastIn)}${latest('Última salida',s.lastOut)}</div><p class="dashboard-meta">Últimas fechas de todo el historial disponible hasta hoy.</p>
-            ${product.conflict?`<p class="dash-note"><strong>Código duplicado: ${esc(product.CODIGO)}</strong> · STOCK fila ${esc(product.sourceRow)}. Hay otras filas con este código; sólo se muestran movimientos identificables. Corrige el código en el Excel antes de imprimir nuevos QR.</p>`:''}${s.unitMismatch?'<p class="dash-note">Hay unidades distintas de la unidad de STOCK. Se muestran por separado, sin conversión.</p>':''}${discrepancy}
-            <section class="dash-history" id="dashboardHistory"><header><h3>Historial del período <span class="text-xs text-slate-500">· ${fmt(s.selected.length)} registros</span></h3></header>${rows.map(m=>`<div class="dash-event"><span>${dateText(m.date)}<small class="${m.type==='entrada'?'text-green-700':'text-red-600'}">${m.type==='entrada'?'↓ Entrada':'↑ Salida'}</small></span><span>${esc(m.party||'Sin proveedor/destino')}<small>GD ${esc(m.document||'—')}${m.order?' · OC '+esc(m.order):''}<br>${esc(m.sheet)} · fila ${esc(m.row)}</small></span><strong>${fmt(m.quantity)}<small>${esc(m.unit)}</small></strong></div>`).join('')||'<p class="p-4 text-xs text-slate-500">No hay movimientos asociados en este período. Cambia las fechas; los registros sin asociación se indican en Estado de los datos.</p>'}<div class="dash-pager"><button onclick="dashboardHistoryPage(-1)" ${dashboardState.historyPage===0?'disabled':''}>Anterior</button><span>${dashboardState.historyPage+1} / ${pages}</span><button onclick="dashboardHistoryPage(1)" ${dashboardState.historyPage+1>=pages?'disabled':''}>Siguiente</button></div></section>
-            <div class="dash-history p-3"><div class="flex justify-between items-center gap-3"><div><p class="text-xs font-bold text-slate-500">Ubicación</p><p class="text-sm font-bold mt-1">${esc(DtxData.hasLocation(product)?product.ORGANIZADOR:'Sin ubicación asignada')}</p></div><button id="btnDashboardMaterialMap" onclick="openWarehouseLayout('${esc(product.KEY)}')" class="ios-btn btn-active-tab"><i class="fa-regular fa-map"></i> Ver en layout</button></div><p class="dashboard-meta mt-3">Abre el layout para ubicar el material y revisar su estantería.</p></div>
-            ${pdf?`<div class="dash-pdf"><button onclick="abrirFichaDashboard()"><i class="fa-regular fa-eye mr-2"></i>Ver ficha</button><a href="${esc(pdfURL(product.FICHA,'download'))}" target="_blank" rel="noopener" download><i class="fa-solid fa-download mr-2"></i>Descargar</a></div>`:'<p class="dashboard-meta mt-3">Ficha técnica no disponible en el Excel.</p>'}`;
-            const wasHidden=detail.classList.contains('hidden');
-            if (wasHidden) mostrarPanelSuave(detail,true);
+            const panels={
+                summary:()=>`<section class="dash-panel"><div class="flex items-start justify-between gap-3"><div><h3>Resumen operativo</h3><p class="dashboard-meta">${periodCaption(period)} · movimientos asociados</p></div><span class="dash-state ${state.tone}">${state.label}</span></div><div class="dash-detail-summary"><div class="dash-number"><small>Stock actual</small><strong>${fmt(product.STOCK)} <em>${esc(product.UNIDAD)}</em></strong></div><div class="dash-number"><small>Entradas del período</small><strong class="text-green-700">${quantityText(s.in)}</strong></div><div class="dash-number"><small>Salidas del período</small><strong class="text-red-600">${quantityText(s.out)}</strong></div></div><div class="dash-latest">${dashboardLatestCard('Última entrada',s.lastIn)}${dashboardLatestCard('Última salida',s.lastOut)}</div>${product.conflict?`<p class="dash-note"><strong>Código duplicado: ${esc(product.CODIGO)}</strong> · STOCK fila ${esc(product.sourceRow)}. Corrige el código en el Excel antes de imprimir nuevos QR.</p>`:''}${s.unitMismatch?'<p class="dash-note">Hay movimientos con una unidad distinta. Se muestran separados y no se convierten.</p>':''}${discrepancy}${pdf?`<div class="dash-pdf"><button onclick="abrirFichaDashboard()"><i class="fa-regular fa-eye mr-2"></i>Ver ficha</button><a href="${esc(pdfURL(product.FICHA,'download'))}" target="_blank" rel="noopener" download><i class="fa-solid fa-download mr-2"></i>Descargar</a></div>`:'<p class="dashboard-meta mt-3">Ficha técnica no disponible en el Excel.</p>'}</section>`,
+                consumption:()=>dashboardConsumptionPanel(product,period,s),
+                movements:()=>dashboardMovementsPanel(s),
+                location:()=>`<section class="dash-panel"><div class="flex justify-between items-center gap-3"><div><h3>Ubicación en bodega</h3><p class="dashboard-meta">${esc(DtxData.hasLocation(product)?product.ORGANIZADOR:'Sin ubicación asignada')}</p></div><button onclick="openWarehouseLayout('${esc(product.KEY)}')" class="ios-btn btn-active-tab"><i class="fa-regular fa-map"></i> Ver en layout</button></div><div id="dashboardMapContainer" class="relative w-full aspect-[4/3] mt-4 map-grid-bg rounded-xl border-2 border-slate-300 overflow-hidden"></div><p id="dashboardMapHint" class="dashboard-meta mt-3">${DtxData.hasLocation(product)?'La estantería reconocida se destaca en naranja.':'El Excel no informa una ubicación reconocible; no se asigna una estantería ficticia.'}</p></section>`
+            };
+            document.getElementById('dashboardTabPanel').innerHTML=(panels[dashboardState.materialTab]||panels.summary)();
+            if (dashboardState.materialTab==='consumption') queueDashboardTrendGuide();
+            if (dashboardState.materialTab==='location') renderWarehouseMap('dashboardMapContainer',product.ORGANIZADOR);
+            renderDashboardActions(product,s);
         }
-        function toggleDashboardMaterialMap() {
-            const p=dbProducts.find(p=>p.KEY===dashboardState.selected), panel=document.getElementById('dashboardMaterialMap');
-            const opening=panel.dataset.open!=='true';
-            if(opening) renderWarehouseMap('dashboardMaterialMap',p?.ORGANIZADOR);
-            mostrarPanelSuave(panel,opening);
-            const button=document.getElementById('btnDashboardMaterialMap');button.setAttribute('aria-expanded',String(opening));button.innerHTML=`<i class="fa-regular fa-map"></i> ${opening?'Ocultar mapa':'Ver mapa'}`;
-            const hint=document.getElementById('dashboardMaterialMapHint');hint.classList.toggle('hidden',!opening);hint.textContent=panel.querySelector('.rk-active')?'Estantería del material destacada en naranja.':'Plano general. No hay una estantería reconocida para este material.';
+
+        function setDashboardMaterialTab(tab) { dashboardState.materialTab=tab; dashboardState.historyPage=0; renderDashboardDetail(); }
+        function setDashboardChartMode(mode) { dashboardState.chartMode=mode; renderDashboardDetail(); }
+
+        function queueDashboardTrendGuide() {
+            const firstBar=document.querySelector('#dashboardConsumptionChart .dash-chart-bar');
+            const update=()=>requestAnimationFrame(positionDashboardTrendGuide);
+            if (!firstBar||window.matchMedia('(prefers-reduced-motion: reduce)').matches) {update();return;}
+            firstBar.addEventListener('animationend',update,{once:true});
+        }
+
+        function positionDashboardTrendGuide() {
+            const canvas=document.querySelector('#dashboardConsumptionChart .dash-chart-canvas'), line=canvas?.querySelector('.dash-chart-trend-line'), bars=[...(canvas?.querySelectorAll('.dash-chart-bar')||[])];
+            if (!canvas||!line||!bars.length) return;
+            const canvasBox=canvas.getBoundingClientRect(), trendClearancePx=14;
+            if (!canvasBox.width||!canvasBox.height) return;
+            const points=bars.map(bar=>{
+                const barBox=bar.getBoundingClientRect();
+                const x=(barBox.left+barBox.width/2-canvasBox.left)/canvasBox.width*100;
+                const y=Math.max(3,Math.min(97,(barBox.top-canvasBox.top-trendClearancePx)/canvasBox.height*100));
+                return `${x.toFixed(2)},${y.toFixed(2)}`;
+            });
+            line.setAttribute('points',points.join(' '));
+        }
+
+        function dashboardConsumptionPanel(product,period,summary) {
+            const quantitySeries=DtxData.consumptionSeries(dashboardModel,product.KEY,period), hasQuantity=quantitySeries.some(item=>item.quantity>0), hasExits=summary.selected.some(m=>m.type==='salida');
+            const metric=dashboardState.chartMode==='movements'||(!hasQuantity&&hasExits)?'movements':'quantity';
+            const series=metric==='quantity'?quantitySeries:DtxData.consumptionSeries(dashboardModel,product.KEY,period,'movements'), max=Math.max(0,...series.map(item=>item.quantity));
+            const labelStep=series.length>14?Math.ceil(series.length/8):1;
+            const bars=series.map((item,index)=>`<div class="dash-chart-column"><span class="dash-chart-value">${item.quantity?fmt(item.quantity):''}</span><div class="dash-chart-bar-wrap"><span class="dash-chart-bar" style="--bar-height:${max?Math.max(2,item.quantity/max*100):2}%" title="${esc(item.label)}: ${fmt(item.quantity)} ${esc(item.unit)}"></span></div><span class="dash-chart-label${labelStep>1&&index%labelStep!==0&&index!==series.length-1?' dash-chart-label--muted':''}">${esc(item.label)}</span></div>`).join('');
+            const trendLayer=series.length?`<div class="dash-chart-trend-layer" aria-hidden="true"><svg class="dash-chart-trend" viewBox="0 0 100 100" preserveAspectRatio="none"><polyline class="dash-chart-trend-line" vector-effect="non-scaling-stroke" points=""></polyline></svg></div>`:'';
+            const mismatches=summary.selected.filter(m=>m.type==='salida'&&m.unit!==product.UNIDAD&&!DtxData.equivalentUnit(product,m.unit)).length;
+            const chart=bars?`<div class="dash-chart-canvas" style="--series-count:${Math.max(series.length,14)}"><div class="dash-chart-grid" aria-hidden="true"></div>${trendLayer}<div class="dash-chart-columns">${bars}</div></div>`:'<p class="m-auto text-xs text-slate-500">No hay salidas asociadas en este período.</p>';
+            return `<section class="dash-panel"><div class="dash-chart-toolbar"><div><h3>Consumo del material</h3><p class="dashboard-meta">${metric==='quantity'?`Salidas en ${esc(product.UNIDAD)}`:'Cantidad de movimientos de salida'} · ${periodCaption(period)}</p></div><div class="dash-chart-toggle"><button onclick="setDashboardChartMode('quantity')" aria-pressed="${metric==='quantity'}">Cantidad</button><button onclick="setDashboardChartMode('movements')" aria-pressed="${metric==='movements'}">Movimientos</button></div></div><div id="dashboardConsumptionChart" class="dash-consumption-chart" role="img" aria-label="Consumo de ${esc(product.NOMBRE)} por período">${chart}</div>${metric==='movements'&&!hasQuantity&&hasExits?'<p class="dash-note">Se muestran movimientos porque las salidas asociadas usan una unidad distinta a la unidad de STOCK.</p>':mismatches?`<p class="dash-note">${fmt(mismatches)} salidas usan otra unidad y se excluyen del gráfico para no mezclar cantidades incompatibles.</p>`:''}</section><section class="dash-panel"><div class="dash-latest">${dashboardLatestCard('Última entrada',summary.lastIn)}${dashboardLatestCard('Última salida',summary.lastOut)}</div></section>`;
+        }
+
+        function dashboardMovementsPanel(summary) {
+            const pages=Math.max(1,Math.ceil(summary.selected.length/8));dashboardState.historyPage=Math.max(0,Math.min(dashboardState.historyPage,pages-1));
+            const rows=summary.selected.slice(dashboardState.historyPage*8,dashboardState.historyPage*8+8);
+            return `<section class="dash-history" id="dashboardHistory"><header><h3>Movimientos del período <span class="text-xs text-slate-500">· ${fmt(summary.selected.length)} registros</span></h3></header>${rows.map(m=>{const entry=m.type==='entrada';const main=entry?`Proveedor: ${esc(m.party||'No informado')}`:`Destino: ${esc(m.party||'No informado')}`;const facts=entry?`Orden de compra: ${esc(m.order||'No informada')}<br>${dashboardDocumentLabel(m)}`:`${dashboardDocumentLabel(m)}<br>Clasificación: ${dashboardMovementClassification(m)}`;return `<div class="dash-event"><span>${dateText(m.date)}<small class="${entry?'text-green-700':'text-red-600'}">${entry?'↓ Entrada':'↑ Salida'}</small></span><span class="dash-event-main">${main}<small>${facts}<br>${esc(m.sheet)} · fila ${esc(m.row)}</small></span><strong>${fmt(m.quantity)}<small>${esc(m.unit)}</small></strong></div>`;}).join('')||'<p class="p-4 text-xs text-slate-500">No hay movimientos asociados en este período.</p>'}<div class="dash-pager"><button onclick="dashboardHistoryPage(-1)" ${dashboardState.historyPage===0?'disabled':''}>Anterior</button><span>${dashboardState.historyPage+1} / ${pages}</span><button onclick="dashboardHistoryPage(1)" ${dashboardState.historyPage+1>=pages?'disabled':''}>Siguiente</button></div></section>`;
+        }
+
+        function renderDashboardActions(product,summary) {
+            const actions=document.getElementById('dashboardActions'), quick=document.getElementById('dashboardQuickData'), count=document.getElementById('dashboardActionCount');
+            if (!product) {actions.innerHTML='<p class="p-4 text-xs text-slate-500">Selecciona un material para revisar sus pendientes.</p>';quick.innerHTML='';count.textContent='0';return;}
+            const pending=[];
+            if (!DtxData.hasLocation(product)) pending.push(['fa-location-dot','Asignar ubicación','El material no tiene una ubicación definida.',`openWarehouseLayout('${esc(product.KEY)}')`,'Asignar']);
+            if (!(product.STOCK_CRITICO>0)) pending.push(['fa-triangle-exclamation','Revisar stock mínimo','El Excel no tiene un mínimo configurado.',`dashboardMinimumHelp()`,'Revisar']);
+            if (!pdfURL(product.FICHA)) pending.push(['fa-file-circle-exclamation','Completar ficha técnica','No hay un enlace válido en la columna FICHA.',`dashboardSheetHelp()`,'Revisar']);
+            count.textContent=fmt(pending.length);
+            actions.innerHTML=pending.map(([icon,title,hint,handler,label])=>`<div class="dash-action"><span class="dash-action-icon"><i class="fa-solid ${icon}"></i></span><span><strong>${title}</strong><small>${hint}</small></span><button onclick="${handler}">${label}</button></div>`).join('')||'<p class="p-4 text-xs text-green-700"><i class="fa-solid fa-circle-check mr-1"></i>Sin pendientes detectados para este material.</p>';
+            const state=dashboardProductState(product);
+            quick.innerHTML=`<div><i class="fa-solid fa-box"></i><span>Stock actual</span><strong>${fmt(product.STOCK)} ${esc(product.UNIDAD)}</strong></div><div><i class="fa-solid fa-gauge"></i><span>Stock mínimo</span><strong>${product.STOCK_CRITICO>0?fmt(product.STOCK_CRITICO)+' '+esc(product.UNIDAD):'No configurado'}</strong></div><div><i class="fa-solid ${state.icon}"></i><span>Estado</span><strong>${state.label}</strong></div><div><i class="fa-solid fa-arrow-down text-green-600"></i><span>Última entrada</span><strong>${dateText(summary.lastIn?.date)}</strong></div><div><i class="fa-solid fa-arrow-up text-red-600"></i><span>Última salida</span><strong>${dateText(summary.lastOut?.date)}</strong></div><div><i class="fa-solid fa-building-circle-arrow-right"></i><span>Destino última salida</span><strong>${esc(summary.lastOut?.party||'Sin registro')}</strong></div>`;
+        }
+
+        function dashboardMinimumHelp() { Toast('Configura el mínimo en la columna STOCK CRITICO del Excel y luego pulsa Actualizar.','info'); }
+        function dashboardSheetHelp() { Toast('Agrega el enlace en la columna FICHA del Excel y luego pulsa Actualizar.','info'); }
+
+        function setDashboardPriorityTab(tab) { dashboardState.priorityTab=tab; renderDashboardPriority(dashboardRange()); }
+        function renderDashboardPriority(period) {
+            const definitions={urgent:{filter:'empty',empty:'No hay materiales sin stock.'},low:{filter:'low',empty:'No hay materiales con stock bajo.'},location:{filter:'location',empty:'Todos los materiales tienen ubicación.'}}, definition=definitions[dashboardState.priorityTab]||definitions.urgent;
+            document.querySelectorAll('[data-priority-tab]').forEach(button=>button.setAttribute('aria-selected',String(button.dataset.priorityTab===dashboardState.priorityTab)));
+            const products=DtxData.browse(dashboardModel,{filter:definition.filter,period}).slice(0,15), table=document.getElementById('dashboardPriorityTable');
+            if (!products.length) {table.innerHTML=`<p class="p-5 text-xs text-slate-500">${definition.empty}</p>`;return;}
+            table.innerHTML=`<table><thead><tr><th>Código</th><th>Material</th><th>Stock actual</th><th>Última salida</th><th>Destino</th><th>Acción</th></tr></thead><tbody>${products.map(product=>{const lastOut=DtxData.summary(dashboardModel,product.KEY,DtxData.range('all')).lastOut;return `<tr><td><strong>${esc(product.CODIGO)}</strong></td><td><strong>${esc(product.NOMBRE)}</strong><small>${esc(product.CATEGORIA||'Sin categoría')}</small></td><td><span class="dash-badge ${product.STOCK!==null&&product.STOCK<=0?'empty':DtxData.low(product)?'low':''}">${fmt(product.STOCK)} ${esc(product.UNIDAD)}</span></td><td>${dateText(lastOut?.date)}</td><td>${esc(lastOut?.party||'Sin registro')}</td><td><button data-priority-material="${esc(product.KEY)}">Ver detalle</button></td></tr>`;}).join('')}</tbody></table>`;
+            table.querySelectorAll('[data-priority-material]').forEach(button=>button.onclick=()=>mostrarDetalleDashboard(button.dataset.priorityMaterial));
         }
         function pdfURL(value,mode='preview') {
             try {const url=new URL(value);if(!['https:','http:'].includes(url.protocol))return '';
@@ -1562,7 +1829,7 @@
             dashboardState.selected='';
             const detail = document.getElementById('dashboardMaterialDetail');
             document.querySelectorAll('#dashboardAlerts [data-material]').forEach(b=>{b.setAttribute('aria-pressed','false');if(b.dataset.material===code)b.focus({preventScroll:true});});
-            if (detail) mostrarPanelSuave(detail, false);
+            if (detail) detail.classList.add('hidden');
         }
 
         function toggleSettings() {
