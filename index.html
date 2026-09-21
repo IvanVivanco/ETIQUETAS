@@ -273,24 +273,55 @@
             @page { margin: 0; }
         }
 
-        /* CLASES MAPA BODEGA MODERNO */
-        .map-grid-bg { background-color: #f8fafc; background-image: radial-gradient(#94a3b8 1.5px, transparent 1.5px); background-size: 16px 16px; }
-        .rk-block { background-color: var(--rack-base); border: 1px solid var(--rack-border); border-radius: 4px; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); width: 100%; height: 100%; }
-        .rk-active { background-color: #F26522 !important; transform: scale(1.15); box-shadow: 0 0 0 4px rgba(242,101,34,0.2), 0 4px 10px rgba(0,0,0,0.15); z-index: 20; position: relative; border: 1px solid #c2410c; }
-        .rk-heatmap-low { background-color: #fca5a5 !important; border-color: #ef4444; }
-        .rk-heatmap-med { background-color: #ef4444 !important; border-color: #b91c1c; }
-        .rk-heatmap-high { background-color: #991b1b !important; border-color: #7f1d1d; transform: scale(1.1); z-index: 10; }
-        .warehouse-map-label { color: #334155; border-color: #cbd5e1; background: rgba(255,255,255,0.96); }
+        /* PLANO OPERATIVO: se conserva la geometría física y solo se codifican racks confirmados. */
+        .map-grid-bg { background-color:#f8fafc; background-image:radial-gradient(#94a3b8 1.2px,transparent 1.2px); background-size:16px 16px; }
+        .warehouse-plan { position:absolute; inset:0; color:#172033; font-family:inherit; }
+        .warehouse-shelf-row { position:absolute; left:5%; right:22%; display:grid; gap:2.2%; }
+        .warehouse-top-shelves { top:5%; height:10%; grid-template-columns:repeat(3,minmax(0,1fr)); }
+        .warehouse-p3-p4-shelves { top:27%; height:15%; grid-template-columns:repeat(2,minmax(0,1fr)); }
+        .warehouse-p4-p1-shelves { top:53%; height:15%; grid-template-columns:repeat(2,minmax(0,1fr)); }
+        .warehouse-p1-shelves { top:82%; height:10%; grid-template-columns:repeat(3,minmax(0,1fr)); }
+        .warehouse-shelf { min-width:0; height:100%; padding:3px; border:1px solid #475569; border-radius:6px; background:rgba(255,255,255,.94); box-shadow:0 2px 4px rgba(23,32,51,.07); }
+        .warehouse-face { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:3px; width:100%; height:100%; min-height:0; }
+        .warehouse-shelf-shared { display:grid; grid-template-rows:minmax(0,1fr) 1px minmax(0,1fr); gap:3px; }
+        .warehouse-shared-divider { background:#94a3b8; opacity:.65; border-radius:999px; }
+        .warehouse-rack-module { display:block; position:relative; width:100%; min-width:0; min-height:0; margin:0; padding:0; border:1px solid #475569; border-radius:3px; background:linear-gradient(180deg,#e2e8f0,#cbd5e1); box-shadow:inset 0 1px rgba(255,255,255,.75); transition:background-color .18s ease,box-shadow .18s ease,border-color .18s ease; }
+        button.warehouse-rack-module { cursor:pointer; }
+        .warehouse-rack-static { pointer-events:none; }
+        .warehouse-rack-index { display:grid; place-items:center; width:100%; height:100%; color:#64748b; font-size:clamp(7px,1.1vw,11px); font-weight:900; line-height:1; }
+        .warehouse-rack-module.rk-active { background:#F26522 !important; border-color:#c2410c !important; box-shadow:0 0 0 2px rgba(242,101,34,.22),0 4px 10px rgba(194,65,12,.18); z-index:4; }
+        .warehouse-rack-module.rk-active .warehouse-rack-index { color:#fff; }
+        .warehouse-rack-module.rk-active::after { content:attr(data-route-short); position:absolute; left:50%; top:-18px; transform:translateX(-50%); padding:2px 5px; border-radius:4px; background:#172033; color:#fff; font-size:8px; font-weight:900; line-height:1; white-space:nowrap; }
+        .warehouse-rack-module:focus-visible { outline:3px solid #F26522; outline-offset:2px; }
+        .warehouse-aisle-label { position:absolute; z-index:3; color:#ea580c; background:rgba(255,255,255,.95); border:1px solid #fed7aa; border-radius:999px; padding:3px 8px; font-size:clamp(7px,1.2vw,12px); font-weight:900; letter-spacing:.06em; line-height:1.1; box-shadow:0 2px 6px rgba(23,32,51,.08); }
+        .warehouse-aisle-label.top { top:19%; left:45%; transform:translateX(-50%); }
+        .warehouse-aisle-label.middle { top:45%; left:45%; transform:translateX(-50%); }
+        .warehouse-aisle-label.bottom { top:73%; bottom:auto; left:45%; transform:translateX(-50%); }
+        .warehouse-aisle-label.right { top:50%; right:7%; transform:translateY(-50%) rotate(90deg); }
+        .warehouse-p2-shelves { position:absolute; top:5%; bottom:8%; right:5%; width:12%; display:grid; grid-template-rows:repeat(3,minmax(0,1fr)); gap:3%; }
+        .warehouse-p2-shelves .warehouse-face { grid-template-columns:1fr; grid-template-rows:repeat(4,minmax(0,1fr)); }
         .warehouse-layout-shell { width:100%; max-width:1360px; padding:28px; margin:auto; color:#172033; }
         .warehouse-layout-grid { display:grid; grid-template-columns:minmax(0,1fr) 320px; gap:20px; align-items:start; }
+        .warehouse-layout-map { height:clamp(300px,min(56vw,calc(100dvh - 255px)),680px); aspect-ratio:auto; }
         .warehouse-layout-map [data-layout-rack] { cursor:pointer; }
-        .warehouse-layout-map [data-layout-rack]:focus-visible { outline:3px solid #F26522; outline-offset:2px; }
-        .rack-status-empty { background:#ef4444 !important; border-color:#b91c1c !important; }
-        .rack-status-low { background:#f59e0b !important; border-color:#b45309 !important; }
-        .rack-status-normal { background:#22c55e !important; border-color:#15803d !important; }
-        .rack-status-unknown { background:#94a3b8 !important; border-color:#475569 !important; }
-        @media(max-width:900px) { .warehouse-layout-shell { padding:20px 16px; } .warehouse-layout-grid { grid-template-columns:1fr; } }
-        @media(max-width:600px) { .warehouse-layout-shell { padding:20px 12px; } }
+        .warehouse-location-card { background:#f8fafc; border:1px solid #e2e8f0; border-radius:14px; padding:14px; }
+        .warehouse-level-rack { display:grid; gap:6px; margin:14px 0 16px; }
+        .warehouse-level { display:grid; grid-template-columns:50px minmax(0,1fr); align-items:center; gap:8px; width:100%; min-height:36px; padding:0; border:0; background:transparent; text-align:left; cursor:pointer; }
+        .warehouse-level-number { color:#64748b; font-size:11px; font-weight:900; text-align:center; }
+        .warehouse-level-surface { display:flex; align-items:center; justify-content:space-between; gap:8px; min-height:36px; padding:0 10px; border:1px solid #475569; border-radius:6px; background:linear-gradient(180deg,#e2e8f0,#cbd5e1); box-shadow:inset 0 1px rgba(255,255,255,.75); }
+        .warehouse-level-surface strong { color:#334155; font-size:11px; font-weight:900; }
+        .warehouse-level-surface small { color:#64748b; font-size:10px; font-weight:700; }
+        .warehouse-level:hover .warehouse-level-surface { border-color:#F26522; box-shadow:0 0 0 2px rgba(242,101,34,.12); }
+        .warehouse-level:focus-visible { outline:3px solid #F26522; outline-offset:2px; border-radius:8px; }
+        .warehouse-level.is-active .warehouse-level-number { color:#c2410c; }
+        .warehouse-level.is-active .warehouse-level-surface { background:#F26522; border-color:#c2410c; box-shadow:0 0 0 2px rgba(242,101,34,.14); }
+        .warehouse-level.is-active .warehouse-level-surface strong, .warehouse-level.is-active .warehouse-level-surface small { color:#fff; }
+        .warehouse-material-selected { border-left:3px solid #F26522; background:#fff7ed; }
+        .warehouse-material-meta { display:grid; justify-items:end; gap:5px; }
+        .warehouse-stock { color:#334155; font-size:11px; font-weight:900; white-space:nowrap; }
+        .warehouse-material-location { color:#64748b; }
+        @media(max-width:900px) { .warehouse-layout-shell { padding:20px 16px; } .warehouse-layout-grid { grid-template-columns:1fr; } .warehouse-layout-map { height:auto; aspect-ratio:16/10; } }
+        @media(max-width:600px) { .warehouse-layout-shell { padding:20px 12px; } .warehouse-shelf-row { left:4%; right:20%; } .warehouse-p2-shelves { right:3%; width:13%; } .warehouse-aisle-label { padding:2px 5px; } .warehouse-rack-module.rk-active::after { top:-15px; font-size:7px; } }
         
         /* Animacion Modal Detail */
         .modal-slide-up { animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
@@ -299,7 +330,7 @@
         #modalProductDetail.qr-scan-entry #mdlName, #modalProductDetail.qr-scan-entry #mdlStock, #modalProductDetail.qr-scan-entry #mdlOrg { animation: qrResultReveal 0.46s cubic-bezier(0.16, 1, 0.3, 1) both; animation-delay: 0.18s; }
         @keyframes qrScanLine { from { transform: translateY(0); opacity: 0; } 18% { opacity: 1; } to { transform: translateY(460%); opacity: 0; } }
         @keyframes qrResultReveal { from { transform: translateY(12px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        @media (prefers-reduced-motion: reduce) { #modalProductDetail.qr-scan-entry > div::after, #modalProductDetail.qr-scan-entry #mdlName, #modalProductDetail.qr-scan-entry #mdlStock, #modalProductDetail.qr-scan-entry #mdlOrg { animation: none; } }
+        @media (prefers-reduced-motion: reduce) { #modalProductDetail.qr-scan-entry > div::after, #modalProductDetail.qr-scan-entry #mdlName, #modalProductDetail.qr-scan-entry #mdlStock, #modalProductDetail.qr-scan-entry #mdlOrg, .warehouse-rack-module.rk-active { animation: none; } }
         .qr-movement-card { min-height:142px; transition:transform .18s var(--motion-ease), border-color .18s ease, background-color .18s ease, box-shadow .18s ease; }
         .qr-movement-card:hover { transform:translateY(-2px); box-shadow:0 8px 18px rgba(15,23,42,.08); }
         .qr-movement-card:focus-visible { outline:3px solid #f26522; outline-offset:2px; }
@@ -616,7 +647,7 @@
 
                 <section id="panelMovimientos" class="hidden w-full bg-white border border-slate-200 rounded-2xl mb-4 p-4" aria-live="polite"><div class="flex items-start justify-between gap-3 mb-3"><div><p id="lblResumenMes" class="text-[10px] font-black text-slate-500 uppercase tracking-widest"></p><h4 id="qrMovementPanelTitle" class="mt-1 text-base font-black text-[#172033]"></h4></div><button type="button" onclick="closeQrMovementPanel()" class="shrink-0 rounded-lg px-2 py-1 text-xs font-black text-orange-600 hover:bg-orange-50">Cerrar</button></div><div id="qrMovementPanelContent" class="space-y-2"></div></section>
 
-                <section class="bg-white border border-slate-200 rounded-2xl p-4 mb-4"><p class="text-xs font-black tracking-widest text-slate-500 uppercase">Ubicación actual</p><p id="mdlOrg" class="text-2xl font-black text-[#172033] mt-2"></p><div id="mdlMapContainer" class="hidden relative w-full aspect-[4/3] mt-4 map-grid-bg rounded-xl border border-slate-200 overflow-hidden"></div><button id="btnVerMapa" onclick="verUbicacionMapa()" class="w-full mt-4 rounded-xl border-2 border-orange-300 bg-orange-50 py-3 text-orange-600 font-black transition-all duration-200 hover:-translate-y-0.5 hover:bg-orange-100 hover:shadow-lg hover:shadow-orange-100 active:translate-y-0 active:scale-[0.98]"><i id="iconVerMapa" class="fa-regular fa-map mr-2"></i><span id="textoVerMapa">Ver mapa</span></button></section>
+                <section class="bg-white border border-slate-200 rounded-2xl p-4 mb-4"><p class="text-xs font-black tracking-widest text-slate-500 uppercase">Ubicación actual</p><p id="mdlOrg" class="text-lg font-black leading-6 text-[#172033] mt-2"></p><p id="mdlLocationGuide" class="mt-2 text-xs font-semibold leading-5 text-slate-500"></p><div id="mdlMapContainer" class="hidden relative w-full aspect-[4/3] mt-4 map-grid-bg rounded-xl border border-slate-200 overflow-hidden"></div><button id="btnVerMapa" onclick="verUbicacionMapa()" class="w-full mt-4 rounded-xl border-2 border-orange-300 bg-orange-50 py-3 text-orange-600 font-black transition-all duration-200 hover:-translate-y-0.5 hover:bg-orange-100 hover:shadow-lg hover:shadow-orange-100 active:translate-y-0 active:scale-[0.98]"><i id="iconVerMapa" class="fa-regular fa-map mr-2"></i><span id="textoVerMapa">Ver mapa</span></button></section>
 
                 <div id="productPdfActions" class="w-full mt-4 overflow-hidden rounded-2xl bg-gradient-to-r from-orange-600 to-orange-500 p-1 shadow-lg shadow-orange-200 transition-transform duration-200 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99]">
                     <div class="grid grid-cols-2 gap-px overflow-hidden rounded-xl bg-orange-400">
@@ -940,12 +971,12 @@
             <div class="preview-panel view-section" id="view-layout">
                 <div class="warehouse-layout-shell">
                     <div class="dashboard-heading">
-                        <div><p class="text-xs font-black tracking-[.18em] text-orange-600 uppercase">Operación · DTX BODEGA</p><h2>Layout de bodega</h2><p class="dashboard-meta">Selecciona una estantería para revisar sus materiales. Rojo: sin stock · Naranja: stock bajo · Verde: stock disponible.</p></div>
+                        <div><p class="text-xs font-black tracking-[.18em] text-orange-600 uppercase">Operación · DTX BODEGA</p><h2>Mapa de Bodega</h2><p id="warehouseLayoutSelection" class="dashboard-meta">Consulta física de racks. La ubicación activa se ilumina en naranja.</p></div>
                         <button onclick="setView('dashboard')" class="ios-btn btn-active-tab"><i class="fa-solid fa-arrow-left"></i> Dashboard</button>
                     </div>
                     <div class="warehouse-layout-grid">
-                        <section class="dash-card p-4"><div id="warehouseLayoutMap" class="warehouse-layout-map relative w-full aspect-[4/3] map-grid-bg rounded-2xl border-2 border-slate-300 overflow-hidden" aria-label="Plano interactivo de la bodega"></div><p id="warehouseLayoutHint" class="dashboard-meta mt-3">Selecciona una estantería del plano para ver sus materiales.</p></section>
-                        <aside class="dash-card p-4" aria-live="polite"><p class="text-xs font-black tracking-widest text-orange-700">ESTANTERÍA SELECCIONADA</p><h3 id="warehouseRackTitle" class="mt-2 text-2xl font-black text-[#172033]">Selecciona un rack</h3><p id="warehouseRackStatus" class="dashboard-meta mt-2">El plano conserva la distribución real de cuatro pasillos.</p><div id="warehouseRackMaterials" class="mt-4 border-t border-slate-100 pt-3"><h4 class="font-black text-[#172033]">Materiales en esta estantería</h4><p class="dashboard-meta mt-2">Aún no hay una estantería seleccionada.</p></div></aside>
+                        <section class="dash-card p-4"><div id="warehouseLayoutMap" class="warehouse-layout-map relative w-full map-grid-bg rounded-2xl border-2 border-slate-300 overflow-hidden" aria-label="Plano interactivo de la bodega"></div><p id="warehouseLayoutHint" class="dashboard-meta mt-3">Selecciona una estantería del plano para ver sus materiales.</p></section>
+                        <aside class="dash-card p-4" aria-live="polite"><p class="text-xs font-black tracking-widest text-orange-700">UBICACIÓN SELECCIONADA</p><h3 id="warehouseRackTitle" class="mt-2 text-2xl font-black text-[#172033]">Selecciona un rack</h3><p id="warehouseRackStatus" class="dashboard-meta mt-2">El plano conserva la distribución real de cuatro pasillos.</p><div id="warehouseRackLevels" class="warehouse-location-card" aria-label="Niveles de la estantería"></div><div id="warehouseRackMaterials" class="mt-4 border-t border-slate-100 pt-3"><h4 class="font-black text-[#172033]">Materiales asociados</h4><p class="dashboard-meta mt-2">Aún no hay un rack seleccionado.</p></div></aside>
                     </div>
                 </div>
             </div>
@@ -1073,23 +1104,62 @@
         
         window.currentProd = null;
 
+        const CONFIRMED_AISLE_RACKS = Object.freeze({ 1: 20 });
         const MAP_AISLES = [
-            { label: 'PASILLO 1', className: 'absolute left-[20%] top-[24%]' },
-            { label: 'PASILLO 2', className: 'absolute left-[20%] top-[50%]' },
-            { label: 'PASILLO 3', className: 'absolute left-[20%] top-[76%]' },
-            { label: 'PASILLO 4', className: 'absolute right-[14%] top-[50%] -translate-y-1/2 rotate-90 origin-center' }
+            { id: 3, label: 'PASILLO 3', placement: 'top' },
+            { id: 4, label: 'PASILLO 4', placement: 'middle' },
+            { id: 1, label: 'PASILLO 1', placement: 'bottom' },
+            { id: 2, label: 'PASILLO 2', placement: 'right' }
         ];
 
-        const MAP_HTML_STRUCTURE = `
-            ${MAP_AISLES.map((aisle) => `
-                <div class="${aisle.className} warehouse-map-label backdrop-blur px-3 py-1 rounded-full font-black text-[12px] border shadow-sm transition-all duration-300 z-10">${aisle.label}</div>
-            `).join('')}
+        function warehouseShelfLabel(aisle, rack) {
+            if (aisle !== 1) return 'Estantería pendiente de confirmar';
+            if (rack <= 4) return 'Estantería inferior izquierda';
+            if (rack <= 8) return 'Estantería inferior central';
+            if (rack <= 12) return 'Estantería inferior derecha';
+            if (rack <= 16) return 'Estantería central izquierda';
+            return 'Estantería central derecha';
+        }
 
-            <div class="absolute top-[4%] left-[4%] w-[80%] h-[12%] grid grid-cols-3 gap-2"><div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div data-rack="A9" class="rk-block"></div><div data-rack="A10" class="rk-block"></div><div data-rack="A11" class="rk-block"></div><div data-rack="A12" class="rk-block"></div></div><div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div data-rack="A13" class="rk-block"></div><div data-rack="A14" class="rk-block"></div><div data-rack="A15" class="rk-block"></div><div data-rack="A16" class="rk-block"></div></div><div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div data-rack="A17" class="rk-block"></div><div data-rack="A18" class="rk-block"></div><div data-rack="A19" class="rk-block"></div><div data-rack="A20" class="rk-block"></div></div></div>
-            <div class="absolute top-[32%] left-[4%] w-[58%] h-[12%] grid grid-cols-2 gap-2"><div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div data-rack="A1" class="rk-block"></div><div data-rack="A2" class="rk-block"></div><div data-rack="A3" class="rk-block"></div><div data-rack="A4" class="rk-block"></div></div><div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div data-rack="A5" class="rk-block"></div><div data-rack="A6" class="rk-block"></div><div data-rack="A7" class="rk-block"></div><div data-rack="A8" class="rk-block"></div></div></div>
-            <div class="absolute bottom-[32%] left-[4%] w-[58%] h-[12%] grid grid-cols-2 gap-2"><div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div data-rack="C13" class="rk-block"></div><div data-rack="C14" class="rk-block"></div><div data-rack="C15" class="rk-block"></div><div data-rack="C16" class="rk-block"></div></div><div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div data-rack="C17" class="rk-block"></div><div data-rack="C18" class="rk-block"></div><div data-rack="C19" class="rk-block"></div><div data-rack="C20" class="rk-block"></div></div></div>
-            <div class="absolute bottom-[4%] left-[4%] w-[80%] h-[12%] grid grid-cols-3 gap-2"><div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div data-rack="C1" class="rk-block"></div><div data-rack="C2" class="rk-block"></div><div data-rack="C3" class="rk-block"></div><div data-rack="C4" class="rk-block"></div></div><div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div data-rack="C5" class="rk-block"></div><div data-rack="C6" class="rk-block"></div><div data-rack="C7" class="rk-block"></div><div data-rack="C8" class="rk-block"></div></div><div class="flex flex-col gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div data-rack="C9" class="rk-block"></div><div data-rack="C10" class="rk-block"></div><div data-rack="C11" class="rk-block"></div><div data-rack="C12" class="rk-block"></div></div></div>
-            <div class="absolute top-[4%] right-[4%] w-[12%] h-[92%] grid grid-rows-3 gap-2"><div class="flex flex-row gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div data-rack="B4" class="rk-block"></div><div data-rack="B3" class="rk-block"></div><div data-rack="B2" class="rk-block"></div><div data-rack="B1" class="rk-block"></div></div><div class="flex flex-row gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div data-rack="B8" class="rk-block"></div><div data-rack="B7" class="rk-block"></div><div data-rack="B6" class="rk-block"></div><div data-rack="B5" class="rk-block"></div></div><div class="flex flex-row gap-[2px] bg-white p-1 rounded border border-gray-300 shadow-sm"><div data-rack="B12" class="rk-block"></div><div data-rack="B11" class="rk-block"></div><div data-rack="B10" class="rk-block"></div><div data-rack="B9" class="rk-block"></div></div></div>
+        function warehouseLocationDescription(location) {
+            return `Pasillo ${location.aisle} · ${warehouseShelfLabel(location.aisle, location.rack)} · Rack ${location.rack}`;
+        }
+
+        function warehouseRouteInstruction(locations = []) {
+            if (!locations.length) return 'Ubicación pendiente de confirmar en el plano.';
+            const route=locations.map(location=>`Pasillo ${location.aisle} → ${warehouseShelfLabel(location.aisle, location.rack)} → rack ${location.rack}`).join(' / ');
+            return `Sigue la señal naranja: ${route}. Numeración vertical: menor arriba, mayor abajo.`;
+        }
+
+        function warehouseStaticModules(count = 4) {
+            return Array.from({ length: count }, () => '<span class="warehouse-rack-module warehouse-rack-static" aria-hidden="true"></span>').join('');
+        }
+
+        function warehouseRackModules(aisle, start, count = 4) {
+            return Array.from({ length: count }, (_, index) => `<button type="button" class="warehouse-rack-module" data-rack="${aisle},${start + index}" data-route="${warehouseLocationDescription({ aisle, rack:start + index })}" data-route-short="${aisle},${start + index}" aria-label="${warehouseLocationDescription({ aisle, rack:start + index })}"><span class="warehouse-rack-index" aria-hidden="true">${start + index}</span></button>`).join('');
+        }
+
+        function warehouseStaticFace(modules = warehouseStaticModules()) {
+            return `<div class="warehouse-face">${modules}</div>`;
+        }
+
+        function warehouseStaticShelf(face = warehouseStaticFace()) {
+            return `<div class="warehouse-shelf">${face}</div>`;
+        }
+
+        function warehouseSharedShelf(upperFace, lowerFace) {
+            return `<div class="warehouse-shelf warehouse-shelf-shared">${upperFace}<span class="warehouse-shared-divider" aria-hidden="true"></span>${lowerFace}</div>`;
+        }
+
+        const MAP_HTML_STRUCTURE = `
+            <div class="warehouse-plan" role="group" aria-label="Plano físico de la bodega">
+                ${MAP_AISLES.map((aisle) => `<span class="warehouse-aisle-label ${aisle.placement}">${aisle.label}</span>`).join('')}
+                <div class="warehouse-shelf-row warehouse-top-shelves">${warehouseStaticShelf()}${warehouseStaticShelf()}${warehouseStaticShelf()}</div>
+                <div class="warehouse-shelf-row warehouse-p3-p4-shelves">${warehouseSharedShelf(warehouseStaticFace(), warehouseStaticFace())}${warehouseSharedShelf(warehouseStaticFace(), warehouseStaticFace())}</div>
+                <div class="warehouse-shelf-row warehouse-p4-p1-shelves">${warehouseSharedShelf(warehouseStaticFace(), warehouseStaticFace(warehouseRackModules(1, 13)))}${warehouseSharedShelf(warehouseStaticFace(), warehouseStaticFace(warehouseRackModules(1, 17)))}</div>
+                <div class="warehouse-shelf-row warehouse-p1-shelves">${warehouseStaticShelf(warehouseStaticFace(warehouseRackModules(1, 1)))}${warehouseStaticShelf(warehouseStaticFace(warehouseRackModules(1, 5)))}${warehouseStaticShelf(warehouseStaticFace(warehouseRackModules(1, 9)))}</div>
+                <div class="warehouse-p2-shelves">${warehouseStaticShelf()}${warehouseStaticShelf()}${warehouseStaticShelf()}</div>
+            </div>
         `;
 
         function saveInventarioState() {
@@ -1384,10 +1454,15 @@
             }
 
             const org = prod.ORGANIZADOR || '';
-            if(org && org.trim() !== '') {
-                document.getElementById('mdlOrg').innerText = org;
+            const locations = parseWarehouseLocations(org);
+            const locationTitle = document.getElementById('mdlOrg');
+            const locationGuide = document.getElementById('mdlLocationGuide');
+            if (locations.length) {
+                locationTitle.innerText = locations.map(warehouseLocationDescription).join(' + ');
+                locationGuide.innerText = warehouseRouteInstruction(locations);
             } else {
-                document.getElementById('mdlOrg').innerText = '-';
+                locationTitle.innerText = org.trim() || '-';
+                locationGuide.innerText = org.trim() ? 'La ubicación fue registrada en el Excel, pero no tiene una posición confirmada en el plano.' : 'Sin ubicación asignada en el Excel.';
             }
 
             modal.classList.remove('hidden'); modal.classList.add('flex');
@@ -1788,7 +1863,7 @@ function updateDockCompactState(forceCompact=false) {
                 summary:()=>`<section class="dash-panel"><div class="flex items-start justify-between gap-3"><div><h3>Resumen operativo</h3><p class="dashboard-meta">${periodCaption(period)} · movimientos asociados</p></div><span class="dash-state ${state.tone}">${state.label}</span></div><div class="dash-detail-summary"><div class="dash-number"><small>Stock actual</small><strong>${fmt(product.STOCK)} <em>${esc(product.UNIDAD)}</em></strong></div><div class="dash-number"><small>Entradas del período</small><strong class="text-green-700">${quantityText(s.in)}</strong></div><div class="dash-number"><small>Salidas del período</small><strong class="text-red-600">${quantityText(s.out)}</strong></div></div><div class="dash-latest">${dashboardLatestCard('Última entrada',s.lastIn)}${dashboardLatestCard('Última salida',s.lastOut)}</div>${product.conflict?`<p class="dash-note"><strong>Código duplicado: ${esc(product.CODIGO)}</strong> · STOCK fila ${esc(product.sourceRow)}. Corrige el código en el Excel antes de imprimir nuevos QR.</p>`:''}${s.unitMismatch?'<p class="dash-note">Hay movimientos con una unidad distinta. Se muestran separados y no se convierten.</p>':''}${discrepancy}${pdf?`<div class="dash-pdf"><button onclick="abrirFichaDashboard()"><i class="fa-regular fa-eye mr-2"></i>Ver ficha</button><a href="${esc(pdfURL(product.FICHA,'download'))}" target="_blank" rel="noopener" download><i class="fa-solid fa-download mr-2"></i>Descargar</a></div>`:'<p class="dashboard-meta mt-3">Ficha técnica no disponible en el Excel.</p>'}</section>`,
                 consumption:()=>dashboardConsumptionPanel(product,period,s),
                 movements:()=>dashboardMovementsPanel(s),
-                location:()=>`<section class="dash-panel"><div class="flex justify-between items-center gap-3"><div><h3>Ubicación en bodega</h3><p class="dashboard-meta">${esc(DtxData.hasLocation(product)?product.ORGANIZADOR:'Sin ubicación asignada')}</p></div><button onclick="openWarehouseLayout('${esc(product.KEY)}')" class="ios-btn btn-active-tab"><i class="fa-regular fa-map"></i> Ver en layout</button></div><div id="dashboardMapContainer" class="relative w-full aspect-[4/3] mt-4 map-grid-bg rounded-xl border-2 border-slate-300 overflow-hidden"></div><p id="dashboardMapHint" class="dashboard-meta mt-3">${DtxData.hasLocation(product)?'La estantería reconocida se destaca en naranja.':'El Excel no informa una ubicación reconocible; no se asigna una estantería ficticia.'}</p></section>`
+                location:()=>{const racks=parseWarehouseLocations(product.ORGANIZADOR); const locationText=racks.map(warehouseLocationDescription).join(' + '); return `<section class="dash-panel"><div class="flex justify-between items-center gap-3"><div><h3>Ubicación en bodega</h3><p class="dashboard-meta">${esc(locationText||'Ubicación no disponible')}</p></div><button onclick="openWarehouseLayout('${esc(product.KEY)}')" class="ios-btn btn-active-tab"><i class="fa-regular fa-map"></i> Ver en layout</button></div><div id="dashboardMapContainer" class="relative w-full aspect-[4/3] mt-4 map-grid-bg rounded-xl border-2 border-slate-300 overflow-hidden"></div><p id="dashboardMapHint" class="dashboard-meta mt-3">${racks.length?warehouseRouteInstruction(racks):'El Excel no informa una ubicación confirmada para el plano; no se asigna una estantería ficticia.'}</p></section>`}
             };
             document.getElementById('dashboardTabPanel').innerHTML=(panels[dashboardState.materialTab]||panels.summary)();
             if (dashboardState.materialTab==='consumption') queueDashboardTrendGuide();
@@ -2563,19 +2638,30 @@ function updateDockCompactState(forceCompact=false) {
             }, 300);
         }
         
-        function locationToRack(organizador = '') {
-            const match=String(organizador).match(/^(A|B|C)[\s\-]*0*(\d+)?/i);
-            return match&&match[2]?`${match[1].toUpperCase()}${parseInt(match[2],10)}`:'';
+        function parseWarehouseLocation(organizador = '') {
+            const match=String(organizador).trim().match(/^([1-4])\s*[,.]\s*(\d+)$/);
+            if (!match) return null;
+            const aisle=Number(match[1]), rack=Number(match[2]), maximum=CONFIRMED_AISLE_RACKS[aisle];
+            if (!maximum || rack<1 || rack>maximum) return null;
+            return { aisle, rack, code:`${aisle},${rack}`, label:`Pasillo ${aisle} · Rack ${rack}` };
         }
+
+        function parseWarehouseLocations(organizador = '') {
+            const unique=new Set();
+            return String(organizador).split(/\s+-\s+|[;|/\n]+|\s+y\s+/i).map(parseWarehouseLocation).filter(location=>location&&!unique.has(location.code)&&unique.add(location.code));
+        }
+
+        function locationToRacks(organizador = '') { return parseWarehouseLocations(organizador).map(location=>location.code); }
+        function locationToRack(organizador = '') { return locationToRacks(organizador)[0] || ''; }
 
         function renderWarehouseMap(containerId, organizador = '') {
             const container = document.getElementById(containerId);
             if (!container) return;
             container.innerHTML = MAP_HTML_STRUCTURE;
-            const rackCode=locationToRack(organizador);
-            if (!rackCode) return;
-            const rack = container.querySelector(`[data-rack="${rackCode}"]`);
-            if (rack) rack.classList.add('rk-active');
+            locationToRacks(organizador).forEach(rackCode=>{
+                const rack = container.querySelector(`[data-rack="${rackCode}"]`);
+                if (rack) rack.classList.add('rk-active');
+            });
         }
 
         function toggleDashboardMap() {
@@ -2593,43 +2679,47 @@ function updateDockCompactState(forceCompact=false) {
             if (hint) hint.innerText = opening ? 'Plano completo de los cuatro pasillos.' : 'Abre el plano para revisar los cuatro pasillos.';
         }
 
-        function rackProducts(rack) { return dbProducts.filter(product=>locationToRack(product.ORGANIZADOR)===rack); }
-        function rackStatus(products) {
-            if (!products.length) return 'unknown';
-            if (products.some(product=>product.STOCK!==null&&product.STOCK<=0)) return 'empty';
-            if (products.some(product=>DtxData.low(product))) return 'low';
-            return 'normal';
+        function rackProducts(rack) { return dbProducts.filter(product=>parseWarehouseLocations(product.ORGANIZADOR).some(location=>location.code===rack)); }
+        function warehouseRackLevel(rack) { return ((Number(rack)-1)%4)+1; }
+        function warehouseShelfRackStart(rack) { return Math.floor((Number(rack)-1)/4)*4+1; }
+        function warehouseProductLocation(product) {
+            const locations=parseWarehouseLocations(product?.ORGANIZADOR);
+            return locations.length ? locations.map(location=>`${warehouseLocationDescription(location)} · Nivel ${warehouseRackLevel(location.rack)}`).join(' + ') : 'Ubicación no disponible en el plano';
+        }
+        function warehouseLevelPreview(location) {
+            if (!location) return '<p class="dashboard-meta">Ubicación no disponible en el plano.</p>';
+            const activeLevel=warehouseRackLevel(location.rack), shelfStart=warehouseShelfRackStart(location.rack), levels=Array.from({length:4},(_,index)=>index+1);
+            return `<p class="text-xs font-black tracking-widest text-slate-500 uppercase">Niveles de estantería</p><div class="warehouse-level-rack">${levels.map(level=>{ const rack=shelfStart+level-1, rackCode=`${location.aisle},${rack}`, materialCount=rackProducts(rackCode).length; return `<button type="button" class="warehouse-level${level===activeLevel?' is-active':''}" data-level-rack="${rackCode}" onclick="selectWarehouseRack('${rackCode}')" aria-pressed="${level===activeLevel}" aria-label="Nivel ${level} · Rack ${rack}. ${materialCount} materiales asociados."><span class="warehouse-level-number">Nivel ${level}</span><span class="warehouse-level-surface"><strong>Rack ${rack}</strong><small>${materialCount} material${materialCount===1?'':'es'}</small></span></button>`; }).join('')}</div><p class="dashboard-meta">Nivel ${activeLevel} · ${warehouseShelfLabel(location.aisle, location.rack)} · Rack ${location.rack}</p>`;
         }
         function selectWarehouseRack(rack) { dashboardState.layoutRack=rack; renderWarehouseLayout(null); }
         function renderWarehouseLayout(productKey = dashboardState.selected) {
             const container=document.getElementById('warehouseLayoutMap');
             if (!container) return;
             const selectedProduct=dbProducts.find(product=>product.KEY===productKey);
-            const productRack=locationToRack(selectedProduct?.ORGANIZADOR);
-            if (productRack) dashboardState.layoutRack=productRack;
+            const productRacks=locationToRacks(selectedProduct?.ORGANIZADOR);
+            if (selectedProduct) dashboardState.layoutRack=productRacks[0] || '';
+            const activeRackCodes=new Set(selectedProduct?productRacks:(dashboardState.layoutRack?[dashboardState.layoutRack]:[]));
             container.innerHTML=MAP_HTML_STRUCTURE;
             container.querySelectorAll('[data-rack]').forEach(rack=>{
-                const code=rack.dataset.rack, products=rackProducts(code), status=rackStatus(products);
+                const code=rack.dataset.rack, products=rackProducts(code), location=parseWarehouseLocation(code);
                 rack.dataset.layoutRack=code;
-                rack.classList.add(`rack-status-${status}`);
-                rack.setAttribute('role','button'); rack.setAttribute('tabindex','0');
-                rack.setAttribute('aria-label',`${code}: ${products.length} materiales, ${status==='empty'?'sin stock':status==='low'?'stock bajo':status==='normal'?'con stock':'sin información'}`);
+                rack.setAttribute('aria-label',`${location?.label}: ${products.length} materiales asociados.`);
                 rack.addEventListener('click',()=>selectWarehouseRack(code));
-                rack.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();selectWarehouseRack(code);}});
-                if (code===dashboardState.layoutRack) rack.classList.add('rk-active');
+                if (activeRackCodes.has(code)) rack.classList.add('rk-active');
             });
             const rack=dashboardState.layoutRack, products=rackProducts(rack);
-            const title=document.getElementById('warehouseRackTitle'), status=document.getElementById('warehouseRackStatus'), list=document.getElementById('warehouseRackMaterials'), hint=document.getElementById('warehouseLayoutHint');
+            const location=parseWarehouseLocation(rack), title=document.getElementById('warehouseRackTitle'), status=document.getElementById('warehouseRackStatus'), levels=document.getElementById('warehouseRackLevels'), list=document.getElementById('warehouseRackMaterials'), hint=document.getElementById('warehouseLayoutHint'), selection=document.getElementById('warehouseLayoutSelection');
             if (!rack) {
-                title.textContent='Selecciona un rack'; status.textContent=selectedProduct?'La ubicación de este material no coincide con un rack reconocido.':'Elige una estantería desde el plano.';
-                list.innerHTML='<h4 class="font-black text-[#172033]">Materiales en esta estantería</h4><p class="dashboard-meta mt-2">Aún no hay una estantería seleccionada.</p>';
-                hint.textContent=selectedProduct?'No se reconoció la ubicación del material seleccionado.':'Selecciona una estantería del plano para ver sus materiales.';
+                title.textContent='Ubicación no disponible'; status.textContent=selectedProduct?'El material seleccionado no tiene una ubicación confirmada en el plano.':'Selecciona uno de los racks habilitados del plano.'; levels.innerHTML=warehouseLevelPreview(null);
+                list.innerHTML='<h4 class="font-black text-[#172033]">Materiales asociados</h4><p class="dashboard-meta mt-2">Aún no hay un rack seleccionado.</p>';
+                hint.textContent=selectedProduct?'Ubicación no disponible: no se resalta ningún rack.':'Selecciona un rack habilitado del plano para ver sus materiales.';
+                if (selection) selection.textContent=selectedProduct?`${selectedProduct.NOMBRE} · ubicación no disponible.`:'Consulta física de racks. La ubicación activa se ilumina en naranja.';
                 return;
             }
-            const state=rackStatus(products), stateText={empty:'Contiene materiales sin stock',low:'Contiene materiales con stock bajo',normal:'Materiales con stock disponible',unknown:'Sin materiales asociados'}[state];
-            title.textContent=`Rack ${rack}`; status.textContent=`${stateText} · ${products.length} materiales asociados.`;
-            hint.textContent=selectedProduct&&productRack===rack?`${selectedProduct.NOMBRE} está destacado en ${rack}.`:`Rack ${rack} seleccionado.`;
-            list.innerHTML=`<h4 class="font-black text-[#172033]">Materiales en esta estantería</h4>${products.length?products.sort((a,b)=>a.NOMBRE.localeCompare(b.NOMBRE,'es')).map(product=>`<button class="dash-row mt-2" onclick="mostrarDetalleDesdeLayout('${esc(product.KEY)}')"><span><strong>${esc(product.NOMBRE)}</strong><small>${esc(product.CODIGO)} · ${esc(product.CATEGORIA)}</small></span><span class="dash-badge ${product.STOCK!==null&&product.STOCK<=0?'empty':DtxData.low(product)?'low':''}">${fmt(product.STOCK)} ${esc(product.UNIDAD)}</span></button>`).join(''):'<p class="dashboard-meta mt-2">No hay materiales asociados a esta estantería en el Excel.</p>'}`;
+            title.textContent=location.label; status.textContent=`${warehouseShelfLabel(location.aisle, location.rack)} · Nivel ${warehouseRackLevel(location.rack)} · ${products.length} material${products.length===1?'':'es'} asociado${products.length===1?'':'s'}.`; levels.innerHTML=warehouseLevelPreview(location);
+            hint.textContent=selectedProduct&&productRacks.includes(rack)?`${selectedProduct.NOMBRE} está destacado en ${productRacks.length} rack${productRacks.length===1?'':'s'}. ${warehouseRouteInstruction(parseWarehouseLocations(selectedProduct.ORGANIZADOR))}`:`${warehouseRouteInstruction([location])}`;
+            if (selection) selection.textContent=selectedProduct&&productRacks.includes(rack)?`${selectedProduct.NOMBRE} · ${parseWarehouseLocations(selectedProduct.ORGANIZADOR).map(warehouseLocationDescription).join(' + ')}`:`Consulta física · ${warehouseLocationDescription(location)}`;
+            list.innerHTML=`<h4 class="font-black text-[#172033]">Materiales en Rack ${location.rack}</h4>${products.length?products.sort((a,b)=>a.NOMBRE.localeCompare(b.NOMBRE,'es')).map(product=>`<button class="dash-row mt-2${product.KEY===selectedProduct?.KEY?' warehouse-material-selected':''}" onclick="mostrarDetalleDesdeLayout('${esc(product.KEY)}')"><span><strong>${esc(product.NOMBRE)}</strong><small>${esc(product.CODIGO)} · ${esc(product.CATEGORIA)}<br><span class="warehouse-material-location">Ubicación: ${esc(warehouseProductLocation(product))}</span></small></span><span class="warehouse-material-meta"><span class="warehouse-stock">Stock: ${fmt(product.STOCK)} ${esc(product.UNIDAD)}</span><span class="text-xs font-black text-orange-700">Ver ficha</span></span></button>`).join(''):'<p class="dashboard-meta mt-2">No hay materiales asociados a este rack en el Excel.</p>'}`;
         }
         function mostrarDetalleDesdeLayout(productKey) { dashboardState.selected=productKey; setView('dashboard'); renderDashboard(); window.requestAnimationFrame(()=>mostrarDetalleDashboard(productKey)); }
         function openWarehouseLayout(productKey = dashboardState.selected) { if(productKey) dashboardState.selected=String(productKey); setView('layout'); renderWarehouseLayout(); }
