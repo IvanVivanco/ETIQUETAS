@@ -331,13 +331,12 @@
         @keyframes qrScanLine { from { transform: translateY(0); opacity: 0; } 18% { opacity: 1; } to { transform: translateY(460%); opacity: 0; } }
         @keyframes qrResultReveal { from { transform: translateY(12px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         @media (prefers-reduced-motion: reduce) { #modalProductDetail.qr-scan-entry > div::after, #modalProductDetail.qr-scan-entry #mdlName, #modalProductDetail.qr-scan-entry #mdlStock, #modalProductDetail.qr-scan-entry #mdlOrg, .warehouse-rack-module.rk-active { animation: none; } }
-        .qr-movement-card { min-height:142px; transition:transform .18s var(--motion-ease), border-color .18s ease, background-color .18s ease, box-shadow .18s ease; }
-        .qr-movement-card:hover { transform:translateY(-2px); box-shadow:0 8px 18px rgba(15,23,42,.08); }
-        .qr-movement-card:focus-visible { outline:3px solid #f26522; outline-offset:2px; }
-        .qr-movement-card[aria-pressed="true"][data-qr-movement-tab="in"] { border-color:#86efac; background:#f0fdf4; box-shadow:0 7px 16px rgba(22,163,74,.10); }
-        .qr-movement-card[aria-pressed="true"][data-qr-movement-tab="out"] { border-color:#fca5a5; background:#fef2f2; box-shadow:0 7px 16px rgba(239,68,68,.10); }
-        .qr-movement-card[aria-pressed="true"][data-qr-movement-tab="latest"] { border-color:#93c5fd; background:#eff6ff; box-shadow:0 7px 16px rgba(37,99,235,.10); }
-        @media (prefers-reduced-motion: reduce) { .qr-movement-card { transition:none; } .qr-movement-card:hover { transform:none; } }
+        .qr-movement-tab { transition:transform .18s var(--motion-ease), border-color .18s ease, background-color .18s ease, box-shadow .18s ease; }
+        .qr-movement-tab:hover { transform:translateY(-1px); box-shadow:0 6px 14px rgba(15,23,42,.07); }
+        .qr-movement-tab:focus-visible { outline:3px solid #f26522; outline-offset:2px; }
+        .qr-movement-tab[aria-pressed="true"][data-qr-movement-tab="in"] { border-color:#86efac; background:#f0fdf4; box-shadow:0 6px 14px rgba(22,163,74,.10); }
+        .qr-movement-tab[aria-pressed="true"][data-qr-movement-tab="out"] { border-color:#fca5a5; background:#fef2f2; box-shadow:0 6px 14px rgba(239,68,68,.10); }
+        @media (prefers-reduced-motion: reduce) { .qr-movement-tab { transition:none; } .qr-movement-tab:hover { transform:none; } }
         /* Movimiento DTX: breve, sin modificar las etiquetas imprimibles. */
         :root { --motion-ease: cubic-bezier(.22, 1, .36, 1); }
         @keyframes dtxEnter { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -630,36 +629,38 @@
 
     <!-- MODAL DETALLE PRODUCTO -->
     <div id="modalProductDetail" class="fixed inset-0 bg-white sm:bg-black/60 hidden items-stretch sm:items-center justify-center z-[3000] sm:p-4 sm:backdrop-blur-sm">
-        <div class="bg-white w-full sm:max-w-md h-full sm:h-auto sm:max-h-[90vh] rounded-none sm:rounded-3xl shadow-none sm:shadow-2xl flex flex-col relative modal-slide-up overflow-hidden">
+        <div class="bg-white w-full sm:max-w-5xl h-full sm:h-auto sm:max-h-[90vh] rounded-none sm:rounded-3xl shadow-none sm:shadow-2xl flex flex-col relative modal-slide-up overflow-hidden">
             <div class="flex items-center gap-3 w-full px-6 py-4 border-b border-slate-100 bg-white shrink-0">
                 <button onclick="cerrarModalProducto()" class="w-10 h-10 text-[#172033] hover:text-orange-600 text-xl"><i class="fa-solid fa-arrow-left"></i></button>
                 <img src="logo.png" alt="DETECO" class="h-10 w-10 object-contain"><span class="font-black text-xl text-[#172033]">DTX <span class="text-orange-600">BODEGA</span></span>
             </div>
 
-            <div class="flex-1 overflow-y-auto px-5 py-6 pb-24 bg-[#f6f7f9]">
+            <div class="flex-1 overflow-y-auto px-5 py-6 pb-24 bg-[#f6f7f9]"><div class="qr-result-grid lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(360px,0.9fr)] lg:gap-x-5 lg:gap-y-4">
                 <h2 class="text-2xl font-black text-[#172033] mb-5">Resultado del escaneo</h2>
-                <section class="border-2 border-orange-500 rounded-3xl bg-[#fffaf6] p-5 mb-4">
+                <section class="border-2 border-orange-500 rounded-3xl bg-[#fffaf6] p-5 mb-4 lg:col-start-1">
                     <span class="inline-flex rounded-xl border border-orange-300 bg-white px-3 py-1 text-xs font-black tracking-widest text-orange-600">CÓDIGO: <span id="mdlCode" class="ml-1"></span></span>
                     <div class="grid grid-cols-[1fr_auto] gap-4 items-end mt-5"><div><h3 id="mdlName" class="text-3xl leading-none font-black uppercase text-[#172033] break-words"></h3><p class="text-xs font-black text-slate-500 uppercase tracking-widest mt-4">Categoría</p><p id="mdlFamily" class="text-xl font-black text-[#172033] uppercase"></p></div><div class="min-w-28 rounded-3xl bg-white border border-slate-200 text-center p-3"><p class="text-sm font-bold text-green-600">Stock actual</p><p id="mdlStock" class="text-5xl leading-none font-black text-green-500 mt-2">0</p><p id="mdlUnidad" class="text-xl font-black text-green-600 uppercase mt-1">UND</p></div></div>
                 </section>
 
-                <section class="grid grid-cols-3 gap-2 mb-4" aria-label="Accesos al historial del material"><button type="button" id="mdlCardIn" data-qr-movement-tab="in" aria-pressed="false" onclick="selectQrMovementPanel('in')" class="qr-movement-card bg-white border border-slate-200 rounded-2xl p-3 text-center"><i class="fa-solid fa-arrow-down text-green-500"></i><p class="font-bold text-sm mt-2">Entradas</p><p id="mdlTotalIn" class="text-3xl font-black text-green-500"></p><span class="mt-2 block text-[10px] font-bold text-slate-400">Ver detalle</span></button><button type="button" id="mdlCardOut" data-qr-movement-tab="out" aria-pressed="false" onclick="selectQrMovementPanel('out')" class="qr-movement-card bg-white border border-slate-200 rounded-2xl p-3 text-center"><i class="fa-solid fa-arrow-up text-red-500"></i><p class="font-bold text-sm mt-2">Salidas</p><p id="mdlTotalOut" class="text-3xl font-black text-red-500"></p><span class="mt-2 block text-[10px] font-bold text-slate-400">Ver detalle</span></button><button type="button" id="mdlCardLatest" data-qr-movement-tab="latest" aria-pressed="false" onclick="selectQrMovementPanel('latest')" class="qr-movement-card bg-white border border-slate-200 rounded-2xl p-3 text-center"><i class="fa-regular fa-clock text-blue-600"></i><p class="font-bold text-sm mt-2">Último mov.</p><p id="mdlLastMove" class="text-xs font-black text-blue-600 mt-2">Sin datos</p><span class="mt-2 block text-[10px] font-bold text-slate-400">Ver detalle</span></button></section>
+                <section id="qrLocationCard" class="bg-white border border-slate-200 rounded-2xl p-4 mb-4 lg:col-start-1"><p class="text-xs font-black tracking-widest text-slate-500 uppercase">Ubicación actual</p><div class="mt-3 flex items-center justify-between gap-3"><i class="fa-solid fa-location-dot text-3xl text-orange-500"></i><div class="min-w-0 flex-1"><p id="mdlOrg" class="text-lg font-black leading-6 text-[#172033]"></p><p id="mdlLocationGuide" class="mt-1 text-xs font-semibold leading-5 text-slate-500"></p></div><button id="btnVerMapa" onclick="verUbicacionMapa()" aria-expanded="false" class="shrink-0 text-sm font-black text-orange-600 underline decoration-orange-300 underline-offset-4"><i id="iconVerMapa" class="fa-regular fa-map mr-1"></i><span id="textoVerMapa">Ver mapa</span></button></div></section>
 
-                <section id="panelMovimientos" class="hidden w-full bg-white border border-slate-200 rounded-2xl mb-4 p-4" aria-live="polite"><div class="flex items-start justify-between gap-3 mb-3"><div><p id="lblResumenMes" class="text-[10px] font-black text-slate-500 uppercase tracking-widest"></p><h4 id="qrMovementPanelTitle" class="mt-1 text-base font-black text-[#172033]"></h4></div><button type="button" onclick="closeQrMovementPanel()" class="shrink-0 rounded-lg px-2 py-1 text-xs font-black text-orange-600 hover:bg-orange-50">Cerrar</button></div><div id="qrMovementPanelContent" class="space-y-2"></div></section>
+                <div id="mdlMapContainer" class="hidden relative w-full aspect-[4/3] mb-4 map-grid-bg rounded-2xl border border-slate-200 overflow-hidden lg:col-start-2 lg:row-start-2 lg:row-span-5 lg:mb-0 lg:aspect-auto lg:min-h-[430px]"></div>
 
-                <section class="bg-white border border-slate-200 rounded-2xl p-4 mb-4"><p class="text-xs font-black tracking-widest text-slate-500 uppercase">Ubicación actual</p><p id="mdlOrg" class="text-lg font-black leading-6 text-[#172033] mt-2"></p><p id="mdlLocationGuide" class="mt-2 text-xs font-semibold leading-5 text-slate-500"></p><div id="mdlMapContainer" class="hidden relative w-full aspect-[4/3] mt-4 map-grid-bg rounded-xl border border-slate-200 overflow-hidden"></div><button id="btnVerMapa" onclick="verUbicacionMapa()" class="w-full mt-4 rounded-xl border-2 border-orange-300 bg-orange-50 py-3 text-orange-600 font-black transition-all duration-200 hover:-translate-y-0.5 hover:bg-orange-100 hover:shadow-lg hover:shadow-orange-100 active:translate-y-0 active:scale-[0.98]"><i id="iconVerMapa" class="fa-regular fa-map mr-2"></i><span id="textoVerMapa">Ver mapa</span></button></section>
-
-                <div id="productPdfActions" class="w-full mt-4 overflow-hidden rounded-2xl bg-gradient-to-r from-orange-600 to-orange-500 p-1 shadow-lg shadow-orange-200 transition-transform duration-200 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99]">
-                    <div class="grid grid-cols-2 gap-px overflow-hidden rounded-xl bg-orange-400">
-                        <button id="btnVerFicha" onclick="abrirFichaActual()" class="bg-orange-600 px-3 py-4 text-sm font-black text-white transition-colors duration-200 hover:bg-orange-700 active:bg-orange-800 flex justify-center items-center gap-2">
-                            <i class="fa-solid fa-eye"></i><span>Ver ficha</span>
+                <div id="productPdfActions" class="w-full overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-transform duration-200 hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:scale-[0.99] lg:col-start-1">
+                    <div class="grid grid-cols-2 gap-px overflow-hidden rounded-xl bg-slate-200">
+                        <button id="btnVerFicha" onclick="abrirFichaActual()" class="bg-white px-3 py-3.5 text-sm font-black text-[#172033] transition-colors duration-200 hover:bg-orange-50 flex justify-center items-center gap-2">
+                            <i class="fa-solid fa-eye text-orange-500"></i><span>Ver ficha</span>
                         </button>
-                        <a id="btnDescargarFichaProducto" href="#" target="_blank" download class="bg-orange-500 px-3 py-4 text-sm font-black text-white transition-colors duration-200 hover:bg-orange-600 active:bg-orange-700 flex justify-center items-center gap-2">
-                            <i class="fa-solid fa-download"></i><span>Descargar</span>
+                        <a id="btnDescargarFichaProducto" href="#" target="_blank" download class="bg-white px-3 py-3.5 text-sm font-black text-[#172033] transition-colors duration-200 hover:bg-orange-50 flex justify-center items-center gap-2">
+                            <i class="fa-solid fa-download text-orange-500"></i><span>Descargar</span>
                         </a>
                     </div>
                 </div>
-                <div id="noFichaAlert" class="text-center text-xs text-gray-400 mt-2 hidden">Ficha técnica no disponible</div>
+                <div id="noFichaAlert" class="text-center text-xs text-gray-400 hidden lg:col-start-1">Ficha técnica no disponible</div>
+
+                <button type="button" id="btnQrMovements" onclick="toggleQrMovements()" aria-expanded="false" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-4 text-left font-black text-[#172033] transition-colors hover:bg-slate-50 lg:col-start-1"><span class="flex items-center justify-between gap-3"><span><i class="fa-solid fa-chart-column mr-2 text-orange-500"></i>Movimientos <span id="mdlMovementCount"></span></span><i id="iconQrMovements" class="fa-solid fa-chevron-down text-sm text-[#172033]"></i></span></button>
+                <section id="panelMovimientos" class="hidden w-full bg-white border border-slate-200 rounded-2xl p-4 lg:col-start-1" aria-live="polite"><div class="flex items-start justify-between gap-3 mb-3"><div><p id="lblResumenMes" class="text-[10px] font-black text-slate-500 uppercase tracking-widest"></p><h4 id="qrMovementPanelTitle" class="mt-1 text-base font-black text-[#172033]">Movimientos del material</h4></div><button type="button" onclick="closeQrMovementPanel()" class="shrink-0 rounded-lg px-2 py-1 text-xs font-black text-orange-600 hover:bg-orange-50">Cerrar</button></div><div class="grid grid-cols-2 gap-2 mb-3"><button type="button" data-qr-movement-tab="in" aria-pressed="false" onclick="selectQrMovementPanel('in')" class="qr-movement-tab rounded-xl border border-slate-200 bg-white p-3 text-left text-sm font-black text-[#172033]"><i class="fa-solid fa-arrow-down mr-1 text-green-500"></i>Entradas <span id="mdlTotalIn" class="block mt-1 text-xs text-green-600"></span></button><button type="button" data-qr-movement-tab="out" aria-pressed="false" onclick="selectQrMovementPanel('out')" class="qr-movement-tab rounded-xl border border-slate-200 bg-white p-3 text-left text-sm font-black text-[#172033]"><i class="fa-solid fa-arrow-up mr-1 text-red-500"></i>Salidas <span id="mdlTotalOut" class="block mt-1 text-xs text-red-600"></span></button></div><div id="qrMovementPanelContent" class="space-y-2"></div></section>
+            </div></div>
             </div>
         </div>
     </div>
@@ -1419,10 +1420,7 @@
             document.getElementById('mdlTotalIn').innerText = qrQuantity(qrSummary.in);
             document.getElementById('mdlTotalOut').innerText = qrQuantity(qrSummary.out);
             const movimientosProducto = dbMovements.filter(m=>m.code===prod.KEY&&DtxData.inRange(m.date,DtxData.range('all')));
-            const ultimoMovimiento = movimientosProducto[0];
-            document.getElementById('mdlLastMove').innerText = ultimoMovimiento
-                ? ultimoMovimiento.date.toLocaleDateString('es-CL', { day: '2-digit', month: 'short' })
-                : 'Sin datos';
+            document.getElementById('mdlMovementCount').innerText = `· ${fmt(movimientosProducto.length)}`;
 
             // Fecha dinámica para el mes en curso
             const meses = ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
@@ -1436,6 +1434,8 @@
                 document.getElementById('qrMovementPanelTitle').innerText='';
                 document.getElementById('qrMovementPanelContent').innerHTML='';
                 mostrarPanelSuave(document.getElementById('panelMovimientos'), false);
+                document.getElementById('btnQrMovements').setAttribute('aria-expanded', 'false');
+                document.getElementById('iconQrMovements').className = 'fa-solid fa-chevron-down text-sm text-[#172033]';
                 mostrarPanelSuave(document.getElementById('mdlMapContainer'), false);
                 document.getElementById('textoVerMapa').innerText = 'Ver mapa';
                 document.getElementById('iconVerMapa').className = 'fa-regular fa-map mr-2';
@@ -1466,6 +1466,7 @@
             }
 
             modal.classList.remove('hidden'); modal.classList.add('flex');
+            if (isNewQrProduct && window.matchMedia('(min-width: 1024px)').matches) verUbicacionMapa();
         }
 
         function cerrarModalProducto() {
@@ -1518,18 +1519,29 @@
 
         function selectQrMovementPanel(tab) {
             const panel=document.getElementById('panelMovimientos');
-            const closing=window.qrMovementPanelTab===tab&&panel.dataset.open==='true';
-            if (closing) return closeQrMovementPanel();
             window.qrMovementPanelTab=tab;
             renderQrMovementPanel(tab);
             document.querySelectorAll('[data-qr-movement-tab]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.qrMovementTab===tab)));
             mostrarPanelSuave(panel,true);
+            document.getElementById('btnQrMovements').setAttribute('aria-expanded','true');
+            document.getElementById('iconQrMovements').className='fa-solid fa-chevron-up text-sm text-[#172033]';
+        }
+
+        function toggleQrMovements() {
+            const panel=document.getElementById('panelMovimientos');
+            if (panel.dataset.open==='true') return closeQrMovementPanel();
+            const product=window.currentProd;
+            const records=product?dbMovements.filter(m=>m.code===product.KEY&&DtxData.inRange(m.date,DtxData.range('all'))):[];
+            const defaultTab=window.qrMovementPanelTab||(records.some(m=>m.type==='salida')?'out':'in');
+            selectQrMovementPanel(defaultTab);
         }
 
         function closeQrMovementPanel() {
             window.qrMovementPanelTab='';
             document.querySelectorAll('[data-qr-movement-tab]').forEach(button=>button.setAttribute('aria-pressed','false'));
             mostrarPanelSuave(document.getElementById('panelMovimientos'),false);
+            document.getElementById('btnQrMovements').setAttribute('aria-expanded','false');
+            document.getElementById('iconQrMovements').className='fa-solid fa-chevron-down text-sm text-[#172033]';
         }
 
         function qrMovementRecord(movement) {
