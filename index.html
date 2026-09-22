@@ -281,19 +281,19 @@
         .warehouse-p3-p4-shelves { top:27%; height:15%; grid-template-columns:repeat(2,minmax(0,1fr)); }
         .warehouse-p4-p1-shelves { top:53%; height:15%; grid-template-columns:repeat(2,minmax(0,1fr)); }
         .warehouse-p1-shelves { top:82%; height:10%; grid-template-columns:repeat(3,minmax(0,1fr)); }
-        .warehouse-shelf { min-width:0; height:100%; padding:3px; border:1px solid #475569; border-radius:6px; background:rgba(255,255,255,.94); box-shadow:0 2px 4px rgba(23,32,51,.07); }
+        .warehouse-shelf { min-width:0; height:100%; padding:4px; border:2px solid #3f3f46; border-radius:6px; background:rgba(255,255,255,.96); box-shadow:0 2px 5px rgba(23,32,51,.09); }
         .warehouse-face { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:3px; width:100%; height:100%; min-height:0; }
         .warehouse-shelf-shared { display:grid; grid-template-rows:minmax(0,1fr) 1px minmax(0,1fr); gap:3px; }
         .warehouse-shared-divider { background:#94a3b8; opacity:.65; border-radius:999px; }
-        .warehouse-rack-module { display:block; position:relative; width:100%; min-width:0; min-height:0; margin:0; padding:0; border:1px solid #475569; border-radius:3px; background:linear-gradient(180deg,#e2e8f0,#cbd5e1); box-shadow:inset 0 1px rgba(255,255,255,.75); transition:background-color .18s ease,box-shadow .18s ease,border-color .18s ease; }
+        .warehouse-rack-module { display:block; position:relative; width:100%; min-width:0; min-height:0; margin:0; padding:0; border:2px solid #3f3f46; border-radius:2px; background:linear-gradient(145deg,#f1f1f1,#d6d6d6); box-shadow:inset 0 1px rgba(255,255,255,.8); transition:background-color .18s ease,box-shadow .18s ease,border-color .18s ease; }
         button.warehouse-rack-module { cursor:pointer; }
         .warehouse-rack-static { pointer-events:none; }
         .warehouse-rack-index { display:grid; place-items:center; width:100%; height:100%; color:#64748b; font-size:clamp(7px,1.1vw,11px); font-weight:900; line-height:1; }
         .warehouse-rack-module.rk-active { background:#F26522 !important; border-color:#c2410c !important; box-shadow:0 0 0 2px rgba(242,101,34,.22),0 4px 10px rgba(194,65,12,.18); z-index:4; }
         .warehouse-rack-module.rk-active .warehouse-rack-index { color:#fff; }
-        .warehouse-rack-module.rk-active::after { content:attr(data-route-short); position:absolute; left:50%; top:-18px; transform:translateX(-50%); padding:2px 5px; border-radius:4px; background:#172033; color:#fff; font-size:8px; font-weight:900; line-height:1; white-space:nowrap; }
+        .warehouse-rack-module.rk-active::after { content:attr(data-route-short); position:absolute; left:50%; top:-20px; transform:translateX(-50%); padding:3px 6px; border-radius:4px; background:#F26522; color:#fff; font-size:8px; font-weight:900; line-height:1; white-space:nowrap; box-shadow:0 3px 7px rgba(194,65,12,.22); }
         .warehouse-rack-module:focus-visible { outline:3px solid #F26522; outline-offset:2px; }
-        .warehouse-aisle-label { position:absolute; z-index:3; color:#ea580c; background:rgba(255,255,255,.95); border:1px solid #fed7aa; border-radius:999px; padding:3px 8px; font-size:clamp(7px,1.2vw,12px); font-weight:900; letter-spacing:.06em; line-height:1.1; box-shadow:0 2px 6px rgba(23,32,51,.08); }
+        .warehouse-aisle-label { position:absolute; z-index:3; color:#3f3f46; background:rgba(255,255,255,.88); border:0; border-radius:3px; padding:3px 8px; font-size:clamp(7px,1.2vw,12px); font-weight:900; letter-spacing:.04em; line-height:1.1; }
         .warehouse-aisle-label.top { top:19%; left:45%; transform:translateX(-50%); }
         .warehouse-aisle-label.middle { top:45%; left:45%; transform:translateX(-50%); }
         .warehouse-aisle-label.bottom { top:73%; bottom:auto; left:45%; transform:translateX(-50%); }
@@ -302,20 +302,29 @@
         .warehouse-p2-shelves .warehouse-face { grid-template-columns:1fr; grid-template-rows:repeat(4,minmax(0,1fr)); }
         .warehouse-layout-shell { width:100%; max-width:1360px; padding:28px; margin:auto; color:#172033; }
         .warehouse-layout-grid { display:grid; grid-template-columns:minmax(0,1fr) 320px; gap:20px; align-items:start; }
-        .warehouse-layout-map { height:clamp(300px,min(56vw,calc(100dvh - 255px)),680px); aspect-ratio:auto; }
+        .warehouse-layout-map { height:clamp(300px,min(56vw,calc(100dvh - 255px)),680px); aspect-ratio:auto; border:4px solid #3f3f46; border-radius:14px; box-shadow:0 8px 20px rgba(15,23,42,.08); }
         .warehouse-layout-map [data-layout-rack] { cursor:pointer; }
-        .warehouse-location-card { background:#f8fafc; border:1px solid #e2e8f0; border-radius:14px; padding:14px; }
-        .warehouse-level-rack { display:grid; gap:6px; margin:14px 0 16px; }
-        .warehouse-level { display:grid; grid-template-columns:50px minmax(0,1fr); align-items:center; gap:8px; width:100%; min-height:36px; padding:0; border:0; background:transparent; text-align:left; cursor:pointer; }
-        .warehouse-level-number { color:#64748b; font-size:11px; font-weight:900; text-align:center; }
-        .warehouse-level-surface { display:flex; align-items:center; justify-content:space-between; gap:8px; min-height:36px; padding:0 10px; border:1px solid #475569; border-radius:6px; background:linear-gradient(180deg,#e2e8f0,#cbd5e1); box-shadow:inset 0 1px rgba(255,255,255,.75); }
-        .warehouse-level-surface strong { color:#334155; font-size:11px; font-weight:900; }
-        .warehouse-level-surface small { color:#64748b; font-size:10px; font-weight:700; }
-        .warehouse-level:hover .warehouse-level-surface { border-color:#F26522; box-shadow:0 0 0 2px rgba(242,101,34,.12); }
-        .warehouse-level:focus-visible { outline:3px solid #F26522; outline-offset:2px; border-radius:8px; }
-        .warehouse-level.is-active .warehouse-level-number { color:#c2410c; }
-        .warehouse-level.is-active .warehouse-level-surface { background:#F26522; border-color:#c2410c; box-shadow:0 0 0 2px rgba(242,101,34,.14); }
-        .warehouse-level.is-active .warehouse-level-surface strong, .warehouse-level.is-active .warehouse-level-surface small { color:#fff; }
+        .warehouse-layout-card { border-color:#e5e7eb; box-shadow:0 8px 20px rgba(15,23,42,.04); }
+        .warehouse-layout-details { border-color:#e5e7eb; box-shadow:0 8px 20px rgba(15,23,42,.05); }
+        .warehouse-layout-details > .warehouse-side-eyebrow { color:#ea580c; border-bottom:1px solid #fdba74; padding-bottom:10px; }
+        .warehouse-selection-title { display:flex; align-items:center; gap:10px; }
+        .warehouse-selection-title i { color:#F26522; font-size:25px; }
+        .warehouse-location-card { background:#fff; border:0; border-radius:0; padding:16px 0 0; }
+        .warehouse-rack-preview { display:grid; grid-template-columns:42px minmax(0,1fr); gap:10px; align-items:stretch; margin:12px 0 14px; }
+        .warehouse-rack-timeline { position:relative; display:grid; grid-template-rows:repeat(4,minmax(0,1fr)); min-height:176px; padding:7px 0; }
+        .warehouse-rack-timeline::before { content:''; position:absolute; top:20px; bottom:20px; right:4px; width:2px; background:#cbd5e1; }
+        .warehouse-rack-timeline-step { position:relative; z-index:1; display:grid; grid-template-columns:1fr 12px; align-items:center; gap:4px; color:#3f3f46; font-size:13px; font-weight:900; }
+        .warehouse-rack-timeline-step::after { content:''; width:12px; height:12px; border-radius:50%; background:#cbd5e1; }
+        .warehouse-rack-timeline-step.is-active { color:#ea580c; }
+        .warehouse-rack-timeline-step.is-active::after { background:#F26522; box-shadow:0 0 0 3px #ffedd5; }
+        .warehouse-rack-frame { display:grid; grid-template-rows:repeat(4,minmax(0,1fr)); gap:7px; min-height:176px; padding:11px; border:4px solid #52525b; border-radius:3px; background:linear-gradient(180deg,#fafafa,#f3f4f6); box-shadow:inset 0 1px rgba(255,255,255,.8); }
+        .warehouse-rack-tier { display:flex; align-items:center; justify-content:space-between; gap:8px; width:100%; border:2px solid #52525b; border-radius:3px; padding:0 9px; background:linear-gradient(145deg,#f3f4f6,#d4d4d8); color:#334155; text-align:left; cursor:pointer; transition:background .18s ease,border-color .18s ease,box-shadow .18s ease; }
+        .warehouse-rack-tier:hover { border-color:#F26522; box-shadow:0 0 0 2px rgba(242,101,34,.12); }
+        .warehouse-rack-tier:focus-visible { outline:3px solid #F26522; outline-offset:2px; }
+        .warehouse-rack-tier strong { font-size:11px; font-weight:900; }
+        .warehouse-rack-tier small { color:#64748b; font-size:10px; font-weight:700; }
+        .warehouse-rack-tier.is-active { background:#F26522; border-color:#c2410c; box-shadow:0 3px 8px rgba(194,65,12,.18); }
+        .warehouse-rack-tier.is-active strong, .warehouse-rack-tier.is-active small { color:#fff; }
         .warehouse-material-selected { border-left:3px solid #F26522; background:#fff7ed; }
         .warehouse-material-meta { display:grid; justify-items:end; gap:5px; }
         .warehouse-stock { color:#334155; font-size:11px; font-weight:900; white-space:nowrap; }
@@ -976,8 +985,8 @@
                         <button onclick="setView('dashboard')" class="ios-btn btn-active-tab"><i class="fa-solid fa-arrow-left"></i> Dashboard</button>
                     </div>
                     <div class="warehouse-layout-grid">
-                        <section class="dash-card p-4"><div id="warehouseLayoutMap" class="warehouse-layout-map relative w-full map-grid-bg rounded-2xl border-2 border-slate-300 overflow-hidden" aria-label="Plano interactivo de la bodega"></div><p id="warehouseLayoutHint" class="dashboard-meta mt-3">Selecciona una estantería del plano para ver sus materiales.</p></section>
-                        <aside class="dash-card p-4" aria-live="polite"><p class="text-xs font-black tracking-widest text-orange-700">UBICACIÓN SELECCIONADA</p><h3 id="warehouseRackTitle" class="mt-2 text-2xl font-black text-[#172033]">Selecciona un rack</h3><p id="warehouseRackStatus" class="dashboard-meta mt-2">El plano conserva la distribución real de cuatro pasillos.</p><div id="warehouseRackLevels" class="warehouse-location-card" aria-label="Niveles de la estantería"></div><div id="warehouseRackMaterials" class="mt-4 border-t border-slate-100 pt-3"><h4 class="font-black text-[#172033]">Materiales asociados</h4><p class="dashboard-meta mt-2">Aún no hay un rack seleccionado.</p></div></aside>
+                        <section class="dash-card warehouse-layout-card p-4"><div id="warehouseLayoutMap" class="warehouse-layout-map relative w-full map-grid-bg overflow-hidden" aria-label="Plano interactivo de la bodega"></div><p id="warehouseLayoutHint" class="dashboard-meta mt-3">Selecciona una estantería del plano para ver sus materiales.</p></section>
+                        <aside class="dash-card warehouse-layout-details p-5" aria-live="polite"><p class="warehouse-side-eyebrow text-xs font-black tracking-widest">UBICACIÓN SELECCIONADA</p><div class="warehouse-selection-title mt-4"><i class="fa-solid fa-location-dot" aria-hidden="true"></i><h3 id="warehouseRackTitle" class="text-2xl font-black text-[#172033]">Selecciona un rack</h3></div><p id="warehouseRackStatus" class="dashboard-meta mt-3">El plano conserva la distribución real de cuatro pasillos.</p><div id="warehouseRackLevels" class="warehouse-location-card" aria-label="Vista del rack"></div><div id="warehouseRackMaterials" class="mt-4 border-t border-slate-200 pt-4"><h4 class="font-black text-[#172033]">Materiales asociados</h4><p class="dashboard-meta mt-2">Aún no hay un rack seleccionado.</p></div></aside>
                     </div>
                 </div>
             </div>
@@ -2701,7 +2710,8 @@ function updateDockCompactState(forceCompact=false) {
         function warehouseLevelPreview(location) {
             if (!location) return '<p class="dashboard-meta">Ubicación no disponible en el plano.</p>';
             const activeLevel=warehouseRackLevel(location.rack), shelfStart=warehouseShelfRackStart(location.rack), levels=Array.from({length:4},(_,index)=>index+1);
-            return `<p class="text-xs font-black tracking-widest text-slate-500 uppercase">Niveles de estantería</p><div class="warehouse-level-rack">${levels.map(level=>{ const rack=shelfStart+level-1, rackCode=`${location.aisle},${rack}`, materialCount=rackProducts(rackCode).length; return `<button type="button" class="warehouse-level${level===activeLevel?' is-active':''}" data-level-rack="${rackCode}" onclick="selectWarehouseRack('${rackCode}')" aria-pressed="${level===activeLevel}" aria-label="Nivel ${level} · Rack ${rack}. ${materialCount} materiales asociados."><span class="warehouse-level-number">Nivel ${level}</span><span class="warehouse-level-surface"><strong>Rack ${rack}</strong><small>${materialCount} material${materialCount===1?'':'es'}</small></span></button>`; }).join('')}</div><p class="dashboard-meta">Nivel ${activeLevel} · ${warehouseShelfLabel(location.aisle, location.rack)} · Rack ${location.rack}</p>`;
+            const rackData=levels.map(level=>{ const rack=shelfStart+level-1, rackCode=`${location.aisle},${rack}`, materialCount=rackProducts(rackCode).length; return {level,rack,rackCode,materialCount}; });
+            return `<p class="text-xs font-black tracking-widest text-slate-600 uppercase">Vista del rack</p><div class="warehouse-rack-preview"><div class="warehouse-rack-timeline" aria-hidden="true">${rackData.map(({level})=>`<span class="warehouse-rack-timeline-step${level===activeLevel?' is-active':''}"><span>${level}</span></span>`).join('')}</div><div class="warehouse-rack-frame">${rackData.map(({level,rack,rackCode,materialCount})=>`<button type="button" class="warehouse-rack-tier${level===activeLevel?' is-active':''}" data-level-rack="${rackCode}" onclick="selectWarehouseRack('${rackCode}')" aria-pressed="${level===activeLevel}" aria-label="Nivel ${level} · Rack ${rack}. ${materialCount} materiales asociados."><strong>Rack ${rack}</strong><small>${materialCount} material${materialCount===1?'':'es'}</small></button>`).join('')}</div></div><p class="dashboard-meta">Nivel ${activeLevel} · ${warehouseShelfLabel(location.aisle, location.rack)} · Rack ${location.rack}</p>`;
         }
         function selectWarehouseRack(rack) { dashboardState.layoutRack=rack; renderWarehouseLayout(null); }
         function renderWarehouseLayout(productKey = dashboardState.selected) {
